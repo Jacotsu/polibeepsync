@@ -2,5 +2,6 @@ beautifulsoup4==4.3.2
 requests==2.3.0
 selenium==2.44.0
 behave==1.2.4
+PySide==1.2.2
 
 
