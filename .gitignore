@@ -1,1 +1,7 @@
 .venv
+.directory
+.idea/
+__pycache__/
+ghostdriver.log
+poliBeePsync.egg-info/
+
