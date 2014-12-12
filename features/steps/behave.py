@@ -1,3 +1,5 @@
+from behave import *
+
 @when('a file is not available locally')
 def step_impl(context):
     assert False

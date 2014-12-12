@@ -1,8 +1,8 @@
-from behave import *
 from os import environ
 from polibeepsync import User
-from selenium import webdriver
+from polibeepsync import InvalidLoginError
 import requests
+from behave import *
 
 @given('I have correct username and password')
 def step_impl(context):
@@ -10,10 +10,6 @@ def step_impl(context):
     password = environ["PASSWORD"]
     user = User(usercode, password)
     context.user = user
-
-@given('I\'m logged in')
-def step_impl(context):
-    assert False
 
 @given('the website is reachable')
 def step_impl(context):
@@ -31,7 +27,7 @@ def step_impl(context):
 @then("I should access the private area")
 def step_impl(context):
     context.user.login()
-    assert hasattr(context.user, "session")
+    assert context.user.logged is True
 
 @given('I have wrong username or password')
 def step_impl(context):
@@ -44,7 +40,11 @@ def step_impl(context):
 def step_impl(context):
     try:
         context.user.login()
-    except :
+    except InvalidLoginError:
         assert True
     else:
         assert False
+
+@then('logged variable is false')
+def step_impl(context):
+    assert context.user.logged is False
