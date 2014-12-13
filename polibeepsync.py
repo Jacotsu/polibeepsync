@@ -14,6 +14,9 @@ class User:
         self.password = password
         self.session = requests.Session()
         self.logged = False
+        self.subscribed_courses = []
+        self.courses_url = ""
+        self.available_courses = []
 
     def visit(self):
         """Visit the login webpage to test for working connection."""
@@ -84,11 +87,22 @@ class User:
             mainpage = self.session.get(
                 'https://beep.metid.polimi.it/polimi/login',
                 headers=main_headers)
+            self.courses_url = mainpage.url
             self.logged = True
         else:
             raise InvalidLoginError
             self.logged = False
 
-    def get_available_courses(self):
-        pass
+    def update_available_courses(self):
+        coursespage = self.session.get(self.courses_url)
+        courses_soup = BeautifulSoup(coursespage.text)
+        raw_courses = courses_soup.find_all('tr',attrs={'class':'results-row'})
+        raw_courses.pop(0)
+        for course in raw_courses:
+            link = course.td.a['href']
+            name = course.td.a.strong.text
+            self.available_courses.append({'name':name,'link':link})
+
+
+
 
