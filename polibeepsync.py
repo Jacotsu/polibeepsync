@@ -26,6 +26,19 @@ class User:
             # re-raise the exception for the moment
             raise
 
+    def get_resource(self, url):
+        """Get a page and re-login if the session is expired.
+
+        Returns: a requests.get(url) response
+        """
+        response = self.session.get(url)
+        if len(response.history) > 0:
+            # we've been redirected to the login page
+            self.session.cookies.clear()
+            self.login()
+            response = self.session.get(url)
+        return response
+
     def login(self):
         """Try logging in.
 
@@ -54,7 +67,7 @@ class User:
         login_soup = BeautifulSoup(login_response.text)
         try:
             parenttag = login_soup.find_all('table')[3]
-            errorcode = parenttag.find('td', text='\n\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tCode: 14 - Identificazione fallita\n\t\t\t\t\t\n\t\t\t\t')
+            parenttag.find('td', text='\n\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tCode: 14 - Identificazione fallita\n\t\t\t\t\t\n\t\t\t\t')
         except IndexError:
             hidden_fields = BeautifulSoup(login_response.text).find_all(
                 'input', attrs={'type': 'hidden'}
@@ -91,13 +104,21 @@ class User:
             self.logged = False
 
     def update_available_courses(self):
-        coursespage = self.session.get(self.courses_url)
+        coursespage = self.get_resource(self.courses_url)
         courses_soup = BeautifulSoup(coursespage.text)
         raw_courses = courses_soup.find_all('tr',attrs={'class':'results-row'})
         raw_courses.pop(0)
         for course in raw_courses:
-            link = course.td.a['href']
+            firstlink = course.td.a['href']
             name = course.td.a.strong.text
+            # If we follow firstlink, we will get to the course web page
+            # after two redirects. We call get_resource(), which
+            # will follow firstlink, notice the 302 redirects,
+            # therefore clear cookies and get a valid session; only
+            # at the end, it will return the response.
+            # We do this because at this point the session that was valid
+            # at the beginning of the function call may be expired by now.
+            link = self.get_resource(firstlink).url
             # prima controllare se esistono già, in tal caso solo aggiornare
             # il link
             # available_courses definirci __contains__
