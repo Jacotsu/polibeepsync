@@ -39,14 +39,11 @@ class User:
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' + \
                 lang_tag['href'])
-        ssl_jsessionid = default_lang_page.cookies['SSL_JSESSIONID']
-        # actually there is more than one ssl_jessionid, for different
-        # domains
         payload = "login=%s&password=%s" % (self.username, self.password) + \
                   '&evn_conferma%3Devento=Accedi'
         login_headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0',
-            'Cookie': "SSL_JSESSIONID=%s" % ssl_jsessionid,
+
             'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Length': len(payload),
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
@@ -101,6 +98,9 @@ class User:
         for course in raw_courses:
             link = course.td.a['href']
             name = course.td.a.strong.text
+            # prima controllare se esistono già, in tal caso solo aggiornare
+            # il link
+            # available_courses definirci __contains__
             self.available_courses.append({'name':name,'link':link})
 
 
