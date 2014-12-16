@@ -50,39 +50,47 @@ class User:
         lang_soup = BeautifulSoup(default_lang_page.text)
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
-            self.session.get('https://aunicalogin.polimi.it' + \
-                lang_tag['href'])
+            self.session.get('https://aunicalogin.polimi.it' +
+                             lang_tag['href'])
         payload = "login=%s&password=%s" % (self.username, self.password) + \
                   '&evn_conferma%3Devento=Accedi'
         login_headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0) Gecko/20100101 Firefox/34.0',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)\
+Gecko/20100101 Firefox/34.0',
 
             'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Length': len(payload),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            'Accept': 'text/html,application/xhtml+xml,\
+            application/xml;q=0.9,*/*;q=0.8'
         }
         login_response = self.session.post(
-            'https://aunicalogin.polimi.it:443/aunicalogin/aunicalogin/controller/IdentificazioneUnica.do?&jaf_currentWFID=main',
+            'https://aunicalogin.polimi.it:443/aunicalogin/\
+aunicalogin/controller/IdentificazioneUnica.do?\
+&jaf_currentWFID=main',
             data=payload, headers=login_headers)
         login_soup = BeautifulSoup(login_response.text)
         try:
             parenttag = login_soup.find_all('table')[3]
-            parenttag.find('td', text='\n\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\tCode: 14 - Identificazione fallita\n\t\t\t\t\t\n\t\t\t\t')
+            parenttag.find('td',
+                           text='\n\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\
+\t\tCode: 14 - Identificazione fallita\n\t\t\t\t\t\n\t\t\t\t')
         except IndexError:
             hidden_fields = BeautifulSoup(login_response.text).find_all(
                 'input', attrs={'type': 'hidden'}
             )
             # The SAML response wants '+' replaced by %2B
+            relay_state = hidden_fields[0].attrs['value']
+            saml_response = hidden_fields[1].attrs['value'].replace('+',
+                                                                    '%2B')
             final_request_data = "RelayState=%s&SAMLResponse=%s" % \
-                                 (hidden_fields[0].attrs['value'],
-                                  hidden_fields[1].attrs['value'].replace('+',
-                                                                          '%2B'))
+                                 (relay_state, saml_response)
             final_headers = {
-                'Cookie': "GUEST_LANGUAGE_ID=en_GB; COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
+                'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
+COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Content-Length': len(final_request_data),
             }
-            step2 = self.session.post(
+            self.session.post(
                 'https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST',
                 data=final_request_data,
                 headers=final_headers)
@@ -91,7 +99,8 @@ class User:
                 if key.startswith('_shibsession'):
                     shibsessionstr = "%s=%s" % (key, cookies[key])
             main_headers = {
-                'Cookie': "GUEST_LANGUAGE_ID=en_GB; COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
+                'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
+COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                     shibsessionstr)
             }
             mainpage = self.session.get(
@@ -106,7 +115,8 @@ class User:
     def update_available_courses(self):
         coursespage = self.get_resource(self.courses_url)
         courses_soup = BeautifulSoup(coursespage.text)
-        raw_courses = courses_soup.find_all('tr',attrs={'class':'results-row'})
+        raw_courses = courses_soup.find_all('tr',
+                                            attrs={'class': 'results-row'})
         raw_courses.pop(0)
         for course in raw_courses:
             firstlink = course.td.a['href']
@@ -122,8 +132,5 @@ class User:
             # prima controllare se esistono già, in tal caso solo aggiornare
             # il link
             # available_courses definirci __contains__
-            self.available_courses.append({'name':name,'link':link})
-
-
-
+            self.available_courses.append({'name': name, 'link': link})
 
