@@ -17,8 +17,16 @@ class GenericSet:
     def _elements_names(self):
         return [elem.name for elem in self.elements]
 
+    def __eq__(self, other):
+        this_elements = set(self.elements)
+        other_elements = set(other.elements)
+        if this_elements == other_elements:
+            return True
+        else:
+            return False
+
     def __contains__(self, key):
-        if key in self._elements_names():
+        if key.name in self._elements_names():
             return True
         else:
             return False
@@ -28,7 +36,6 @@ class GenericSet:
             for elem in self.elements:
                 if elem.name == key:
                     return elem
-                    break
         else:
             raise KeyError
 
@@ -39,12 +46,16 @@ class GenericSet:
         return list(set(self.elements) - set(other.elements))
 
     def append(self, *args):
+        print('now self.elements are {}'.format(self.elements))
         for elem in args:
-            if elem not in self.elements:
+            print('getting {}'.format(elem))
+            if not self.__contains__(elem):
                 self.elements.append(elem)
 
 class Courses(GenericSet):
-    pass
+    def __hash__(self):
+        unordered_name = self._elements_names()
+        return hash("".join(sorted(unordered_name)))
 
 
 class Course(GenericSet):
@@ -53,6 +64,12 @@ class Course(GenericSet):
         self.documents_url = documents_url
         self.sync = sync
         self.elements = []
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __repr__(self):
+        return 'Course {}'.format(self.name)
 
 class CourseFile:
     def __init__(self, name, last_online_edit_time):
@@ -187,8 +204,9 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             self.courses_url = mainpage.url
             self.logged = True
         else:
-            raise InvalidLoginError
             self.logged = False
+            raise InvalidLoginError
+            
 
     def update_available_courses(self):
         coursespage = self.get_page(self.courses_url)
