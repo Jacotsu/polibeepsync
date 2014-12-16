@@ -1,5 +1,5 @@
 from os import environ
-from polibeepsync import User
+from polibeepsync.polibeepsync import User
 from behave import *
 
 def before_scenario(context, scenario):

@@ -1,7 +1,6 @@
 from behave import *
 from os import environ
-from polibeepsync import User
-from selenium import webdriver
+from polibeepsync.polibeepsync import User
 import requests
 
 
