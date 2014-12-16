@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 py.test --cov polibeepsync polibeepsync
 pyflakes polibeepsync/*.py
 pyflakes polibeepsync/tests/*.py
