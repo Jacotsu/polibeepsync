@@ -4,4 +4,16 @@
 __pycache__/
 ghostdriver.log
 poliBeePsync.egg-info/
-
+/htmlcov/coverage_html.js
+/htmlcov/index.html
+/htmlcov/jquery.hotkeys.js
+/htmlcov/jquery.isonscreen.js
+/htmlcov/jquery.min.js
+/htmlcov/jquery.tablesorter.min.js
+/htmlcov/keybd_closed.png
+/htmlcov/keybd_open.png
+/htmlcov/polibeepsync_polibeepsync.html
+/htmlcov/status.dat
+/htmlcov/style.css
+/provapickle
+/.coverage

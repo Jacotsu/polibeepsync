@@ -1,0 +1,3 @@
+[run]
+omit = polibeepsync/tests/*
+       polibeepsync/__init__.py

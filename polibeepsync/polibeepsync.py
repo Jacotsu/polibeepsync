@@ -52,6 +52,7 @@ class GenericSet:
             if not self.__contains__(elem):
                 self.elements.append(elem)
 
+
 class Courses(GenericSet):
     def __hash__(self):
         unordered_name = self._elements_names()
@@ -71,6 +72,7 @@ class Course(GenericSet):
     def __repr__(self):
         return 'Course {}'.format(self.name)
 
+
 class CourseFile:
     def __init__(self, name, last_online_edit_time):
         self.name = name
@@ -78,6 +80,7 @@ class CourseFile:
 
     def __hash__(self):
         return hash(self.name)
+
 
 class User:
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
@@ -206,7 +209,6 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         else:
             self.logged = False
             raise InvalidLoginError
-            
 
     def update_available_courses(self):
         coursespage = self.get_page(self.courses_url)
