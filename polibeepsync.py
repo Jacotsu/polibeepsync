@@ -26,15 +26,37 @@ class User:
             # re-raise the exception for the moment
             raise
 
-    def get_resource(self, url):
-        """Get a page and re-login if the session is expired.
+    def logout(self):
+        self.session.cookies.clear()
+        self.logged = False
+
+    def get_page(self, url):
+        """Use this method to get a webpage.
+
+        It will check if the session is expired, and relogin if necessary.
+
+        Returns: a requests.get(url) response
+        """
+        response = self.session.get(url)
+        soup = BeautifulSoup(response.text)
+        login_tag = soup.find('input', attrs={'id': 'login'})
+        if login_tag is not None:
+            self.logout()
+            self.login()
+            response = self.session.get(url)
+        return response
+
+    def get_file(self, url):
+        """Use this method to get a file.
+
+        It will check if the session is expired, and relogin if necessary.
 
         Returns: a requests.get(url) response
         """
         response = self.session.get(url)
         if len(response.history) > 0:
-            # we've been redirected to the login page
-            self.session.cookies.clear()
+            # it means that we've been redirected to the login page
+            self.logout()
             self.login()
             response = self.session.get(url)
         return response
@@ -113,7 +135,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             self.logged = False
 
     def update_available_courses(self):
-        coursespage = self.get_resource(self.courses_url)
+        coursespage = self.get_page(self.courses_url)
         courses_soup = BeautifulSoup(coursespage.text)
         raw_courses = courses_soup.find_all('tr',
                                             attrs={'class': 'results-row'})
@@ -121,14 +143,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         for course in raw_courses:
             firstlink = course.td.a['href']
             name = course.td.a.strong.text
-            # If we follow firstlink, we will get to the course web page
-            # after two redirects. We call get_resource(), which
-            # will follow firstlink, notice the 302 redirects,
-            # therefore clear cookies and get a valid session; only
-            # at the end, it will return the response.
-            # We do this because at this point the session that was valid
-            # at the beginning of the function call may be expired by now.
-            link = self.get_resource(firstlink).url
+            link = self.get_page(firstlink).url
             # prima controllare se esistono già, in tal caso solo aggiornare
             # il link
             # available_courses definirci __contains__
