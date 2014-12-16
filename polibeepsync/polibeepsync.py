@@ -6,6 +6,62 @@ class InvalidLoginError(Exception):
     pass
 
 
+class CourseNotFoundError(Exception):
+    pass
+
+
+class GenericSet:
+    def __init__(self):
+        self.elements = []
+
+    def _elements_names(self):
+        return [elem.name for elem in self.elements]
+
+    def __contains__(self, key):
+        if key in self._elements_names():
+            return True
+        else:
+            return False
+
+    def __getitem__(self, key):
+        if key in self._elements_names():
+            for elem in self.elements:
+                if elem.name == key:
+                    return elem
+                    break
+        else:
+            raise KeyError
+
+    def __iter__(self):
+        return iter(self.elements)
+
+    def __sub__(self, other):
+        return list(set(self.elements) - set(other.elements))
+
+    def append(self, *args):
+        for elem in args:
+            if elem not in self.elements:
+                self.elements.append(elem)
+
+class Courses(GenericSet):
+    pass
+
+
+class Course(GenericSet):
+    def __init__(self, name, documents_url, sync=True):
+        self.name = name
+        self.documents_url = documents_url
+        self.sync = sync
+        self.elements = []
+
+class CourseFile:
+    def __init__(self, name, last_online_edit_time):
+        self.name = name
+        self.last_online_edit_time = last_online_edit_time
+
+    def __hash__(self):
+        return hash(self.name)
+
 class User:
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
 
@@ -149,3 +205,24 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             # available_courses definirci __contains__
             self.available_courses.append({'name': name, 'link': link})
 
+    def update_course_files_list(self, course_name):
+        names = [elem['name'] for elem in self.subscribed_courses]
+        if course_name in names:
+            url = [elem['link'] for elem in self.subscribed_courses
+                   if elem['name'] == course_name][0]
+            files_page = self.get_page(url)
+            files_soup = BeautifulSoup(files_page.text)
+            # here we should check if the session is valid
+            links = []
+            for tag in files_soup.find_all('a'):
+                if tag.text.startswith('  Download ('):
+                    links.append(tag['href'])
+            rawnames = files_soup.find_all('span',
+                                           attrs={'class': 'taglib-text'})
+            rawnames.pop(0)
+            rawnames.pop(0)
+            names = [elem.text for elem in rawnames if elem.text != ""]
+            files = [{'link': v, 'name': names[i]} for i, v in
+                     enumerate(links)]
+        else:
+            raise CourseNotFoundError
