@@ -17,3 +17,4 @@ poliBeePsync.egg-info/
 /htmlcov/style.css
 /provapickle
 /.coverage
+docs/build
