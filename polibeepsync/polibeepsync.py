@@ -250,10 +250,13 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             firstlink = course.td.a['href']
             name = course.td.a.strong.text
             link = self.get_page(firstlink).url
-            # prima controllare se esistono già, in tal caso solo aggiornare
-            # il link
-            # available_courses definirci __contains__
-            self.available_courses.append({'name': name, 'link': link})
+            link = link.rstrip('attivita-online-e-avvisi')
+            link = link + 'documenti-e-media'
+            # we ignore BeeP channel
+            if str(name) != "BeeP channel":
+                course=Course(name, link)
+                # the append function takes care of avoiding duplicates
+                self.available_courses.append(course)
 
     def update_course_files_list(self, course_name):
         names = [elem['name'] for elem in self.subscribed_courses]
