@@ -122,7 +122,7 @@ class User:
         self.logged = False
         self.subscribed_courses = []
         self.courses_url = ""
-        self.available_courses = []
+        self.available_courses = Courses()
 
     def visit(self):
         """Visit the login webpage to test for working connection."""
