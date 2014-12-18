@@ -63,12 +63,12 @@ class GenericSet:
         return list(set(self.elements) - set(other.elements))
 
     def append(self, *args):
-        print('now self.elements are {}'.format(self.elements))
         for elem in args:
-            print('getting {}'.format(elem))
             if not self.__contains__(elem):
                 self.elements.append(elem)
 
+    def __len__(self):
+        return len(self.elements)
 
 class Courses(GenericSet):
     def __hash__(self):
@@ -78,6 +78,7 @@ class Courses(GenericSet):
 
 class Course(GenericSet):
     def __init__(self, name, documents_url, sync=True):
+        super(Course, self).__init__()
         self.name = name
         self.documents_url = documents_url
         self.sync = sync
@@ -88,6 +89,18 @@ class Course(GenericSet):
 
     def __repr__(self):
         return 'Course {}'.format(self.name)
+
+    @property
+    def files(self):
+        return self.elements
+
+    @files.setter
+    def files(self, value):
+        self.elements = value
+
+    @files.deleter
+    def files(self):
+        del self.elements
 
 
 class CourseFile:
