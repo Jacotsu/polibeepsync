@@ -173,6 +173,7 @@ class TestCourses:
                        Course('other', 'doesntmatter'))
         assert len(courses) == 2
 
+
 class TestCourseFile:
     pass
 

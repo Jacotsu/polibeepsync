@@ -1,6 +1,6 @@
 __copyright__ = "Copyright 2014 Davide Olianas (ubuntupk@gmail.com)."
 
-__license__ =    """This file is part of poliBeePsync.
+__license__ = """This file is part of poliBeePsync.
 poliBeePsync is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -89,7 +89,6 @@ class Courses(GenericSet):
         return before + joined_texts
 
 
-
 class Course(GenericSet):
     def __init__(self, name, documents_url, sync=True):
         super(Course, self).__init__()
@@ -161,6 +160,9 @@ class User:
             raise
 
     def logout(self):
+        """Logout.
+
+        It clears session cookies and sets :attr:`logged` to ``False``."""
         self.session.cookies.clear()
         self.logged = False
 
@@ -169,7 +171,9 @@ class User:
 
         It will check if the session is expired, and relogin if necessary.
 
-        Returns: a requests.get(url) response
+        Returns:
+            response (:class:`requests.Response`): a :class:`requests.Response`
+            instance
         """
         response = self.session.get(url)
         soup = BeautifulSoup(response.text)
@@ -183,9 +187,16 @@ class User:
     def get_file(self, url):
         """Use this method to get a file.
 
-        It will check if the session is expired, and relogin if necessary.
+        It will check if the session is expired, and re-login if necessary.
+        The file bytes can be accessed with the :attr:`content` attribute
 
-        Returns: a requests.get(url) response
+        >>> user = User('username', 'password')
+        >>> response = user.get_file('url_to_file')
+        >>> with open('outfile','wb') as f:
+        ...    f.write(response.content)
+
+        Returns:
+            response (requests.Response): a :class:`requests.Response` object
         """
         response = self.session.get(url)
         if len(response.history) > 0:
@@ -198,8 +209,12 @@ class User:
     def login(self):
         """Try logging in.
 
-        If the login is successful, a session attribute is set on the object.
-        If it fails, raises an InvalidLoginError.
+        If the login is successful, :attr:`logged` is set to ``True``.
+        If it fails, :attr:`logged` is set to ``False`` and raises an
+        :class:`InvalidLoginError`.
+
+        Raises:
+            InvalidLoginError: when the login fails
         """
         # switch to english version if we're on the italian site
         default_lang_page = self.session.get(self.loginurl)
