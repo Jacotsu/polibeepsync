@@ -67,13 +67,27 @@ class GenericSet:
             if not self.__contains__(elem):
                 self.elements.append(elem)
 
+    def remove(self, arg):
+        if arg in self.elements:
+            self.elements.remove(arg)
+            print('removing {}'.format(arg))
+            print('now elements are {}'.format(self.elements))
+
     def __len__(self):
         return len(self.elements)
+
 
 class Courses(GenericSet):
     def __hash__(self):
         unordered_name = self._elements_names()
         return hash("".join(sorted(unordered_name)))
+
+    def __repr__(self):
+        before = "Courses collection:\n"
+        texts = [elem.name for elem in self.elements]
+        joined_texts = "\n".join(texts)
+        return before + joined_texts
+
 
 
 class Course(GenericSet):
@@ -82,7 +96,6 @@ class Course(GenericSet):
         self.name = name
         self.documents_url = documents_url
         self.sync = sync
-        self.elements = []
 
     def __hash__(self):
         return hash(self.name)
@@ -90,17 +103,32 @@ class Course(GenericSet):
     def __repr__(self):
         return 'Course {}'.format(self.name)
 
+    def __contains__(self, key):
+        if key.name in self._elements_names():
+            return True
+        else:
+            return False
+
+    def __eq__(self, other):
+        if self.name == other.name:
+            return True
+        else:
+            return False
+
     @property
     def files(self):
         return self.elements
 
     @files.setter
     def files(self, value):
-        self.elements = value
+        if isinstance(value, Courses):
+            self.elements = value
+        else:
+            raise TypeError
 
     @files.deleter
     def files(self):
-        del self.elements
+        self.elements = []
 
 
 class CourseFile:
@@ -240,42 +268,62 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             self.logged = False
             raise InvalidLoginError
 
-    def update_available_courses(self):
+    def get_online_courses(self):
+        """Return the courses available online.
+
+        Returns:
+            online_courses (:class:`Courses`): a :class:`Courses` container of
+            all courses available online."""
         coursespage = self.get_page(self.courses_url)
         courses_soup = BeautifulSoup(coursespage.text)
         raw_courses = courses_soup.find_all('tr',
                                             attrs={'class': 'results-row'})
+        # the first tag is not a course
         raw_courses.pop(0)
+        online_courses = Courses()
+        # we iterate over the tags
         for course in raw_courses:
             firstlink = course.td.a['href']
             name = course.td.a.strong.text
+            # the real link is found after a redirect
             link = self.get_page(firstlink).url
             link = link.rstrip('attivita-online-e-avvisi')
             link = link + 'documenti-e-media'
             # we ignore BeeP channel
             if str(name) != "BeeP channel":
-                course=Course(name, link)
-                # the append function takes care of avoiding duplicates
-                self.available_courses.append(course)
+                course = Course(name, link)
+                online_courses.append(course)
+        return online_courses
 
-    def update_course_files_list(self, course_name):
-        names = [elem['name'] for elem in self.subscribed_courses]
-        if course_name in names:
-            url = [elem['link'] for elem in self.subscribed_courses
-                   if elem['name'] == course_name][0]
-            files_page = self.get_page(url)
-            files_soup = BeautifulSoup(files_page.text)
-            # here we should check if the session is valid
-            links = []
-            for tag in files_soup.find_all('a'):
-                if tag.text.startswith('  Download ('):
-                    links.append(tag['href'])
-            rawnames = files_soup.find_all('span',
-                                           attrs={'class': 'taglib-text'})
-            rawnames.pop(0)
-            rawnames.pop(0)
-            names = [elem.text for elem in rawnames if elem.text != ""]
-            files = [{'link': v, 'name': names[i]} for i, v in
-                     enumerate(links)]
-        else:
-            raise CourseNotFoundError
+    def sync_available_courses(self, master_courses):
+        """Sync :attr:`available_courses` to :attr:`master_courses`.
+
+        This function will compare the courses in master_courses; if some of
+        them are not present in the available_courses instance attribute, they
+        will be added to available_courses; if any course is present in
+        self.available_courses but not in master_courses, it will be
+        removed from self.available_courses.
+
+        A typical usage would be the following
+
+        >>> user = User('fakeid', 'fakepwd')
+        >>> user.login()
+        >>> online = user.get_online_courses()
+        >>> user.sync_available_courses(online)
+
+        Args:
+            master_courses (Courses): The updated :class:`Courses` instance
+        """
+        # New courses should be added.
+        # the "if not in" check is not really needed, since the append
+        # function doesn't allow duplicates.
+        for elem in master_courses:
+            if elem not in self.available_courses:
+                print('adding')
+                self.available_courses.append(elem)
+        # now do the opposite: if a course has been deleted,
+        # do the same with the local copy
+        for elem in self.available_courses:
+            if elem not in master_courses:
+                print('removing')
+                self.available_courses.remove(elem)

@@ -1,4 +1,4 @@
-from polibeepsync.polibeepsync import Courses, Course, CourseFile
+from polibeepsync.polibeepsync import Courses, Course, CourseFile, User
 import pytest
 
 
@@ -14,7 +14,7 @@ class TestCourse:
         metal.append(a, b, e)
         assert set(metal-offline_metal) == set([e])
 
-    def test_inequality(self):
+    def test_equality(self):
         a = CourseFile('a', '1990')
         b = CourseFile('b', '111')
         c = CourseFile('c', '1111')
@@ -22,7 +22,12 @@ class TestCourse:
         metal = Course('metalli', 'beep.com')
         offline_metal.append(a, b)
         metal.append(a, b, c)
-        assert metal != offline_metal
+        assert metal == offline_metal
+
+    def test_inequality(self):
+        other = Course('thing', 'beep.com')
+        metal = Course('metalli', 'beep.com')
+        assert metal != other
 
     def test_getitem(self):
         a = CourseFile('a', '1990')
@@ -36,6 +41,61 @@ class TestCourse:
             metal = Course('metalli', 'beep.com')
             metal.append(a)
             metal['b']
+
+    def test__repr__(self):
+        metal = Course('metalli', 'beep.com')
+        assert repr(metal) == "Course metalli"
+
+    def test__contains__a_file(self):
+        onefile = CourseFile('a', '1990')
+        metal = Course('metalli', 'beep.com')
+        metal.append(onefile)
+        assert onefile in metal
+
+    def test__doesnt_contain__a_file(self):
+        onefile = CourseFile('a', '1990')
+        metal = Course('metalli', 'beep.com')
+        assert onefile not in metal
+
+    def test__init__(self):
+        metal = Course('metalli', 'beep.com')
+        assert hasattr(metal, 'elements')
+
+    def test_files_property(self):
+        metal = Course('metalli', 'beep.com')
+        a = CourseFile('a', '1990')
+        b = CourseFile('b', '111')
+        metal.append(a, b)
+        assert metal.files == [a, b]
+
+    def test_wrong_files_property(self):
+        metal = Course('metalli', 'beep.com')
+        a = CourseFile('a', '1990')
+        b = CourseFile('b', '111')
+        metal.append(a)
+        assert metal.files != [a, b]
+
+    def test_files_setter_to_valid_object(self):
+        metal = Course('metalli', 'beep.com')
+        a = CourseFile('a', '1990')
+        courses_container = Courses()
+        courses_container.append(a)
+        metal.files = courses_container
+
+    def test_files_setter_to_invalid_object(self):
+        metal = Course('metalli', 'beep.com')
+        a = CourseFile('a', '1990')
+        courses_container = tuple([a, a, a])
+        with pytest.raises(TypeError):
+            metal.files = courses_container
+
+    def test__del__(self):
+        metal = Course('metalli', 'beep.com')
+        a = CourseFile('a', '1990')
+        metal.append(a)
+        del(metal.files)
+        nofiles = Course('void', 'void')
+        assert metal.files == nofiles.files
 
 
 class TestCourses:
@@ -97,6 +157,43 @@ class TestCourses:
         # append in one step
         assert twocourses == oneatatime
 
+    def test_remove(self):
+        all = Courses()
+        one = Courses()
+        metal = Course('metalli', 'beep.com')
+        other = Course('other', 'doesntmatter')
+        all.append(metal, other)
+        one.append(other)
+        all.remove(metal)
+        assert all == one
+
+    def test__len__(self):
+        courses = Courses()
+        courses.append(Course('metalli', 'beep.com'),
+                       Course('other', 'doesntmatter'))
+        assert len(courses) == 2
 
 class TestCourseFile:
     pass
+
+
+class TestUser:
+    def test_sync_courses_new_course(self):
+        guy = User('fakeid', 'fakepwd')
+        metal = Course('metalli', 'beep.com')
+        other = Course('other', 'doesntmatter')
+        online = Courses()
+        online.append(metal, other)
+        guy.available_courses.append(metal)
+        guy.sync_available_courses(online)
+        assert guy.available_courses == online
+
+    def test_sync_courses_remove(self):
+        guy = User('fakeid', 'fakepwd')
+        metal = Course('metalli', 'beep.com')
+        other = Course('other', 'doesntmatter')
+        online = Courses()
+        online.append(metal)
+        guy.available_courses.append(metal, other)
+        guy.sync_available_courses(online)
+        assert guy.available_courses == online
