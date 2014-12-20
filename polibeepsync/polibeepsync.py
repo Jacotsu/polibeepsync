@@ -16,6 +16,7 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from bs4 import BeautifulSoup
+from datetime import datetime, timezone, timedelta, tzinfo
 import requests
 
 
@@ -25,6 +26,23 @@ class InvalidLoginError(Exception):
 
 class CourseNotFoundError(Exception):
     pass
+
+
+class GMT1(tzinfo):
+    def utcoffset(self, dt):
+        return timedelta(hours=1) + self.dst(dt)
+    def dst(self, dt):
+        # DST starts last Sunday in March
+        d = datetime(dt.year, 4, 1)   # ends last Sunday in October
+        self.dston = d - timedelta(days=d.weekday() + 1)
+        d = datetime(dt.year, 11, 1)
+        self.dstoff = d - timedelta(days=d.weekday() + 1)
+        if self.dston <=  dt.replace(tzinfo=None) < self.dstoff:
+            return timedelta(hours=1)
+        else:
+            return timedelta(0)
+    def tzname(self,dt):
+         return "GMT +1"
 
 
 class GenericSet:
@@ -95,6 +113,7 @@ class Course(GenericSet):
         self.name = name
         self.documents_url = documents_url
         self.sync = sync
+        self.save_folder_name = ""
 
     def __hash__(self):
         return hash(self.name)
@@ -131,8 +150,9 @@ class Course(GenericSet):
 
 
 class CourseFile:
-    def __init__(self, name, last_online_edit_time):
+    def __init__(self, name, url, last_online_edit_time):
         self.name = name
+        self.url = url
         self.last_online_edit_time = last_online_edit_time
 
     def __hash__(self):
@@ -141,6 +161,7 @@ class CourseFile:
 
 class User:
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
+    gmt1 = GMT1()
 
     def __init__(self, username, password):
         self.username = username
@@ -150,6 +171,7 @@ class User:
         self.subscribed_courses = []
         self.courses_url = ""
         self.available_courses = Courses()
+        self.root_save_folder = ""
 
     def visit(self):
         """Visit the login webpage to test for working connection."""
@@ -303,7 +325,19 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             # the real link is found after a redirect
             link = self.get_page(firstlink).url
             link = link.rstrip('attivita-online-e-avvisi')
-            link = link + 'documenti-e-media'
+            weird_parameters = ['_20_folderId=0',
+                                '_20_displayStyle=list',
+                                '_20_viewEntries=0',
+                                '_20_viewFolders=0',
+                                '_20_entryEnd=500',
+                                '_20_entryStart=0',
+                                '_20_folderEnd=500',
+                                '_20_folderStart=0',
+                                '_20_viewEntriesPage=1',
+                                'p_p_id=20',
+                                'p_p_lifecycle=0'
+                                ]
+            link = link + 'documenti-e-media?' + "&".join(weird_parameters)
             # we ignore BeeP channel
             if str(name) != "BeeP channel":
                 course = Course(name, link)
@@ -342,3 +376,35 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             if elem not in master_courses:
                 print('removing')
                 self.available_courses.remove(elem)
+
+    def update_course_files(self, course):
+        response = self.get_page(course.documents_url)
+        soup = BeautifulSoup(response.text)
+        links = []
+        names = []
+        for tag in soup.find_all('a'):
+            if tag.text.startswith('  Download ('):
+                links.append(tag['href'])
+        for tag in soup.find_all('span', attrs={'class': 'taglib-text'}):
+            if tag.text not in ('Azioni', 'Ordina per', ''):
+                names.append(tag.text)
+        rawdates = soup.find_all('td', attrs={'class':
+                                 'align-left col-5 valign-middle'})
+        days = [elem.text.split(' ')[1].split('/')[0] for elem in rawdates]
+        months = [elem.text.split(' ')[1].split('/')[1] for elem in rawdates]
+        years = [elem.text.split(' ')[1].split('/')[2] for elem in rawdates]
+        hours = [elem.text.split(' ')[2].split('.')[0] for elem in rawdates]
+        minutes = [elem.text.split(' ')[2].split('.')[1] for elem in rawdates]
+        for i in zip(names, links, years, months, days, hours, minutes):
+            complete_date = datetime(int(i[2]), int(i[3]), int(i[4]),
+                                     int(i[5]), int(i[6]), tzinfo=self.gmt1)
+            complete_file = CourseFile(i[0], i[1], complete_date)
+            course.append(complete_file)
+
+    def update_all_courses_files(self):
+        for course in self.available_courses:
+            if course.sync is True:
+                self.update_course_files(course)
+
+
+

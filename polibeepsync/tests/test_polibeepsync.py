@@ -175,7 +175,8 @@ class TestCourses:
 
 
 class TestCourseFile:
-    pass
+    def test_equality(self):
+        a = CourseFile('a.pdf',)
 
 
 class TestUser:
