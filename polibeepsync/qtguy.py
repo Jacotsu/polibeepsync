@@ -20,7 +20,7 @@ __version__ = 0.1
 from polibeepsync import User
 import platform
 import PySide
-from PySide.QtCore import QRect, QMetaObject, QObject
+from PySide.QtCore import *
 from PySide.QtGui  import (QApplication, QMainWindow, QWidget,
                            QGridLayout, QTabWidget, QPlainTextEdit,
                            QMenuBar, QMenu, QStatusBar, QAction,
@@ -28,12 +28,11 @@ from PySide.QtGui  import (QApplication, QMainWindow, QWidget,
                            QVBoxLayout, QLabel, QLineEdit, )
 
 
-import sys
-#import os
+
 
 # http://stackoverflow.com/questions/13299283/folder-browser-dialog-in-qt
 
-guy = User('111','111')
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -149,7 +148,81 @@ class MainWindow(QMainWindow):
 #            self.setWindowModified(self.dirty)
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    frame = MainWindow()
-    frame.show()
-    sys.exit(app.exec_())
+    from appdirs import user_config_dir, user_data_dir
+    import os
+    import pickle
+    import sys
+    import configparser
+    from ui_main import Ui_MainWindow
+
+
+    class MainWindow(QMainWindow, Ui_MainWindow):
+        def __init__(self, parent=None):
+            super(MainWindow, self).__init__(parent)
+            self.setupUi(self)
+
+
+    appname = "poliBeePsync"
+    data_fname = 'pbs.data'
+    for path in [user_config_dir(appname), user_data_dir(appname)]:
+        try:
+            os.makedirs(path, exist_ok=True)
+        except OSError:
+            if not os.path.isdir(path):
+                raise
+
+    settings_fname = 'pbs-settings.ini'
+    config = configparser.ConfigParser()
+    config.read(os.path.join(user_config_dir(appname), settings_fname))
+    try:
+        mainsection = config['General']
+        update_minutes = mainsection['UpdateEvery']
+        root_folder = mainsection['RootFolder']
+        notify_new = mainsection.getboolean('NotifyNewCourses')
+        sync_new = mainsection.getboolean('SyncNewCourses')
+
+        if type(update_minutes) != int:
+            update_minutes = 60
+
+        if notify_new:
+            notify_new = Qt.Checked
+        else:
+            notify_new = Qt.Unchecked
+
+        if sync_new:
+            sync_new = Qt.Checked
+        else:
+            sync_new = Qt.Unchecked
+
+
+    except KeyError:
+        print('cant read file')
+        pass
+
+# se facessi così, se manca un valore tutti gli altri vanno a default, che non voglio
+# poi voglio controllare valori possibili (minuti: intero, e i due boolean
+# invece la cartella viene controllata ogni volta che esegue sync
+#        update_minutes = 60
+#        root_folder = os.path.join(os.path.expanduser('~'), appname)
+#        notify_new =
+
+    with open(os.path.join(user_data_dir(appname), data_fname), 'rb') as f:
+        try:
+            print(update_minutes)
+            guy = pickle.load(f)
+            for course in guy.available_courses:
+                print(course.name)
+            app = QApplication(sys.argv)
+            frame = MainWindow()
+            frame.usercode.setText(str(guy.username))
+            frame.password.setText(guy.password)
+            frame.readonlyrootfolder.setText(root_folder)
+            frame.notifynewcoursescheckbox.setCheckState(notify_new)
+            frame.syncnewcoursescheckbox.setCheckState(sync_new)
+            frame.spinBox.setValue(update_minutes)
+            frame.show()
+            sys.exit(app.exec_())
+            # popolare gui con  rootfolder, everyminutes, notfiy_new, automatically_add
+        except:
+            print('An error has occurred.')
+            raise
