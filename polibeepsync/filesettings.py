@@ -20,6 +20,7 @@ __version__ = 0.1
 from configparser import RawConfigParser, MissingSectionHeaderError
 import os
 
+
 def settingsFromFile(infile):
     """Given a path string :attr:`infile`, load settings and return them as
     dictionary"""
@@ -38,9 +39,7 @@ def settingsFromFile(infile):
                 config.read_file(f)
             except MissingSectionHeaderError:
                 config['General'] = defaults
-            except IOError:
-                config['General'] = defaults
-    except IOError:
+    except OSError:
         config['General'] = defaults
     for key in defaults:
         if key not in config['General']:
@@ -57,12 +56,8 @@ def settingsFromFile(infile):
         except ValueError:
             # can't convert to boolean
             config['General'][value] = defaults[value]
-
-
-
-
-
     return dict(config['General'])
+
 
 def settingsToFile(insettings, filepath):
     """Given a dict, save to file in the format specified by configparser"""
@@ -70,12 +65,11 @@ def settingsToFile(insettings, filepath):
     config.optionxform = lambda option: option
     config['General'] = insettings
     try:
-        fname = os.path.basename(filepath)
         dirpath = os.path.dirname(filepath)
         os.makedirs(dirpath, exist_ok=True)
-        with open(filepath,'w') as f:
+        with open(filepath, 'w') as f:
             config.write(f)
     except OSError:
-        #if not os.path.isdir(path):
+        # if not os.path.isdir(path):
         #    raise
         pass

@@ -4,10 +4,10 @@ import pytest
 
 class TestCourse:
     def test_difference(self):
-        a = CourseFile('a', '1990')
-        b = CourseFile('b', '111')
-        c = CourseFile('c', '1111')
-        e = CourseFile('e', '19')
+        a = CourseFile('a', 'url', '1990')
+        b = CourseFile('b', 'url', '111')
+        c = CourseFile('c', 'url', '1111')
+        e = CourseFile('e', 'url', '19')
         offline_metal = Course('metalli', 'beep.com')
         metal = Course('metalli', 'beep.com')
         offline_metal.append(a, b, c)
@@ -15,9 +15,9 @@ class TestCourse:
         assert set(metal-offline_metal) == set([e])
 
     def test_equality(self):
-        a = CourseFile('a', '1990')
-        b = CourseFile('b', '111')
-        c = CourseFile('c', '1111')
+        a = CourseFile('a', 'url', '1990')
+        b = CourseFile('b', 'url', '111')
+        c = CourseFile('c', 'url', '1111')
         offline_metal = Course('metalli', 'beep.com')
         metal = Course('metalli', 'beep.com')
         offline_metal.append(a, b)
@@ -30,14 +30,14 @@ class TestCourse:
         assert metal != other
 
     def test_getitem(self):
-        a = CourseFile('a', '1990')
+        a = CourseFile('a', 'url', '1990')
         metal = Course('metalli', 'beep.com')
         metal.append(a)
         assert metal['a'] == a
 
     def test_getitem_raises_keyerror(self):
         with pytest.raises(KeyError):
-            a = CourseFile('a', '1990')
+            a = CourseFile('a', 'url', '1990')
             metal = Course('metalli', 'beep.com')
             metal.append(a)
             metal['b']
@@ -47,13 +47,13 @@ class TestCourse:
         assert repr(metal) == "Course metalli"
 
     def test__contains__a_file(self):
-        onefile = CourseFile('a', '1990')
+        onefile = CourseFile('a', 'url', '1990')
         metal = Course('metalli', 'beep.com')
         metal.append(onefile)
         assert onefile in metal
 
     def test__doesnt_contain__a_file(self):
-        onefile = CourseFile('a', '1990')
+        onefile = CourseFile('a', 'url', '1990')
         metal = Course('metalli', 'beep.com')
         assert onefile not in metal
 
@@ -63,35 +63,35 @@ class TestCourse:
 
     def test_files_property(self):
         metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', '1990')
-        b = CourseFile('b', '111')
+        a = CourseFile('a', 'url', '1990')
+        b = CourseFile('b', 'url', '111')
         metal.append(a, b)
         assert metal.files == [a, b]
 
     def test_wrong_files_property(self):
         metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', '1990')
-        b = CourseFile('b', '111')
+        a = CourseFile('a', 'url', '1990')
+        b = CourseFile('b', 'url', '111')
         metal.append(a)
         assert metal.files != [a, b]
 
     def test_files_setter_to_valid_object(self):
         metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', '1990')
+        a = CourseFile('a', 'url', '1990')
         courses_container = Courses()
         courses_container.append(a)
         metal.files = courses_container
 
     def test_files_setter_to_invalid_object(self):
         metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', '1990')
+        a = CourseFile('a', 'url', '1990')
         courses_container = tuple([a, a, a])
         with pytest.raises(TypeError):
             metal.files = courses_container
 
     def test__del__(self):
         metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', '1990')
+        a = CourseFile('a', 'url', '1990')
         metal.append(a)
         del(metal.files)
         nofiles = Course('void', 'void')
@@ -172,11 +172,6 @@ class TestCourses:
         courses.append(Course('metalli', 'beep.com'),
                        Course('other', 'doesntmatter'))
         assert len(courses) == 2
-
-
-class TestCourseFile:
-    def test_equality(self):
-        a = CourseFile('a.pdf',)
 
 
 class TestUser:

@@ -16,7 +16,7 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from bs4 import BeautifulSoup
-from datetime import datetime, timezone, timedelta, tzinfo
+from datetime import datetime, timedelta, tzinfo
 import requests
 
 
@@ -31,6 +31,7 @@ class CourseNotFoundError(Exception):
 class GMT1(tzinfo):
     def utcoffset(self, dt):
         return timedelta(hours=1) + self.dst(dt)
+
     def dst(self, dt):
         # DST starts last Sunday in March
         d = datetime(dt.year, 4, 1)   # ends last Sunday in October

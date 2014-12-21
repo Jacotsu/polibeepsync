@@ -3,6 +3,7 @@ import os
 from polibeepsync.filesettings import settingsFromFile, settingsToFile
 from configparser import RawConfigParser
 
+
 @pytest.fixture
 def default_settings_dict():
     conf = {
@@ -12,6 +13,7 @@ def default_settings_dict():
         'SyncNewCourses': 'yes'
     }
     return conf
+
 
 @pytest.fixture
 def default_settings_file(tmpdir):
@@ -29,12 +31,13 @@ def default_settings_file(tmpdir):
     return str(f)
 
 
-def test_allvaluesvalidandpresent(default_settings_file, default_settings_dict):
+def test_allvaluesvalidpresent(default_settings_file, default_settings_dict):
     """All values are present in the config file
     All values are valid
     File is accessible"""
     sets = settingsFromFile(default_settings_file)
     assert sets == default_settings_dict
+
 
 def test_notallvaluesarepresent(tmpdir):
     """Not all values are present; all are valid, file is accessible"""
@@ -84,7 +87,7 @@ def test_somepresent_allinvalid(tmpdir):
     conf = RawConfigParser()
     conf.optionxform = lambda option: option
     conf['General'] = {
-        'UpdateEvery': '-10',
+        'UpdateEvery': 'noatanumer',
         'SyncNewCourses': 'no'
     }
     f = tmpdir.mkdir('fold').join('sets.ini')
@@ -102,8 +105,10 @@ def test_somepresent_allinvalid(tmpdir):
 
 def test_missingsection(tmpdir, default_settings_dict):
     f = tmpdir.mkdir('fold').join('sets.ini')
+    text = """UpdateEvery = 60\nRootFOlder = root\n
+NotifyNewCourses = yes\nSyncNewCourses = yes"""
     with open(str(f), 'w') as setsfile:
-        setsfile.write('UpdateEvery = 60\nRootFOlder = root\nNotifyNewCourses = yes\nSyncNewCourses = yes')
+        setsfile.write(text)
     sets = settingsFromFile(str(f))
     assert sets == default_settings_dict
 
@@ -139,7 +144,6 @@ def test_savefileexists(tmpdir, default_settings_dict):
     }
     settingsToFile(newsettings, str(f))
     assert settingsFromFile(str(f)) == newsettings
-
 
 
 def test_saveioerror(tmpdir):
