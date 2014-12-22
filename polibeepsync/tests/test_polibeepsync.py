@@ -61,42 +61,6 @@ class TestCourse:
         metal = Course('metalli', 'beep.com')
         assert hasattr(metal, 'elements')
 
-    def test_files_property(self):
-        metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', 'url', '1990')
-        b = CourseFile('b', 'url', '111')
-        metal.append(a, b)
-        assert metal.files == [a, b]
-
-    def test_wrong_files_property(self):
-        metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', 'url', '1990')
-        b = CourseFile('b', 'url', '111')
-        metal.append(a)
-        assert metal.files != [a, b]
-
-    def test_files_setter_to_valid_object(self):
-        metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', 'url', '1990')
-        courses_container = Courses()
-        courses_container.append(a)
-        metal.files = courses_container
-
-    def test_files_setter_to_invalid_object(self):
-        metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', 'url', '1990')
-        courses_container = tuple([a, a, a])
-        with pytest.raises(TypeError):
-            metal.files = courses_container
-
-    def test__del__(self):
-        metal = Course('metalli', 'beep.com')
-        a = CourseFile('a', 'url', '1990')
-        metal.append(a)
-        del(metal.files)
-        nofiles = Course('void', 'void')
-        assert metal.files == nofiles.files
-
 
 class TestCourses:
     def test_difference(self):

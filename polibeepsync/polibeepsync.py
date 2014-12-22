@@ -38,12 +38,13 @@ class GMT1(tzinfo):
         self.dston = d - timedelta(days=d.weekday() + 1)
         d = datetime(dt.year, 11, 1)
         self.dstoff = d - timedelta(days=d.weekday() + 1)
-        if self.dston <=  dt.replace(tzinfo=None) < self.dstoff:
+        if self.dston <= dt.replace(tzinfo=None) < self.dstoff:
             return timedelta(hours=1)
         else:
             return timedelta(0)
-    def tzname(self,dt):
-         return "GMT +1"
+
+    def tzname(self, dt):
+        return "GMT +1"
 
 
 class GenericSet:
@@ -115,6 +116,7 @@ class Course(GenericSet):
         self.documents_url = documents_url
         self.sync = sync
         self.save_folder_name = ""
+        self.documents = ""
 
     def __hash__(self):
         return hash(self.name)
@@ -134,21 +136,6 @@ class Course(GenericSet):
         else:
             return False
 
-    @property
-    def files(self):
-        return self.elements
-
-    @files.setter
-    def files(self, value):
-        if isinstance(value, Courses):
-            self.elements = value
-        else:
-            raise TypeError
-
-    @files.deleter
-    def files(self):
-        self.elements = []
-
 
 class CourseFile:
     def __init__(self, name, url, last_online_edit_time):
@@ -158,6 +145,14 @@ class CourseFile:
 
     def __hash__(self):
         return hash(self.name)
+
+
+class Folder:
+    def __init__(self, name, url):
+        self.name = name
+        self.url = url
+        self.files = []
+        self.folders = []
 
 
 class User:
@@ -369,43 +364,54 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         # function doesn't allow duplicates.
         for elem in master_courses:
             if elem not in self.available_courses:
-                print('adding')
                 self.available_courses.append(elem)
         # now do the opposite: if a course has been deleted,
         # do the same with the local copy
         for elem in self.available_courses:
             if elem not in master_courses:
-                print('removing')
                 self.available_courses.remove(elem)
 
     def update_course_files(self, course):
-        response = self.get_page(course.documents_url)
+        rootfolder = self.find_files_and_folders(course.documents_url,
+                                                 'rootfolder')
+        course.documents = rootfolder
+
+    def find_files_and_folders(self, link, thisfoldername):
+        response = self.get_page(link)
         soup = BeautifulSoup(response.text)
-        links = []
-        names = []
-        for tag in soup.find_all('a'):
-            if tag.text.startswith('  Download ('):
-                links.append(tag['href'])
-        for tag in soup.find_all('span', attrs={'class': 'taglib-text'}):
-            if tag.text not in ('Azioni', 'Ordina per', ''):
-                names.append(tag.text)
-        rawdates = soup.find_all('td', attrs={'class':
-                                 'align-left col-5 valign-middle'})
-        days = [elem.text.split(' ')[1].split('/')[0] for elem in rawdates]
-        months = [elem.text.split(' ')[1].split('/')[1] for elem in rawdates]
-        years = [elem.text.split(' ')[1].split('/')[2] for elem in rawdates]
-        hours = [elem.text.split(' ')[2].split('.')[0] for elem in rawdates]
-        minutes = [elem.text.split(' ')[2].split('.')[1] for elem in rawdates]
-        for i in zip(names, links, years, months, days, hours, minutes):
-            complete_date = datetime(int(i[2]), int(i[3]), int(i[4]),
-                                     int(i[5]), int(i[6]), tzinfo=self.gmt1)
-            complete_file = CourseFile(i[0], i[1], complete_date)
-            course.append(complete_file)
+        tags = soup.find_all('span', attrs={'class': 'taglib-text'})
+        tags = [elem for elem in tags if elem.text != ""]
 
-    def update_all_courses_files(self):
-        for course in self.available_courses:
-            if course.sync is True:
-                self.update_course_files(course)
+        tags.pop(0)
+        tags.pop(0)
 
+        rawdates = [elem.parent.parent.parent.next_sibling.next_sibling.
+                    next_sibling.next_sibling.next_sibling.next_sibling
+                    for elem in tags]
+        last_column = [elem.next_sibling.next_sibling.next_sibling.
+                       next_sibling for elem in rawdates]
 
+        folder = Folder(thisfoldername, response.url)
 
+        for i, v in enumerate(tags):
+            name = v.text
+            rawdate = rawdates[i]
+            day = int(rawdate.text.split(' ')[1].split('/')[0])
+            month = int(rawdate.text.split(' ')[1].split('/')[1])
+            year = int(rawdate.text.split(' ')[1].split('/')[2])
+            hour = int(rawdate.text.split(' ')[2].split('.')[0])
+            minute = int(rawdate.text.split(' ')[2].split('.')[1])
+            complete_date = datetime(year, month, day, hour, minute,
+                                     tzinfo=self.gmt1)
+            download_link = last_column[i].find_all('a')
+            elem = download_link[2]
+            if elem.text.startswith('  Download ('):
+                link = elem['href']
+                complete_file = CourseFile(name, link, complete_date)
+                folder.files.append(complete_file)
+
+            else:
+                link = v.parent['href']
+                subfolder = self.find_files_and_folders(link, name)
+                folder.folders.append(subfolder)
+        return folder
