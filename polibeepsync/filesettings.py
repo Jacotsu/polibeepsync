@@ -52,7 +52,8 @@ def settingsFromFile(infile):
         config['General']['UpdateEvery'] = defaults['UpdateEvery']
     for value in ('NotifyNewCourses', 'SyncNewCourses'):
         try:
-            config.getboolean('General', value)
+            booleanvalue = config.getboolean('General', value)
+            config['General'][value] = str(booleanvalue)
         except ValueError:
             # can't convert to boolean
             config['General'][value] = defaults[value]
@@ -70,6 +71,5 @@ def settingsToFile(insettings, filepath):
         with open(filepath, 'w') as f:
             config.write(f)
     except OSError:
-        # if not os.path.isdir(path):
-        #    raise
-        pass
+         if not os.path.isdir(path):
+            raise

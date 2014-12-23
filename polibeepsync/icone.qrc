@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>polibeep.svg</file>
+    <file>polibeep-black.svg</file>
+  </qresource>
+</RCC>
