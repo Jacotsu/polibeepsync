@@ -92,17 +92,17 @@ if __name__ == '__main__':
     import os
     import pickle
     import sys
-    from ui_main import Ui_MainWindow
+    from ui_resizable import Ui_Form
     import filesettings
 
-    class MainWindow(QMainWindow, Ui_MainWindow):
+    class MainWindow(QWidget, Ui_Form):
         def __init__(self, parent=None):
             super(MainWindow, self).__init__(parent)
             self.setupUi(self)
             self.w = QWidget()
             self.createTray()
-            self.actionAbout.triggered.connect(self.about_box)
-            self.actionLicense.triggered.connect(self.license_box)
+            self.about.clicked.connect(self.about_box)
+            self.license.clicked.connect(self.license_box)
 
         def createTray(self):
             restoreAction = QAction("&Restore", self, triggered=self.showNormal)
@@ -202,7 +202,7 @@ if __name__ == '__main__':
         if newroot != "":
             settings['RootFolder'] = str(newroot)
             filesettings.settingsToFile(settings, settings_path)
-            frame.readonlyrootfolder.setText(newroot)
+            frame.rootfolder.setText(newroot)
 
 
 
@@ -213,8 +213,8 @@ if __name__ == '__main__':
 
     #frame.usercode.setText(str(guy.username))
     #frame.password.setText(guy.password)
-    frame.readonlyrootfolder.setText(settings['RootFolder'])
-    frame.readonlyrootfolder.textChanged.connect(rootfolderslot)
+    frame.rootfolder.setText(settings['RootFolder'])
+    frame.rootfolder.textChanged.connect(rootfolderslot)
 
     if settings['NotifyNewCourses'] == str(True):
         notify_new = Qt.Checked
@@ -226,16 +226,16 @@ if __name__ == '__main__':
     else:
         sync_new = Qt.Unchecked
 
-    frame.notifynewcoursescheckbox.setCheckState(notify_new)
-    frame.notifynewcoursescheckbox.stateChanged.connect(notifynewslot)
+    frame.notifyNewCourses.setCheckState(notify_new)
+    frame.notifyNewCourses.stateChanged.connect(notifynewslot)
 
-    frame.syncnewcoursescheckbox.setCheckState(sync_new)
-    frame.syncnewcoursescheckbox.stateChanged.connect(syncnewslot)
+    frame.addSyncNewCourses.setCheckState(sync_new)
+    frame.addSyncNewCourses.stateChanged.connect(syncnewslot)
 
-    frame.spinBox.setValue(int(settings['UpdateEvery']))
-    frame.spinBox.valueChanged.connect(updateminuteslot)
+    frame.timerMinutes.setValue(int(settings['UpdateEvery']))
+    frame.timerMinutes.valueChanged.connect(updateminuteslot)
 
-    frame.changerootfolderbutton.clicked.connect(chooserootdir)
+    frame.changeRootFolder.clicked.connect(chooserootdir)
 
     with open(os.path.join(user_data_dir(appname), data_fname), 'rb') as f:
         user = pickle.load(f)
