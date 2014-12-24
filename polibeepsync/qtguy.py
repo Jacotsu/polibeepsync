@@ -26,10 +26,21 @@ from PySide.QtGui import (QApplication, QMainWindow, QWidget,
                            QIcon, QFileDialog, QMessageBox, QFont,
                            QVBoxLayout, QLabel, QLineEdit, QSystemTrayIcon,
                             qApp, QDialog, QPixmap, QTextEdit, QTableView,
-                            QStyledItemDelegate, QStyleOptionButton, QStyle)
+                            QTextCursor)
+
+from ui_resizable import Ui_Form
 
 
+class MyStream(QObject):
+    message = Signal(str)
+    def __init__(self, parent=None):
+        super(MyStream, self).__init__(parent)
 
+    def write(self, message):
+        self.message.emit(str(message))
+
+    def flush(self):
+        pass
 
 class CoursesListModel(QAbstractTableModel):
     def __init__(self, courses):
@@ -86,88 +97,100 @@ class CoursesListModel(QAbstractTableModel):
             elif col == 2:
                 return "Save as"
 
+class MainWindow(QWidget, Ui_Form):
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+        self.setupUi(self)
+        self.w = QWidget()
+        self.createTray()
+        self.about.clicked.connect(self.about_box)
+        self.license.clicked.connect(self.license_box)
+
+
+    @Slot(str)
+    def myStream_message(self, message):
+        self.status.moveCursor(QTextCursor.End)
+        self.status.insertPlainText(message)
+
+    def createTray(self):
+        restoreAction = QAction("&Restore", self, triggered=self.showNormal)
+        quitAction = QAction("&Quit", self, triggered=qApp.quit)
+        icon =  PySide.QtGui.QIcon(':/newPrefix/polibeep.svg')
+        trayIconMenu = QMenu()
+        trayIconMenu.addAction(restoreAction)
+        trayIconMenu.addAction(quitAction)
+        trayIcon = QSystemTrayIcon(icon, self.w)
+        trayIcon.setContextMenu(trayIconMenu)
+        trayIcon.show()
+
+    def closeEvent(self, event):
+        self.hide()
+        event.ignore()
+
+    def about_box(self):
+        Dialog = QDialog()
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(379, 161)
+        icon = QIcon()
+        icon.addPixmap(QPixmap(":/newPrefix/polibeep-black.svg"), QIcon.Normal, QIcon.Off)
+        Dialog.setWindowIcon(icon)
+        verticalLayout = QVBoxLayout(Dialog)
+        verticalLayout.setObjectName("verticalLayout")
+        label = QLabel(Dialog)
+        label.setTextFormat(Qt.RichText)
+        label.setOpenExternalLinks(True)
+        label.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        label.setScaledContents(True)
+        label.setWordWrap(True)
+        label.setObjectName("label")
+        verticalLayout.addWidget(label)
+        text = "<html><head/><body><p>poliBeePsync version {}.</p><p>poliBeePsync is a program written by Davide Olianas, released under GNU GPLv3+.</p><p><br/></p><p>More information is available on the <a href=\"http://www.davideolianas.com/polibeepsync\"><span style=\" text-decoration: underline; color:#0000ff;\">official website</span></a>.</p></body></html>".format(__version__)
+        Dialog.setWindowTitle(QApplication.translate("Dialog", "About poliBeePsync", None, QApplication.UnicodeUTF8))
+        label.setText(QApplication.translate("Dialog", text, None, QApplication.UnicodeUTF8))
+        Dialog.exec_()
+
+    def license_box(self):
+        dir = os.path.dirname(os.path.realpath(__file__))
+        par = os.path.abspath(os.path.join(dir, os.pardir))
+        lic = os.path.join(par, 'gpl.txt')
+        with open(lic, 'rt') as f:
+            text = f.read()
+        Dialog = QDialog()
+        Dialog.resize(600, 500)
+        Dialog.setWindowTitle("License")
+        layout = QVBoxLayout(Dialog)
+        textEdit = QTextEdit(Dialog)
+        layout.addWidget(textEdit)
+        textEdit.setText(text)
+        Dialog.exec_()
+
+
 
 if __name__ == '__main__':
     from appdirs import user_config_dir, user_data_dir
     import os
     import pickle
     import sys
-    from ui_resizable import Ui_Form
+
     import filesettings
 
-    class MainWindow(QWidget, Ui_Form):
-        def __init__(self, parent=None):
-            super(MainWindow, self).__init__(parent)
-            self.setupUi(self)
-            self.w = QWidget()
-            self.createTray()
-            self.about.clicked.connect(self.about_box)
-            self.license.clicked.connect(self.license_box)
-
-        def createTray(self):
-            restoreAction = QAction("&Restore", self, triggered=self.showNormal)
-            quitAction = QAction("&Quit", self, triggered=qApp.quit)
-            icon =  PySide.QtGui.QIcon(':/newPrefix/polibeep.svg')
-            trayIconMenu = QMenu()
-            trayIconMenu.addAction(restoreAction)
-            trayIconMenu.addAction(quitAction)
-            trayIcon = QSystemTrayIcon(icon, self.w)
-            trayIcon.setContextMenu(trayIconMenu)
-            trayIcon.show()
-
-        def closeEvent(self, event):
-            self.hide()
-            event.ignore()
-
-        def about_box(self):
-            Dialog = QDialog()
-            Dialog.setObjectName("Dialog")
-            Dialog.resize(379, 161)
-            icon = QIcon()
-            icon.addPixmap(QPixmap(":/newPrefix/polibeep-black.svg"), QIcon.Normal, QIcon.Off)
-            Dialog.setWindowIcon(icon)
-            verticalLayout = QVBoxLayout(Dialog)
-            verticalLayout.setObjectName("verticalLayout")
-            label = QLabel(Dialog)
-            label.setTextFormat(Qt.RichText)
-            label.setOpenExternalLinks(True)
-            label.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
-            label.setScaledContents(True)
-            label.setWordWrap(True)
-            label.setObjectName("label")
-            verticalLayout.addWidget(label)
-            text = "<html><head/><body><p>poliBeePsync version {}.</p><p>poliBeePsync is a program written by Davide Olianas, released under GNU GPLv3+.</p><p><br/></p><p>More information is available on the <a href=\"http://www.davideolianas.com/polibeepsync\"><span style=\" text-decoration: underline; color:#0000ff;\">official website</span></a>.</p></body></html>".format(__version__)
-            Dialog.setWindowTitle(QApplication.translate("Dialog", "About poliBeePsync", None, QApplication.UnicodeUTF8))
-            label.setText(QApplication.translate("Dialog", text, None, QApplication.UnicodeUTF8))
-            Dialog.exec_()
-
-        def license_box(self):
-            dir = os.path.dirname(os.path.realpath(__file__))
-            par = os.path.abspath(os.path.join(dir, os.pardir))
-            lic = os.path.join(par, 'gpl.txt')
-            with open(lic, 'rt') as f:
-                text = f.read()
-            Dialog = QDialog()
-            Dialog.resize(600, 500)
-            Dialog.setWindowTitle("License")
-            layout = QVBoxLayout(Dialog)
-            textEdit = QTextEdit(Dialog)
-            layout.addWidget(textEdit)
-            textEdit.setText(text)
-            Dialog.exec_()
-
     app = QApplication(sys.argv)
-    frame = MainWindow()
     appname = "poliBeePsync"
+    frame = MainWindow()
+    frame.show()
     settings_fname = 'pbs-settings.ini'
     data_fname = 'pbs.data'
+    myStream = MyStream()
+    myStream.message.connect(frame.myStream_message)
+    sys.stdout = myStream
+
 
     for path in [user_config_dir(appname), user_data_dir(appname)]:
         try:
             os.makedirs(path, exist_ok=True)
-        except OSError:
+        except OSError as err:
             if not os.path.isdir(path):
-                raise
+                frame.myStream_message(str(err) + "\n\n")
 
     settings_path = os.path.join(user_config_dir(appname), settings_fname)
     settings = filesettings.settingsFromFile(settings_path)
@@ -237,8 +260,22 @@ if __name__ == '__main__':
 
     frame.changeRootFolder.clicked.connect(chooserootdir)
 
-    with open(os.path.join(user_data_dir(appname), data_fname), 'rb') as f:
-        user = pickle.load(f)
+    try:
+        with open(os.path.join(user_data_dir(appname), data_fname), 'rb') as f:
+            user = pickle.load(f)
+    except FileNotFoundError as err:
+        user = User('', '')
+        complete_message = str(err) + " ".join([
+"\nThis error means that no data can be found in the predefined",
+"directory. Ignore this if you're using poliBeePsync for the first",
+" time.\n\n"])
+        frame.myStream_message(complete_message)
+    except Exception as err:
+        user = User('', '')
+        frame.myStream_message(str(err) + "\n\n")
+
+
+
 
     frame.courses_model = CoursesListModel(user.available_courses)
     frame.coursesView.setModel(frame.courses_model)
@@ -252,8 +289,8 @@ if __name__ == '__main__':
 
 
 
-    frame.show()
-    app.exec_()
+
+    sys.exit(app.exec_())
     #sys.exit(app.exec_())
     # popolare gui con  rootfolder, everyminutes, notfiy_new, automatically_add
     #    except:
