@@ -17,7 +17,9 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 
 __version__ = 0.1
 
-from polibeepsync import User
+from requests import ConnectionError, Timeout
+
+from polibeepsync.common import User, InvalidLoginError
 import platform
 import PySide
 from PySide.QtCore import *
@@ -53,6 +55,20 @@ class CoursesListModel(QAbstractTableModel):
 
     def columnCount(self, parent=QModelIndex()):
         return 3
+
+    def insertRows(self, position, rows, newcourse, parent= QModelIndex()):
+        self.beginInsertRows(parent, position, position + rows -1)
+        for row in range(rows):
+            self.courses.insert(position, newcourse)
+        self.endInsertRows()
+        return True
+
+    def removeRows(self, position, rows, parent = QModelIndex()):
+        self.beginRemoveRows(parent, position, position + rows -1)
+        for row in range(rows):
+            del self.courses[position]
+        self.endRemoveRows()
+        return True
 
     def flags(self, index):
         if index.column() == 2:
@@ -107,10 +123,11 @@ class MainWindow(QWidget, Ui_Form):
         self.license.clicked.connect(self.license_box)
 
 
+
     @Slot(str)
     def myStream_message(self, message):
         self.status.moveCursor(QTextCursor.End)
-        self.status.insertPlainText(message)
+        self.status.insertPlainText(message + "\n\n")
 
     def createTray(self):
         restoreAction = QAction("&Restore", self, triggered=self.showNormal)
@@ -190,7 +207,7 @@ if __name__ == '__main__':
             os.makedirs(path, exist_ok=True)
         except OSError as err:
             if not os.path.isdir(path):
-                frame.myStream_message(str(err) + "\n\n")
+                frame.myStream_message(str(err))
 
     settings_path = os.path.join(user_config_dir(appname), settings_fname)
     settings = filesettings.settingsFromFile(settings_path)
@@ -227,15 +244,91 @@ if __name__ == '__main__':
             filesettings.settingsToFile(settings, settings_path)
             frame.rootfolder.setText(newroot)
 
+    def setusercode():
+        newcode = frame.userCode.text()
+        user.username = newcode
+        try:
+            dumpUser()
+            frame.myStream_message(
+                "User code changed to {}.".format(newcode))
+        except Exception as err:
+            frame.myStream_message(str(err))
 
 
+    def setpassword():
+        newpass = frame.password.text()
+        user.password = newpass
+        try:
+            dumpUser()
+            frame.myStream_message("Password changed.")
+        except Exception as err:
+            frame.myStream_message(str(err))
 
-    #with open(os.path.join(user_data_dir(appname), data_fname), 'rb') as f:
-    #    try:
-    #guy = pickle.load(f)
+    def dumpUser():
+        with open(os.path.join(user_data_dir(appname), data_fname), 'wb') as f:
+            pickle.dump(user, f)
 
-    #frame.usercode.setText(str(guy.username))
-    #frame.password.setText(guy.password)
+    def testlogin():
+        frame.login_attempt.setStyleSheet("color: rgba(0, 0, 0, 255);")
+        try:
+            user.logout()
+            user.login()
+            if user.logged == True:
+                frame.login_attempt.setText("Login successful.")
+                frame.myStream_message("Logged in.")
+        except IndexError:
+            frame.login_attempt.setText("You're already logged in.")
+            frame.myStream_message("You're already logged in.")
+        except InvalidLoginError:
+            user.logout()
+            frame.login_attempt.setText("Login failed.")
+            frame.myStream_message("Login failed.")
+        except ConnectionError as err:
+            user.logout()
+            frame.login_attempt.setText("I can't connect to the server. Is the Internet connection working?")
+            #frame.myStream_message(str(err) + "\nThis usually means that the Internet connection is not working.")
+        except Timeout as err:
+            user.logout()
+            frame.login_attempt.setText("The timeout time has been reached. Is the Internet connection working?")
+            #frame.myStream_message(str(err) + "\nThis usually means that the Internet connection is not working.")
+        except Exception as err:
+            frame.login_attempt.setText("An error occurred. See the *status* tab.")
+            frame.myStream_message(str(err))
+
+    def refreshcourses():
+        testlogin()
+        most_recent = user.get_online_courses()
+        last = user.available_courses
+        new = most_recent -last
+        removable = last - most_recent
+        print('The following courses have been removed because they '
+              'aren\'t available online: {}'.format(removable))
+        for course in new:
+            course.save_folder_name = course.simplify_name(course.name)
+            print('A new course was found: {}'.format(course))
+        user.sync_available_courses(most_recent)
+        dumpUser()
+        for course in new:
+            frame.courses_model.insertRows(0, 1, course)
+        for course in removable:
+            index = frame.courses_model.courses.index(course)
+            frame.courses_model.removeRows(index, 1)
+
+    def syncfiles():
+        topdir = settings['RootFolder']
+
+        for course in user.available_courses:
+            subdir = course.save_folder_name
+            if course.sync == True:
+                outdir = os.path.join(topdir, subdir)
+                os.makedirs(outdir, exist_ok=True)
+                rootdir = user.find_files_and_folders(course.documents_url,
+                                                      'root')
+                user.save_files(rootdir, outdir)
+            text = "Synced files for {}".format(course.name)
+            frame.myStream_message(text)
+
+
     frame.rootfolder.setText(settings['RootFolder'])
     frame.rootfolder.textChanged.connect(rootfolderslot)
 
@@ -263,25 +356,29 @@ if __name__ == '__main__':
     try:
         with open(os.path.join(user_data_dir(appname), data_fname), 'rb') as f:
             user = pickle.load(f)
+            frame.myStream_message("Data has been loaded successfully.")
     except FileNotFoundError as err:
         user = User('', '')
         complete_message = str(err) + " ".join([
 "\nThis error means that no data can be found in the predefined",
 "directory. Ignore this if you're using poliBeePsync for the first",
-" time.\n\n"])
+" time."])
         frame.myStream_message(complete_message)
     except Exception as err:
         user = User('', '')
-        frame.myStream_message(str(err) + "\n\n")
+        frame.myStream_message(str(err))
 
-
-
+    frame.userCode.setText(str(user.username))
+    frame.userCode.textEdited.connect(setusercode)
+    frame.password.setText(user.password)
+    frame.password.textEdited.connect(setpassword)
+    frame.trylogin.clicked.connect(testlogin)
 
     frame.courses_model = CoursesListModel(user.available_courses)
     frame.coursesView.setModel(frame.courses_model)
-
-
-
+    frame.refreshCourses.clicked.connect(refreshcourses)
+    frame.courses_model.dataChanged.connect(dumpUser)
+    frame.syncNow.clicked.connect(syncfiles)
 
 
 
@@ -291,8 +388,3 @@ if __name__ == '__main__':
 
 
     sys.exit(app.exec_())
-    #sys.exit(app.exec_())
-    # popolare gui con  rootfolder, everyminutes, notfiy_new, automatically_add
-    #    except:
-    #        print('An error has occurred.')
-    #        raise
