@@ -9,8 +9,8 @@ def default_settings_dict():
     conf = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'NotifyNewCourses': 'yes',
-        'SyncNewCourses': 'yes'
+        'NotifyNewCourses': 'True',
+        'SyncNewCourses': 'True'
     }
     return conf
 
@@ -22,8 +22,8 @@ def default_settings_file(tmpdir):
     conf['General'] = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'NotifyNewCourses': 'yes',
-        'SyncNewCourses': 'yes'
+        'NotifyNewCourses': 'True',
+        'SyncNewCourses': 'True'
     }
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
@@ -54,8 +54,8 @@ def test_notallvaluesarepresent(tmpdir):
     merge = {
         'UpdateEvery': '50',
         'RootFolder': 'custom',
-        'NotifyNewCourses': 'yes',
-        'SyncNewCourses': 'yes'
+        'NotifyNewCourses': 'True',
+        'SyncNewCourses': 'True'
     }
     assert sets == merge
 
@@ -67,7 +67,7 @@ def test_allpresent_someinvalid(tmpdir):
     conf['General'] = {
         'UpdateEvery': '-10',
         'NotifyNewCourses': 'randomtext',
-        'SyncNewCourses': 'no'
+        'SyncNewCourses': 'False'
     }
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
@@ -76,8 +76,8 @@ def test_allpresent_someinvalid(tmpdir):
     nice = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'NotifyNewCourses': 'yes',
-        'SyncNewCourses': 'no'
+        'NotifyNewCourses': 'True',
+        'SyncNewCourses': 'False'
     }
     assert sets == nice
 
@@ -88,7 +88,7 @@ def test_somepresent_allinvalid(tmpdir):
     conf.optionxform = lambda option: option
     conf['General'] = {
         'UpdateEvery': 'noatanumer',
-        'SyncNewCourses': 'no'
+        'SyncNewCourses': 'False'
     }
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
@@ -97,8 +97,8 @@ def test_somepresent_allinvalid(tmpdir):
     nice = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'NotifyNewCourses': 'yes',
-        'SyncNewCourses': 'no'
+        'NotifyNewCourses': 'True',
+        'SyncNewCourses': 'False'
     }
     assert sets == nice
 
@@ -106,7 +106,7 @@ def test_somepresent_allinvalid(tmpdir):
 def test_missingsection(tmpdir, default_settings_dict):
     f = tmpdir.mkdir('fold').join('sets.ini')
     text = """UpdateEvery = 60\nRootFOlder = root\n
-NotifyNewCourses = yes\nSyncNewCourses = yes"""
+NotifyNewCourses = True\nSyncNewCourses = True"""
     with open(str(f), 'w') as setsfile:
         setsfile.write(text)
     sets = settingsFromFile(str(f))
@@ -131,16 +131,16 @@ def test_savefileexists(tmpdir, default_settings_dict):
     conf['General'] = {
         'UpdateEvery': '30',
         'RootFolder': 'anotherroot',
-        'NotifyNewCourses': 'no',
-        'SyncNewCourses': 'no'
+        'NotifyNewCourses': 'False',
+        'SyncNewCourses': 'False'
     }
     with open(str(f), 'w') as setsfile:
         conf.write(setsfile)
     newsettings = {
         'UpdateEvery': '20',
         'RootFolder': 'finalroot',
-        'NotifyNewCourses': 'yes',
-        'SyncNewCourses': 'yes'
+        'NotifyNewCourses': 'True',
+        'SyncNewCourses': 'True'
     }
     settingsToFile(newsettings, str(f))
     assert settingsFromFile(str(f)) == newsettings
@@ -155,8 +155,8 @@ def test_saveioerror(tmpdir):
         newsettings = {
             'UpdateEvery': '20',
             'RootFolder': 'finalroot',
-            'NotifyNewCourses': 'yes',
-            'SyncNewCourses': 'yes'
+            'NotifyNewCourses': 'True',
+            'SyncNewCourses': 'True'
         }
         settingsToFile(newsettings, str(f))
     except IOError:

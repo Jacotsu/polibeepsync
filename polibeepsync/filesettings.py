@@ -27,8 +27,8 @@ def settingsFromFile(infile):
     defaults = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'NotifyNewCourses': 'yes',
-        'SyncNewCourses': 'yes'
+        'NotifyNewCourses': 'True',
+        'SyncNewCourses': 'True'
     }
 
     config = RawConfigParser()
@@ -71,5 +71,5 @@ def settingsToFile(insettings, filepath):
         with open(filepath, 'w') as f:
             config.write(f)
     except OSError:
-         if not os.path.isdir(path):
+         if not os.path.isdir(dirpath):
             raise
