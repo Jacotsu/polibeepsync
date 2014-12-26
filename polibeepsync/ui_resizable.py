@@ -226,6 +226,7 @@ class Ui_Form(object):
         self.okButton = QtGui.QDialogButtonBox(Form)
         self.okButton.setStandardButtons(QtGui.QDialogButtonBox.Ok)
         self.okButton.setObjectName("okButton")
+        self.okButton.clicked.connect(self.hide)
         self.verticalLayout.addWidget(self.okButton)
 
         self.retranslateUi(Form)
