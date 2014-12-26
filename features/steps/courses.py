@@ -1,6 +1,6 @@
 from behave import *
 from os import environ
-from polibeepsync.polibeepsync import User
+from polibeepsync.common import User
 import requests
 
 

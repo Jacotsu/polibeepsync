@@ -115,8 +115,12 @@ class Course(GenericSet):
         self.name = name
         self.documents_url = documents_url
         self.sync = sync
-        self.save_folder_name = ""
         self.documents = ""
+        self.save_folder_name = ""
+
+    def simplify_name(self, name):
+        upper = name.split('[')[1].split(']')[1].rstrip(" ").lstrip(' - ')
+        return upper.title()
 
     def __hash__(self):
         return hash(self.name)
@@ -172,7 +176,7 @@ class User:
     def visit(self):
         """Visit the login webpage to test for working connection."""
         try:
-            self.session.get('https://beep.metid.polimi.it')
+            self.session.get('https://beep.metid.polimi.it' , timeout=5, verify=True)
         except (requests.ConnectionError, requests.Timeout):
             # re-raise the exception for the moment
             raise
@@ -181,7 +185,10 @@ class User:
         """Logout.
 
         It clears session cookies and sets :attr:`logged` to ``False``."""
-        self.session.cookies.clear()
+        del(self.session)
+        #print(hasattr(self, 'session'))
+        self.session = requests.Session()
+        #self.session.cookies.clear()
         self.logged = False
 
     def get_page(self, url):
@@ -193,13 +200,13 @@ class User:
             response (:class:`requests.Response`): a :class:`requests.Response`
             instance
         """
-        response = self.session.get(url)
+        response = self.session.get(url, timeout=5, verify=True)
         soup = BeautifulSoup(response.text)
         login_tag = soup.find('input', attrs={'id': 'login'})
         if login_tag is not None:
             self.logout()
             self.login()
-            response = self.session.get(url)
+            response = self.session.get(url, timeout=5, verify=True)
         return response
 
     def get_file(self, url):
@@ -209,19 +216,19 @@ class User:
         The file bytes can be accessed with the :attr:`content` attribute
 
         >>> user = User('username', 'password')
-        >>> response = user.get_file('url_to_file')
+        >>> response = user.get_file('url_to_file', timeout=5, verify=True)
         >>> with open('outfile','wb') as f:
         ...    f.write(response.content)
 
         Returns:
             response (requests.Response): a :class:`requests.Response` object
         """
-        response = self.session.get(url)
+        response = self.session.get(url, timeout=5, verify=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
             self.logout()
             self.login()
-            response = self.session.get(url)
+            response = self.session.get(url, timeout=5, verify=True)
         return response
 
     def login(self):
@@ -235,12 +242,12 @@ class User:
             InvalidLoginError: when the login fails
         """
         # switch to english version if we're on the italian site
-        default_lang_page = self.session.get(self.loginurl)
+        default_lang_page = self.session.get(self.loginurl, timeout=5, verify=True)
         lang_soup = BeautifulSoup(default_lang_page.text)
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' +
-                             lang_tag['href'])
+                             lang_tag['href'], timeout=5, verify=True)
         payload = "login=%s&password=%s" % (self.username, self.password) + \
                   '&evn_conferma%3Devento=Accedi'
         login_headers = {
@@ -294,7 +301,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             }
             mainpage = self.session.get(
                 'https://beep.metid.polimi.it/polimi/login',
-                headers=main_headers)
+                headers=main_headers, timeout=5, verify=True)
             self.courses_url = mainpage.url
             self.logged = True
         else:

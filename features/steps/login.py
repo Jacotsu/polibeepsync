@@ -1,6 +1,6 @@
 from os import environ
-from polibeepsync.polibeepsync import User
-from polibeepsync.polibeepsync import InvalidLoginError
+from polibeepsync.common import User
+from polibeepsync.common import InvalidLoginError
 import requests
 from behave import *
 

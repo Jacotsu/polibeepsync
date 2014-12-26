@@ -1,4 +1,4 @@
-from polibeepsync.polibeepsync import Courses, Course, CourseFile, User
+from polibeepsync.common import Courses, Course, CourseFile, User
 import pytest
 
 

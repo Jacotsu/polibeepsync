@@ -1,5 +1,5 @@
 from behave import *
-from polibeepsync.polibeepsync import User, Course, Courses, CourseFile
+from polibeepsync.common import User, Course, Courses, CourseFile
 
 @when('I ask for the courses')
 def step_impl(context):
