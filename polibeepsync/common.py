@@ -18,6 +18,7 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, tzinfo
 import requests
+import os
 
 
 class InvalidLoginError(Exception):
@@ -27,6 +28,9 @@ class InvalidLoginError(Exception):
 class CourseNotFoundError(Exception):
     pass
 
+def modification_date(filename):
+    t = os.path.getmtime(filename)
+    return datetime.datetime.fromtimestamp(t)
 
 class GMT1(tzinfo):
     def utcoffset(self, dt):
@@ -90,8 +94,6 @@ class GenericSet:
     def remove(self, arg):
         if arg in self.elements:
             self.elements.remove(arg)
-            print('removing {}'.format(arg))
-            print('now elements are {}'.format(self.elements))
 
     def __len__(self):
         return len(self.elements)
@@ -110,7 +112,7 @@ class Courses(GenericSet):
 
 
 class Course(GenericSet):
-    def __init__(self, name, documents_url, sync=True):
+    def __init__(self, name, documents_url, sync=False):
         super(Course, self).__init__()
         self.name = name
         self.documents_url = documents_url
@@ -184,9 +186,8 @@ class User:
     def logout(self):
         """Logout.
 
-        It clears session cookies and sets :attr:`logged` to ``False``."""
+        It re-creates a session and sets :attr:`logged` to ``False``."""
         del(self.session)
-        #print(hasattr(self, 'session'))
         self.session = requests.Session()
         #self.session.cookies.clear()
         self.logged = False
@@ -422,3 +423,21 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                 subfolder = self.find_files_and_folders(link, name)
                 folder.folders.append(subfolder)
         return folder
+
+
+    def save_files(self, masterfolder, out_rootfolder):
+        for coursefile in masterfolder.files:
+            local_file = os.path.join(out_rootfolder, coursefile.name)
+            if not os.path.exists(local_file):
+                result = self.get_file(coursefile.url)
+                with open(local_file, 'wb') as f:
+                    f.write(result.content)
+            elif modification_date(local_file) < \
+                coursefile.last_online_edit_time:
+                result = self.get_file(coursefile.url)
+                with open(local_file, 'wb') as f:
+                    f.write(result.content)
+        for folder in masterfolder.folders:
+            path = os.path.join(masterfolder.name, folder.name)
+            os.makedirs(path, exist_ok=True)
+            self.save_files(folder, path)
