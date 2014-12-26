@@ -132,6 +132,7 @@ class Ui_Form(object):
         self.trylogin.setObjectName("trylogin")
         self.verticalLayout_2.addWidget(self.trylogin)
         self.login_attempt = QtGui.QLabel(self.tab)
+        self.login_attempt.setText("Logging in, please wait.")
         self.login_attempt.setStyleSheet("color: rgba(0, 0, 0, 0);")
         self.login_attempt.setObjectName("login_attempt")
         self.verticalLayout_2.addWidget(self.login_attempt)
