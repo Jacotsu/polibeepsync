@@ -44,6 +44,35 @@ class CoursesSignal(QObject):
     sig = Signal(list)
 
 
+class DownloadThread(QThread):
+    def __init__(self, user, topdir, parent = None):
+        QThread.__init__(self, parent)
+        self.exiting = False
+        self.course_finished = MySignal()
+        self.signal_error = MySignal()
+        self.user = user
+        self.topdir = topdir
+        self.dumpuser = MySignal()
+
+    def run(self):
+        while self.exiting == False:
+            for course in self.user.available_courses:
+                subdir = course.save_folder_name
+                if course.sync == True:
+                    try:
+                        self.user.update_course_files(course)
+                        outdir = os.path.join(self.topdir, subdir)
+                        os.makedirs(outdir, exist_ok=True)
+                        rootdir = self.user.find_files_and_folders(
+                            course.documents_url, 'rootfolder')
+                        self.user.save_files(rootdir, outdir)
+                        self.dumpuser.sig.emit('User object changed')
+                        text = "Synced files for {}".format(course.name)
+                        self.course_finished.sig.emit(text)
+                    except Exception as err:
+                        self.signal_error.sig.emit(str(err))
+            self.exiting = True
+
 class LoginThread(QThread):
     def __init__(self, user, parent = None):
         QThread.__init__(self, parent)
@@ -226,6 +255,11 @@ class MainWindow(QWidget, Ui_Form):
         self.refreshcoursesthread.refreshed.sig.connect(self.myStream_message)
         self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
 
+        self.downloadthread = DownloadThread(self.user,
+                                             self.settings['RootFolder'])
+        self.downloadthread.dumpuser.sig.connect(self.dumpUser)
+        self.downloadthread.course_finished.sig.connect(self.myStream_message)
+        self.downloadthread.signal_error.sig.connect(self.myStream_message)
 
         self.userCode.setText(str(self.user.username))
         self.userCode.textEdited.connect(self.setusercode)
@@ -257,6 +291,7 @@ class MainWindow(QWidget, Ui_Form):
         self.notifyNewCourses.setCheckState(self.notify_new)
 
         self.notifyNewCourses.stateChanged.connect(self.notifynew)
+
 
         self.addSyncNewCourses.setCheckState(self.sync_new)
         self.addSyncNewCourses.stateChanged.connect(self.syncnewslot)
@@ -331,6 +366,7 @@ class MainWindow(QWidget, Ui_Form):
         self.settings['RootFolder'] = path
         filesettings.settingsToFile(self.settings, self.settings_path)
 
+
     def chooserootdir(self):
         currentdir = self.settings['RootFolder']
         flags = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
@@ -399,23 +435,15 @@ class MainWindow(QWidget, Ui_Form):
 
     @Slot()
     def syncfiles(self):
-        topdir = self.settings['RootFolder']
-        for course in self.user.available_courses:
-            subdir = course.save_folder_name
-            if course.sync == True:
-                self.user.update_course_files(course)
-                outdir = os.path.join(topdir, subdir)
-                os.makedirs(outdir, exist_ok=True)
-                rootdir = self.user.find_files_and_folders(course.documents_url,
-                                                      'rootfolder')
-                try:
-                    self.user.save_files(rootdir, outdir)
-                    # we call dumpUser to save local_creation_time
-                    self.dumpUser()
-                    text = "Synced files for {}".format(course.name)
-                    self.myStream_message(text)
-                except Exception as err:
-                    self.myStream_message(str(err))
+        self.refreshcoursesthread.finished.connect(self.do_syncfiles)
+        self.refreshcourses()
+
+    def do_syncfiles(self):
+        self.refreshcoursesthread.finished.disconnect(self.do_syncfiles)
+        if not self.downloadthread.isRunning():
+            self.downloadthread.exiting = False
+            self.downloadthread.start()
+
 
 
     @Slot(str)
