@@ -17,24 +17,23 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 
 __version__ = 0.1
 
-import filesettings
+from polibeepsync import filesettings
 from requests import ConnectionError, Timeout
 from appdirs import user_config_dir, user_data_dir
 import os
 import pickle
 import sys
 from polibeepsync.common import User, InvalidLoginError
-import platform
 import PySide
 from PySide.QtCore import *
-from PySide.QtGui import (QApplication, QMainWindow, QWidget,
-                           QMenuBar, QMenu, QStatusBar, QAction,
-                           QIcon, QFileDialog, QMessageBox, QFont,
-                           QVBoxLayout, QLabel, QLineEdit, QSystemTrayIcon,
-                            qApp, QDialog, QPixmap, QTextEdit, QTableView,
-                            QTextCursor)
+from PySide.QtGui import (QApplication, QWidget, QTextCursor,
+                           QMenu, QAction,
+                           QIcon, QFileDialog,
+                           QVBoxLayout, QLabel,  QSystemTrayIcon,
+                            qApp, QDialog, QPixmap, QTextEdit,
+                            )
 
-from ui_resizable import Ui_Form
+from polibeepsync.ui_resizable import Ui_Form
 
 
 class MySignal(QObject):
