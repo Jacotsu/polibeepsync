@@ -389,19 +389,26 @@ class MainWindow(QWidget, Ui_Form):
             self.refreshcoursesthread.exiting = False
             self.refreshcoursesthread.start()
 
+    @Slot()
     def syncfiles(self):
         topdir = self.settings['RootFolder']
-
         for course in self.user.available_courses:
             subdir = course.save_folder_name
             if course.sync == True:
+                self.user.update_course_files(course)
                 outdir = os.path.join(topdir, subdir)
                 os.makedirs(outdir, exist_ok=True)
                 rootdir = self.user.find_files_and_folders(course.documents_url,
-                                                      'root')
-                self.user.save_files(rootdir, outdir)
-            text = "Synced files for {}".format(course.name)
-            self.myStream_message(text)
+                                                      'rootfolder')
+                try:
+                    self.user.save_files(rootdir, outdir)
+                    # we call dumpUser to save local_creation_time
+                    self.dumpUser()
+                    text = "Synced files for {}".format(course.name)
+                    self.myStream_message(text)
+                except Exception as err:
+                    self.myStream_message(str(err))
+
 
     @Slot(str)
     def myStream_message(self, message):

@@ -145,9 +145,12 @@ class Course(GenericSet):
 
 class CourseFile(object):
     def __init__(self, name, url, last_online_edit_time):
+        gmt1 = GMT1()
         self.name = name
         self.url = url
         self.last_online_edit_time = last_online_edit_time
+        self.local_creation_time = datetime(1990, 1, 1, 1, 1,
+                                     tzinfo=gmt1)
 
     def __hash__(self):
         return hash(self.name)
@@ -432,12 +435,20 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                 result = self.get_file(coursefile.url)
                 with open(local_file, 'wb') as f:
                     f.write(result.content)
-            elif modification_date(local_file) < \
+                coursefile.local_creation_time = datetime.now(self.gmt1)
+            elif coursefile.local_creation_time <\
                 coursefile.last_online_edit_time:
                 result = self.get_file(coursefile.url)
                 with open(local_file, 'wb') as f:
                     f.write(result.content)
-        for folder in masterfolder.folders:
-            path = os.path.join(masterfolder.name, folder.name)
-            os.makedirs(path, exist_ok=True)
-            self.save_files(folder, path)
+                coursefile.local_creation_time = datetime.now(self.gmt1)
+        if masterfolder.name == "rootfolder":
+            for folder in masterfolder.folders:
+                path = os.path.join(out_rootfolder, folder.name)
+                os.makedirs(path, exist_ok=True)
+                self.save_files(folder, path)
+        else:
+            for folder in masterfolder.folders:
+                path = os.path.join(out_rootfolder, folder.name)
+                os.makedirs(path, exist_ok=True)
+                self.save_files(folder, path)
