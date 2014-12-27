@@ -51,7 +51,7 @@ class GMT1(tzinfo):
         return "GMT +1"
 
 
-class GenericSet:
+class GenericSet(object):
     def __init__(self):
         self.elements = []
 
@@ -143,7 +143,7 @@ class Course(GenericSet):
             return False
 
 
-class CourseFile:
+class CourseFile(object):
     def __init__(self, name, url, last_online_edit_time):
         self.name = name
         self.url = url
@@ -153,7 +153,7 @@ class CourseFile:
         return hash(self.name)
 
 
-class Folder:
+class Folder(object):
     def __init__(self, name, url):
         self.name = name
         self.url = url
@@ -161,7 +161,7 @@ class Folder:
         self.folders = []
 
 
-class User:
+class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
     gmt1 = GMT1()
 
