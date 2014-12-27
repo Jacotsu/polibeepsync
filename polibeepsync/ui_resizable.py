@@ -232,7 +232,7 @@ class Ui_Form(object):
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
-        Form.setWindowTitle(QtGui.QApplication.translate("Form", "Form", None, QtGui.QApplication.UnicodeUTF8))
+        Form.setWindowTitle("poliBeePsync")
         self.label_2.setText(QtGui.QApplication.translate("Form", "Password", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Form", "User code", None, QtGui.QApplication.UnicodeUTF8))
         self.trylogin.setText(QtGui.QApplication.translate("Form", "Try login credentials", None, QtGui.QApplication.UnicodeUTF8))
