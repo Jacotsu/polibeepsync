@@ -124,6 +124,7 @@ class RefreshCoursesThread(QThread):
             self.dumpuser.sig.emit('User object changed')
             self.newcourses.sig.emit(new)
             self.removable.sig.emit(removable)
+            self.exiting = True
             # nel main thread chaimare dumpUser()
             # e emettere segnale che passa new e removable
 
