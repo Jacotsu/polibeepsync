@@ -166,8 +166,10 @@ class CoursesListModel(QAbstractTableModel):
     def setData(self, index, value, role=Qt.EditRole):
         if role == Qt.EditRole:
             if index.column() == 2:
-                self.courses[index.row()].save_folder_name = value
-                self.dataChanged.emit(index, index)
+                other_names = [elem.save_folder_name for elem in self.courses]
+                if value not in other_names:
+                    self.courses[index.row()].save_folder_name = value
+                    self.dataChanged.emit(index, index)
                 return True
             elif index.column() == 1:
                 self.courses[index.row()].sync = value
