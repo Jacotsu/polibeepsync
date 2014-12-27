@@ -378,10 +378,11 @@ class MainWindow(QWidget, Ui_Form):
     def refreshcourses(self):
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
-            self.loginthread.start()
             self.loginthread.signal_ok.sig.connect(self.do_refreshcourses)
+            self.loginthread.start()
 
     def do_refreshcourses(self):
+        self.loginthread.signal_ok.sig.disconnect(self.do_refreshcourses)
         if not self.refreshcoursesthread.isRunning():
             self.refreshcoursesthread.exiting = False
             self.refreshcoursesthread.start()
