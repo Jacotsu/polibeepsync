@@ -17,8 +17,12 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 
 __version__ = 0.1
 
+import filesettings
 from requests import ConnectionError, Timeout
-
+from appdirs import user_config_dir, user_data_dir
+import os
+import pickle
+import sys
 from polibeepsync.common import User, InvalidLoginError
 import platform
 import PySide
@@ -31,6 +35,104 @@ from PySide.QtGui import (QApplication, QMainWindow, QWidget,
                             QTextCursor)
 
 from ui_resizable import Ui_Form
+
+
+class MySignal(QObject):
+    sig = Signal(str)
+
+class CoursesSignal(QObject):
+    sig = Signal(list)
+
+class LoginThread(QThread):
+    def __init__(self, user, parent = None):
+        QThread.__init__(self, parent)
+        self.exiting = False
+        self.signal_ok = MySignal()
+        self.signal_error = MySignal()
+        self.user = user
+
+    def run(self):
+        while self.exiting==False:
+            try:
+                self.user.logout()
+                self.user.login()
+                if self.user.logged == True:
+                    self.exiting=True
+                    self.signal_ok.sig.emit('Successful login.')
+            except IndexError:
+                pass
+                self.exiting = True
+                self.signal_error.sig.emit('Already logged-in.')
+                #frame.login_attempt.setText("You're already logged in.")
+                #frame.myStream_message("You're already logged in.")
+            except InvalidLoginError:
+                self.user.logout()
+                self.exiting = True
+                self.signal_error.sig.emit('Login failed.')
+                #frame.login_attempt.setText("Login failed.")
+                #frame.myStream_message("Login failed.")
+            except ConnectionError as err:
+                self.user.logout()
+                self.exiting = True
+                self.signal_error.sig.emit('I can\'t connect to the server.'
+                                 ' Is the Internet connection working?')
+                #frame.login_attempt.setText("I can't connect to the server. Is the Internet connection working?")
+                #frame.myStream_message(str(err) + "\nThis usually means that the Internet connection is not working.")
+            except Timeout as err:
+                self.user.logout()
+                self.exiting = True
+                self.signal_error.sig.emit("The timeout time has been reached."
+                                 " Is the Internet connection working?")
+                #frame.login_attempt.setText("The timeout time has been reached. Is the Internet connection working?")
+                #frame.myStream_message(str(err) + "\nThis usually means that the Internet connection is not working.")
+            except Exception as err:
+                self.user.logout()
+                self.exiting = True
+                self.signal_error.sig.emit("An error occurred.")
+                #frame.login_attempt.setText("An error occurred. See the *status* tab.")
+                #frame.myStream_message(str(err))
+
+
+class RefreshCoursesThread(QThread):
+    def __init__(self, user, parent = None):
+        QThread.__init__(self, parent)
+        self.exiting = False
+        self.refreshed = MySignal()
+        self.dumpuser = MySignal()
+        self.newcourses = CoursesSignal()
+        self.removable = CoursesSignal()
+        self.user = user
+
+    def run(self):
+        while self.exiting==False:
+            most_recent = self.user.get_online_courses()
+            last = self.user.available_courses
+            new = most_recent -last
+            removable = last - most_recent
+            if len(removable) >0:
+                self.refreshed.sig.emit('The following courses have'
+                                        ' been removed because they '
+                      'aren\'t available online: {}'.format(removable))
+            if len(new) > 0:
+                for course in new:
+                    course.save_folder_name = course.simplify_name(course.name)
+                    self.refreshed.sig.emit('A new course '
+                                            'was found: {}'.format(course))
+            if len(new) == 0:
+                self.refreshed.sig.emit('No new courses found.')
+            self.user.sync_available_courses(most_recent)
+            self.dumpuser.sig.emit('User object changed')
+            self.newcourses.sig.emit(new)
+            self.removable.sig.emit(removable)
+            # nel main thread chaimare dumpUser()
+            # e emettere segnale che passa new e removable
+
+            #for course in new:
+            #    self.courses_model.insertRows(0, 1, course)
+            #for course in removable:
+            #    index = self.courses_model.courses.index(course)
+            #    self.courses_model.removeRows(index, 1)
+
 
 
 class MyStream(QObject):
@@ -116,13 +218,203 @@ class CoursesListModel(QAbstractTableModel):
 class MainWindow(QWidget, Ui_Form):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
+        self.appname = "poliBeePsync"
+        self.settings_fname = 'pbs-settings.ini'
+        self.data_fname = 'pbs.data'
         self.setupUi(self)
         self.w = QWidget()
         self.createTray()
         self.about.clicked.connect(self.about_box)
         self.license.clicked.connect(self.license_box)
+        self.myStream = MyStream()
+        self.myStream.message.connect(self.myStream_message)
+        sys.stdout = self.myStream
+        self.load_settings()
+        self.load_data()
+
+        self.loginthread = LoginThread(self.user)
+        self.loginthread.terminated.connect(self.loginstatus)
+        self.loginthread.signal_ok.sig.connect(self.loginstatus)
+
+        self.refreshcoursesthread = RefreshCoursesThread(self.user)
+        self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
+        self.refreshcoursesthread.newcourses.sig.connect(self.addtocoursesview)
+        self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
+
+        self.userCode.setText(str(self.user.username))
+        self.userCode.textEdited.connect(self.setusercode)
+        self.password.setText(self.user.password)
+        self.password.textEdited.connect(self.setpassword)
+        self.trylogin.clicked.connect(self.testlogin)
+
+        self.courses_model = CoursesListModel(self.user.available_courses)
+        self.coursesView.setModel(self.courses_model)
+        self.refreshCourses.clicked.connect(self.refreshcourses)
+        self.courses_model.dataChanged.connect(self.dumpUser)
+        self.syncNow.clicked.connect(self.syncfiles)
 
 
+
+        if self.settings['SyncNewCourses'] == str(True):
+            self.sync_new = Qt.Checked
+        else:
+            self.sync_new = Qt.Unchecked
+
+        if self.settings['NotifyNewCourses'] == str(True):
+            self.notify_new = Qt.Checked
+        else:
+            self.notify_new = Qt.Unchecked
+
+        self.rootfolder.setText(self.settings['RootFolder'])
+        self.rootfolder.textChanged.connect(self.rootfolderslot)
+
+        self.notifyNewCourses.setCheckState(self.notify_new)
+
+        self.notifyNewCourses.stateChanged.connect(self.notifynew)
+
+        self.addSyncNewCourses.setCheckState(self.sync_new)
+        self.addSyncNewCourses.stateChanged.connect(self.syncnewslot)
+
+        self.timerMinutes.setValue(int(self.settings['UpdateEvery']))
+        self.timerMinutes.valueChanged.connect(self.updateminuteslot)
+
+        self.changeRootFolder.clicked.connect(self.chooserootdir)
+
+
+    def load_settings(self):
+        for path in [user_config_dir(self.appname),
+                     user_data_dir(self.appname)]:
+            try:
+                os.makedirs(path, exist_ok=True)
+            except OSError as err:
+                if not os.path.isdir(path):
+                    self.myStream_message(str(err))
+        self.settings_path = os.path.join(user_config_dir(self.appname),
+                                     self.settings_fname)
+        self.settings = filesettings.settingsFromFile(self.settings_path)
+
+    def load_data(self):
+        try:
+            with open(os.path.join(user_data_dir(self.appname),
+                                   self.data_fname), 'rb') as f:
+                self.user = pickle.load(f)
+                print("Data has been loaded successfully.")
+        except FileNotFoundError as err:
+            self.user = User('', '')
+            complete_message = str(err) + " ".join([
+    "\nThis error means that no data can be found in the predefined",
+    "directory. Ignore this if you're using poliBeePsync for "
+    "the first time."])
+            print(complete_message)
+        except Exception as err:
+            self.user = User('', '')
+            print(str(err))
+
+    def loginstatus(self, status):
+        self.login_attempt.setText(status)
+
+    @Slot(int)
+    def notifynew(self, state):
+        if state == 2:
+            self.settings['NotifyNewCourses'] = 'True'
+        else:
+            self.settings['NotifyNewCourses'] = 'False'
+        filesettings.settingsToFile(self.settings, self.settings_path)
+
+    @Slot(int)
+    def syncnewslot(self, state):
+        if state == 2:
+            self.settings['SyncNewCourses'] = 'True'
+        else:
+            self.settings['SyncNewCourses'] = 'False'
+        filesettings.settingsToFile(self.settings, self.settings_path)
+
+    @Slot(int)
+    def updateminuteslot(self, minutes):
+        self.settings['UpdateEvery'] = str(minutes)
+        filesettings.settingsToFile(self.settings, self.settings_path)
+
+    @Slot(str)
+    def rootfolderslot(self, path):
+        self.settings['RootFolder'] = path
+        filesettings.settingsToFile(self.settings, self.settings_path)
+
+    def chooserootdir(self):
+        currentdir = self.settings['RootFolder']
+        flags = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
+        newroot =  QFileDialog.getExistingDirectory(None,
+            "Open Directory", currentdir, flags)
+        if newroot != "":
+            self.settings['RootFolder'] = str(newroot)
+            filesettings.settingsToFile(self.settings, self.settings_path)
+            self.rootfolder.setText(newroot)
+
+    def setusercode(self):
+        newcode = self.userCode.text()
+        self.user.username = newcode
+        try:
+            self.dumpUser()
+            print("User code changed to {}.".format(newcode))
+        except Exception as err:
+            print(str(err))
+
+
+    def setpassword(self):
+        newpass = self.password.text()
+        self.user.password = newpass
+        try:
+            self.dumpUser()
+            print("Password changed.")
+        except Exception as err:
+            print(str(err))
+
+    def testlogin(self):
+        if not self.loginthread.isRunning():
+            self.loginthread.exiting = False
+            self.loginthread.start()
+            self.login_attempt.setStyleSheet("color: rgba(0, 0, 0, 255);")
+            self.login_attempt.setText("Logging in, please wait.")
+
+    def addtocoursesview(self, addlist):
+        for elem in addlist:
+            self.courses_model.insertRows(0, 1, elem)
+
+    def rmfromcoursesview(self, removelist):
+        for elem in removelist:
+            index = self.courses_model.courses.index(elem)
+            self.courses_model.removeRows(index, 1)
+
+
+    def dumpUser(self):
+        # we don't use the message...
+        with open(os.path.join(user_data_dir(self.appname),
+                               self.data_fname), 'wb') as f:
+            pickle.dump(self.user, f)
+
+    def refreshcourses(self):
+        if not self.loginthread.isRunning():
+            self.loginthread.exiting = False
+            self.loginthread.start()
+            self.loginthread.signal_ok.sig.connect(self.do_refreshcourses)
+
+    def do_refreshcourses(self):
+        if not self.refreshcoursesthread.isRunning():
+            self.refreshcoursesthread.exiting = False
+            self.refreshcoursesthread.start()
+
+    def syncfiles(self):
+        topdir = self.settings['RootFolder']
+
+        for course in self.user.available_courses:
+            subdir = course.save_folder_name
+            if course.sync == True:
+                outdir = os.path.join(topdir, subdir)
+                os.makedirs(outdir, exist_ok=True)
+                rootdir = self.user.find_files_and_folders(course.documents_url,
+                                                      'root')
+                self.user.save_files(rootdir, outdir)
+            text = "Synced files for {}".format(course.name)
+            print(text)
 
     @Slot(str)
     def myStream_message(self, message):
@@ -184,207 +476,7 @@ class MainWindow(QWidget, Ui_Form):
 
 
 if __name__ == '__main__':
-    from appdirs import user_config_dir, user_data_dir
-    import os
-    import pickle
-    import sys
-
-    import filesettings
-
     app = QApplication(sys.argv)
-    appname = "poliBeePsync"
     frame = MainWindow()
     frame.show()
-    settings_fname = 'pbs-settings.ini'
-    data_fname = 'pbs.data'
-    myStream = MyStream()
-    myStream.message.connect(frame.myStream_message)
-    sys.stdout = myStream
-
-
-    for path in [user_config_dir(appname), user_data_dir(appname)]:
-        try:
-            os.makedirs(path, exist_ok=True)
-        except OSError as err:
-            if not os.path.isdir(path):
-                frame.myStream_message(str(err))
-
-    settings_path = os.path.join(user_config_dir(appname), settings_fname)
-    settings = filesettings.settingsFromFile(settings_path)
-
-    def notifynewslot(state):
-        if state == 2:
-            settings['NotifyNewCourses'] = 'yes'
-        else:
-            settings['NotifyNewCourses'] = 'no'
-        filesettings.settingsToFile(settings, settings_path)
-
-    def syncnewslot(state):
-        if state == 2:
-            settings['SyncNewCourses'] = 'yes'
-        else:
-            settings['SyncNewCourses'] = 'no'
-        filesettings.settingsToFile(settings, settings_path)
-
-    def updateminuteslot(minutes):
-        settings['UpdateEvery'] = str(minutes)
-        filesettings.settingsToFile(settings, settings_path)
-
-    def rootfolderslot(path):
-        settings['RootFolder'] = path
-        filesettings.settingsToFile(settings, settings_path)
-
-    def chooserootdir():
-        currentdir = settings['RootFolder']
-        flags = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
-        newroot =  QFileDialog.getExistingDirectory(None,
-            "Open Directory", currentdir, flags)
-        if newroot != "":
-            settings['RootFolder'] = str(newroot)
-            filesettings.settingsToFile(settings, settings_path)
-            frame.rootfolder.setText(newroot)
-
-    def setusercode():
-        newcode = frame.userCode.text()
-        user.username = newcode
-        try:
-            dumpUser()
-            frame.myStream_message(
-                "User code changed to {}.".format(newcode))
-        except Exception as err:
-            frame.myStream_message(str(err))
-
-
-    def setpassword():
-        newpass = frame.password.text()
-        user.password = newpass
-        try:
-            dumpUser()
-            frame.myStream_message("Password changed.")
-        except Exception as err:
-            frame.myStream_message(str(err))
-
-    def dumpUser():
-        with open(os.path.join(user_data_dir(appname), data_fname), 'wb') as f:
-            pickle.dump(user, f)
-
-    def testlogin():
-        frame.login_attempt.setStyleSheet("color: rgba(0, 0, 0, 255);")
-        try:
-            user.logout()
-            user.login()
-            if user.logged == True:
-                frame.login_attempt.setText("Login successful.")
-                frame.myStream_message("Logged in.")
-        except IndexError:
-            frame.login_attempt.setText("You're already logged in.")
-            frame.myStream_message("You're already logged in.")
-        except InvalidLoginError:
-            user.logout()
-            frame.login_attempt.setText("Login failed.")
-            frame.myStream_message("Login failed.")
-        except ConnectionError as err:
-            user.logout()
-            frame.login_attempt.setText("I can't connect to the server. Is the Internet connection working?")
-            #frame.myStream_message(str(err) + "\nThis usually means that the Internet connection is not working.")
-        except Timeout as err:
-            user.logout()
-            frame.login_attempt.setText("The timeout time has been reached. Is the Internet connection working?")
-            #frame.myStream_message(str(err) + "\nThis usually means that the Internet connection is not working.")
-        except Exception as err:
-            frame.login_attempt.setText("An error occurred. See the *status* tab.")
-            frame.myStream_message(str(err))
-
-    def refreshcourses():
-        testlogin()
-        most_recent = user.get_online_courses()
-        last = user.available_courses
-        new = most_recent -last
-        removable = last - most_recent
-        print('The following courses have been removed because they '
-              'aren\'t available online: {}'.format(removable))
-        for course in new:
-            course.save_folder_name = course.simplify_name(course.name)
-            print('A new course was found: {}'.format(course))
-        user.sync_available_courses(most_recent)
-        dumpUser()
-        for course in new:
-            frame.courses_model.insertRows(0, 1, course)
-        for course in removable:
-            index = frame.courses_model.courses.index(course)
-            frame.courses_model.removeRows(index, 1)
-
-    def syncfiles():
-        topdir = settings['RootFolder']
-
-        for course in user.available_courses:
-            subdir = course.save_folder_name
-            if course.sync == True:
-                outdir = os.path.join(topdir, subdir)
-                os.makedirs(outdir, exist_ok=True)
-                rootdir = user.find_files_and_folders(course.documents_url,
-                                                      'root')
-                user.save_files(rootdir, outdir)
-            text = "Synced files for {}".format(course.name)
-            frame.myStream_message(text)
-
-
-    frame.rootfolder.setText(settings['RootFolder'])
-    frame.rootfolder.textChanged.connect(rootfolderslot)
-
-    if settings['NotifyNewCourses'] == str(True):
-        notify_new = Qt.Checked
-    else:
-        notify_new = Qt.Unchecked
-
-    if settings['SyncNewCourses'] == str(True):
-        sync_new = Qt.Checked
-    else:
-        sync_new = Qt.Unchecked
-
-    frame.notifyNewCourses.setCheckState(notify_new)
-    frame.notifyNewCourses.stateChanged.connect(notifynewslot)
-
-    frame.addSyncNewCourses.setCheckState(sync_new)
-    frame.addSyncNewCourses.stateChanged.connect(syncnewslot)
-
-    frame.timerMinutes.setValue(int(settings['UpdateEvery']))
-    frame.timerMinutes.valueChanged.connect(updateminuteslot)
-
-    frame.changeRootFolder.clicked.connect(chooserootdir)
-
-    try:
-        with open(os.path.join(user_data_dir(appname), data_fname), 'rb') as f:
-            user = pickle.load(f)
-            frame.myStream_message("Data has been loaded successfully.")
-    except FileNotFoundError as err:
-        user = User('', '')
-        complete_message = str(err) + " ".join([
-"\nThis error means that no data can be found in the predefined",
-"directory. Ignore this if you're using poliBeePsync for the first",
-" time."])
-        frame.myStream_message(complete_message)
-    except Exception as err:
-        user = User('', '')
-        frame.myStream_message(str(err))
-
-    frame.userCode.setText(str(user.username))
-    frame.userCode.textEdited.connect(setusercode)
-    frame.password.setText(user.password)
-    frame.password.textEdited.connect(setpassword)
-    frame.trylogin.clicked.connect(testlogin)
-
-    frame.courses_model = CoursesListModel(user.available_courses)
-    frame.coursesView.setModel(frame.courses_model)
-    frame.refreshCourses.clicked.connect(refreshcourses)
-    frame.courses_model.dataChanged.connect(dumpUser)
-    frame.syncNow.clicked.connect(syncfiles)
-
-
-
-
-
-
-
-
     sys.exit(app.exec_())
