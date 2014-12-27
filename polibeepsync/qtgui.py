@@ -510,9 +510,11 @@ class MainWindow(QWidget, Ui_Form):
         Dialog.exec_()
 
 
-
-if __name__ == '__main__':
+def main():
     app = QApplication(sys.argv)
     frame = MainWindow()
     frame.show()
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
