@@ -211,7 +211,9 @@ class MainWindow(QWidget, Ui_Form):
         self.load_data()
 
         self.loginthread = LoginThread(self.user)
-        self.loginthread.terminated.connect(self.loginstatus)
+        self.loginthread.signal_error.sig.connect(self.myStream_message)
+        self.loginthread.signal_error.sig.connect(self.loginstatus)
+        self.loginthread.signal_ok.sig.connect(self.myStream_message)
         self.loginthread.signal_ok.sig.connect(self.loginstatus)
 
         self.refreshcoursesthread = RefreshCoursesThread(self.user)
