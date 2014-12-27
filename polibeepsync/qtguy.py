@@ -63,34 +63,25 @@ class LoginThread(QThread):
                 pass
                 self.exiting = True
                 self.signal_error.sig.emit('Already logged-in.')
-                #frame.login_attempt.setText("You're already logged in.")
-                #frame.myStream_message("You're already logged in.")
             except InvalidLoginError:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('Login failed.')
-                #frame.login_attempt.setText("Login failed.")
-                #frame.myStream_message("Login failed.")
             except ConnectionError as err:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('I can\'t connect to the server.'
                                  ' Is the Internet connection working?')
-                #frame.login_attempt.setText("I can't connect to the server. Is the Internet connection working?")
-                #frame.myStream_message(str(err) + "\nThis usually means that the Internet connection is not working.")
             except Timeout as err:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit("The timeout time has been reached."
                                  " Is the Internet connection working?")
-                #frame.login_attempt.setText("The timeout time has been reached. Is the Internet connection working?")
-                #frame.myStream_message(str(err) + "\nThis usually means that the Internet connection is not working.")
+
             except Exception as err:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit("An error occurred.")
-                #frame.login_attempt.setText("An error occurred. See the *status* tab.")
-                #frame.myStream_message(str(err))
 
 
 class RefreshCoursesThread(QThread):
