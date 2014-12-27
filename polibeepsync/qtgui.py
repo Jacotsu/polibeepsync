@@ -280,17 +280,17 @@ class MainWindow(QWidget, Ui_Form):
         else:
             self.sync_new = Qt.Unchecked
 
-        if self.settings['NotifyNewCourses'] == str(True):
-            self.notify_new = Qt.Checked
-        else:
-            self.notify_new = Qt.Unchecked
+        #if self.settings['NotifyNewCourses'] == str(True):
+        #   self.notify_new = Qt.Checked
+        #else:
+        #    self.notify_new = Qt.Unchecked
 
         self.rootfolder.setText(self.settings['RootFolder'])
         self.rootfolder.textChanged.connect(self.rootfolderslot)
 
-        self.notifyNewCourses.setCheckState(self.notify_new)
+        #self.notifyNewCourses.setCheckState(self.notify_new)
 
-        self.notifyNewCourses.stateChanged.connect(self.notifynew)
+        #self.notifyNewCourses.stateChanged.connect(self.notifynew)
 
 
         self.addSyncNewCourses.setCheckState(self.sync_new)
@@ -340,13 +340,13 @@ class MainWindow(QWidget, Ui_Form):
     def loginstatus(self, status):
         self.login_attempt.setText(status)
 
-    @Slot(int)
-    def notifynew(self, state):
-        if state == 2:
-            self.settings['NotifyNewCourses'] = 'True'
-        else:
-            self.settings['NotifyNewCourses'] = 'False'
-        filesettings.settingsToFile(self.settings, self.settings_path)
+    #@Slot(int)
+    #def notifynew(self, state):
+    #    if state == 2:
+    #        self.settings['NotifyNewCourses'] = 'True'
+    #    else:
+    #        self.settings['NotifyNewCourses'] = 'False'
+    #    filesettings.settingsToFile(self.settings, self.settings_path)
 
     @Slot(int)
     def syncnewslot(self, state):
