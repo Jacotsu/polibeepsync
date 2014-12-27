@@ -136,17 +136,6 @@ class RefreshCoursesThread(QThread):
 
 
 
-class MyStream(QObject):
-    message = Signal(str)
-    def __init__(self, parent=None):
-        super(MyStream, self).__init__(parent)
-
-    def write(self, message):
-        self.message.emit(str(message))
-
-    def flush(self):
-        pass
-
 class CoursesListModel(QAbstractTableModel):
     def __init__(self, courses):
         QAbstractTableModel.__init__(self)
@@ -227,9 +216,6 @@ class MainWindow(QWidget, Ui_Form):
         self.createTray()
         self.about.clicked.connect(self.about_box)
         self.license.clicked.connect(self.license_box)
-        self.myStream = MyStream()
-        self.myStream.message.connect(self.myStream_message)
-        sys.stdout = self.myStream
         self.load_settings()
         self.load_data()
 
