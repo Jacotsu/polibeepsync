@@ -43,6 +43,7 @@ class MySignal(QObject):
 class CoursesSignal(QObject):
     sig = Signal(list)
 
+
 class LoginThread(QThread):
     def __init__(self, user, parent = None):
         QThread.__init__(self, parent)
@@ -221,6 +222,7 @@ class MainWindow(QWidget, Ui_Form):
         self.refreshcoursesthread = RefreshCoursesThread(self.user)
         self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
         self.refreshcoursesthread.newcourses.sig.connect(self.addtocoursesview)
+        self.refreshcoursesthread.newcourses.sig.connect(self.syncnewcourses)
         self.refreshcoursesthread.refreshed.sig.connect(self.myStream_message)
         self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
 
@@ -263,6 +265,12 @@ class MainWindow(QWidget, Ui_Form):
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
+
+    def syncnewcourses(self, newlist):
+        if self.settings['SyncNewCourses'] == 'True':
+            for elem in newlist:
+                elem.sync = True
+
 
 
     def load_settings(self):
