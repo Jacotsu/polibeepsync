@@ -250,4 +250,4 @@ class Ui_Form(object):
         self.about.setText(QtGui.QApplication.translate("Form", "About", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QtGui.QApplication.translate("Form", "Status", None, QtGui.QApplication.UnicodeUTF8))
 
-import icone_rc
+from polibeepsync import icone_rc
