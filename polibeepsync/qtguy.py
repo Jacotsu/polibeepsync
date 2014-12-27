@@ -226,7 +226,9 @@ class MainWindow(QWidget, Ui_Form):
         self.refreshcoursesthread = RefreshCoursesThread(self.user)
         self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
         self.refreshcoursesthread.newcourses.sig.connect(self.addtocoursesview)
+        self.refreshcoursesthread.refreshed.sig.connect(self.myStream_message)
         self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
+
 
         self.userCode.setText(str(self.user.username))
         self.userCode.textEdited.connect(self.setusercode)
@@ -285,17 +287,17 @@ class MainWindow(QWidget, Ui_Form):
             with open(os.path.join(user_data_dir(self.appname),
                                    self.data_fname), 'rb') as f:
                 self.user = pickle.load(f)
-                print("Data has been loaded successfully.")
+                self.myStream_message("Data has been loaded successfully.")
         except FileNotFoundError as err:
             self.user = User('', '')
             complete_message = str(err) + " ".join([
     "\nThis error means that no data can be found in the predefined",
     "directory. Ignore this if you're using poliBeePsync for "
     "the first time."])
-            print(complete_message)
+            self.myStream_message(complete_message)
         except Exception as err:
             self.user = User('', '')
-            print(str(err))
+            self.myStream_message(str(err))
 
     def loginstatus(self, status):
         self.login_attempt.setText(status)
@@ -341,9 +343,11 @@ class MainWindow(QWidget, Ui_Form):
         self.user.username = newcode
         try:
             self.dumpUser()
-            print("User code changed to {}.".format(newcode))
+            if len(newcode) == 8:
+                self.myStream_message("User code changed to {}."
+                                      .format(newcode))
         except Exception as err:
-            print(str(err))
+            self.myStream_message(str(err))
 
 
     def setpassword(self):
@@ -351,9 +355,9 @@ class MainWindow(QWidget, Ui_Form):
         self.user.password = newpass
         try:
             self.dumpUser()
-            print("Password changed.")
+            self.myStream_message("Password changed.")
         except Exception as err:
-            print(str(err))
+            self.myStream_message(str(err))
 
     def testlogin(self):
         if not self.loginthread.isRunning():
@@ -401,7 +405,7 @@ class MainWindow(QWidget, Ui_Form):
                                                       'root')
                 self.user.save_files(rootdir, outdir)
             text = "Synced files for {}".format(course.name)
-            print(text)
+            self.myStream_message(text)
 
     @Slot(str)
     def myStream_message(self, message):
