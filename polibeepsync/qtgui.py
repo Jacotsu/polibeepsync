@@ -238,8 +238,13 @@ class MainWindow(QWidget, Ui_Form):
         self.createTray()
         self.about.clicked.connect(self.about_box)
         self.license.clicked.connect(self.license_box)
+        self.timer = QTimer(self)
+
         self.load_settings()
         self.load_data()
+
+        self.timer.timeout.connect(self.syncfiles)
+        self.timer.start(1000*60*int(self.settings['UpdateEvery']))
 
         self.loginthread = LoginThread(self.user)
         self.loginthread.signal_error.sig.connect(self.myStream_message)
@@ -297,6 +302,7 @@ class MainWindow(QWidget, Ui_Form):
 
         self.timerMinutes.setValue(int(self.settings['UpdateEvery']))
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
+        #self.timerMinutes.valueChanged.connect(STUFF)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
 
@@ -359,6 +365,7 @@ class MainWindow(QWidget, Ui_Form):
     def updateminuteslot(self, minutes):
         self.settings['UpdateEvery'] = str(minutes)
         filesettings.settingsToFile(self.settings, self.settings_path)
+        self.timer.start(1000*60*int(self.settings['UpdateEvery']))
 
     @Slot(str)
     def rootfolderslot(self, path):
