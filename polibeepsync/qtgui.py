@@ -322,7 +322,12 @@ class MainWindow(QWidget, Ui_Form):
                     self.myStream_message(str(err))
         self.settings_path = os.path.join(user_config_dir(self.appname),
                                      self.settings_fname)
-        self.settings = filesettings.settingsFromFile(self.settings_path)
+        defaults = {
+        'UpdateEvery': '60',
+        'RootFolder': os.path.join(os.path.expanduser('~'), self.appname),
+        'SyncNewCourses': 'False'
+        }
+        self.settings = filesettings.settingsFromFile(self.settings_path, defaults)
 
     def load_data(self):
         try:

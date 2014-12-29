@@ -21,16 +21,16 @@ from configparser import RawConfigParser, MissingSectionHeaderError
 import os
 
 
-def settingsFromFile(infile):
+def settingsFromFile(infile, defaults):
     """Given a path string :attr:`infile`, load settings and return them as
-    dictionary"""
-    defaults = {
-        'UpdateEvery': '60',
-        'RootFolder': 'root',
-        'NotifyNewCourses': 'True',
-        'SyncNewCourses': 'True'
-    }
+    dictionary.
 
+    Args:
+        infile (str): a path to a file
+        defaults (dict): a dictionary containing fallback values
+    """
+    print(defaults)
+    print(type(defaults))
     config = RawConfigParser()
     config.optionxform = lambda option: option
     try:
@@ -50,7 +50,7 @@ def settingsFromFile(infile):
     except ValueError:
         # can't convert to integer
         config['General']['UpdateEvery'] = defaults['UpdateEvery']
-    for value in ('NotifyNewCourses', 'SyncNewCourses'):
+    for value in ('SyncNewCourses', ):
         try:
             booleanvalue = config.getboolean('General', value)
             config['General'][value] = str(booleanvalue)
