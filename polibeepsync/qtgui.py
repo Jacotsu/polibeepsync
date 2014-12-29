@@ -237,7 +237,6 @@ class MainWindow(QWidget, Ui_Form):
         self.w = QWidget()
         self.createTray()
         self.about.clicked.connect(self.about_box)
-        self.license.clicked.connect(self.license_box)
         self.timer = QTimer(self)
 
         self.load_settings()
@@ -489,21 +488,6 @@ class MainWindow(QWidget, Ui_Form):
         text = "<html><head/><body><p>poliBeePsync version {}.</p><p>poliBeePsync is a program written by Davide Olianas, released under GNU GPLv3+.</p><p><br/></p><p>More information is available on the <a href=\"http://www.davideolianas.com/polibeepsync\"><span style=\" text-decoration: underline; color:#0000ff;\">official website</span></a>.</p></body></html>".format(__version__)
         Dialog.setWindowTitle(QApplication.translate("Dialog", "About poliBeePsync", None, QApplication.UnicodeUTF8))
         label.setText(QApplication.translate("Dialog", text, None, QApplication.UnicodeUTF8))
-        Dialog.exec_()
-
-    def license_box(self):
-        dir = os.path.dirname(os.path.realpath(__file__))
-        par = os.path.abspath(os.path.join(dir, os.pardir))
-        lic = os.path.join(par, 'gpl.txt')
-        with open(lic, 'rt') as f:
-            text = f.read()
-        Dialog = QDialog()
-        Dialog.resize(600, 500)
-        Dialog.setWindowTitle("License")
-        layout = QVBoxLayout(Dialog)
-        textEdit = QTextEdit(Dialog)
-        layout.addWidget(textEdit)
-        textEdit.setText(text)
         Dialog.exec_()
 
 
