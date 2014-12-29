@@ -382,10 +382,20 @@ class MainWindow(QWidget, Ui_Form):
         flags = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
         newroot =  QFileDialog.getExistingDirectory(None,
             "Open Directory", currentdir, flags)
-        if newroot != "":
+        if newroot != "" and str(newroot) != currentdir:
             self.settings['RootFolder'] = str(newroot)
             filesettings.settingsToFile(self.settings, self.settings_path)
             self.rootfolder.setText(newroot)
+            # we delete the already present downloadthread and recreate it
+            # because otherwise it uses the old download folder. I don't know
+            # if there's a cleaner approach
+            del self.downloadthread
+            self.downloadthread = DownloadThread(self.user,
+                self.settings['RootFolder'])
+            self.downloadthread.dumpuser.sig.connect(self.dumpUser)
+            self.downloadthread.course_finished.sig.connect(self.myStream_message)
+            self.downloadthread.signal_error.sig.connect(self.myStream_message)
+
 
     def setusercode(self):
         newcode = self.userCode.text()
