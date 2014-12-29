@@ -29,8 +29,6 @@ def settingsFromFile(infile, defaults):
         infile (str): a path to a file
         defaults (dict): a dictionary containing fallback values
     """
-    print(defaults)
-    print(type(defaults))
     config = RawConfigParser()
     config.optionxform = lambda option: option
     try:
