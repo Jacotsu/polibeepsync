@@ -10,7 +10,7 @@ PoliBeePsync is a simple GUI program, aimed at students of Politecnico di
 Milano, which purpose is to sync the files loaded by professors onto the
 `BeeP platform <https://beep.metid.polimi.it>`_.
 
-This software is in the planning stage and the documentation is under
+This software is in the beta stage and the documentation is under
 construction.
 
 
