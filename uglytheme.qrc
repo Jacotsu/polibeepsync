@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="icons/uglytheme">
+  <file alias="16x16/polibeepsync.png">icons/uglytheme/16x16/polibeepsync.png</file>
+  <file alias="24x24/polibeepsync.png">icons/uglytheme/24x24/polibeepsync.png</file>
+  <file alias="36x36/polibeepsync.png">icons/uglytheme/36x36/polibeepsync.png</file>
+  <file alias="48x48/polibeepsync.png">icons/uglytheme/48x48/polibeepsync.png</file>
+  </qresource>
+</RCC>
