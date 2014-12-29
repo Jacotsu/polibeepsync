@@ -430,16 +430,37 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
 
     def save_files(self, masterfolder, out_rootfolder):
         for coursefile in masterfolder.files:
-            local_file = os.path.join(out_rootfolder, coursefile.name)
-            if not os.path.exists(local_file):
-                result = self.get_file(coursefile.url)
-                with open(local_file, 'wb') as f:
-                    f.write(result.content)
-                coursefile.local_creation_time = datetime.now(self.gmt1)
-            elif coursefile.local_creation_time <\
+            fname = os.path.join(out_rootfolder, coursefile.name)
+            basenames = [os.path.splitext(os.path.basename(f))[0]
+                         for f in os.listdir(out_rootfolder)
+                         if os.path.isfile(os.path.join(out_rootfolder, f))]
+
+            if os.path.exists(fname) and\
+                coursefile.local_creation_time < \
                 coursefile.last_online_edit_time:
                 result = self.get_file(coursefile.url)
-                with open(local_file, 'wb') as f:
+                complete_basename = result.headers['Content-Disposition']\
+                .split("; ")[1].split("=")[1].strip('"')
+                complete_name = os.path.join(out_rootfolder, complete_basename)
+                with open(complete_name, 'wb') as f:
+                    f.write(result.content)
+                coursefile.local_creation_time = datetime.now(self.gmt1)
+            elif fname in basenames and\
+                coursefile.local_creation_time < \
+                coursefile.last_online_edit_time:
+                result = self.get_file(coursefile.url)
+                complete_basename = result.headers['Content-Disposition']\
+                .split("; ")[1].split("=")[1].strip('"')
+                complete_name = os.path.join(out_rootfolder, complete_basename)
+                with open(complete_name, 'wb') as f:
+                    f.write(result.content)
+                coursefile.local_creation_time = datetime.now(self.gmt1)
+            elif not (os.path.exists(fname) and fname in basenames):
+                result = self.get_file(coursefile.url)
+                complete_basename = result.headers['Content-Disposition']\
+                .split("; ")[1].split("=")[1].strip('"')
+                complete_name = os.path.join(out_rootfolder, complete_basename)
+                with open(complete_name, 'wb') as f:
                     f.write(result.content)
                 coursefile.local_creation_time = datetime.now(self.gmt1)
         if masterfolder.name == "rootfolder":
