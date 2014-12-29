@@ -27,7 +27,7 @@ from polibeepsync.common import User, InvalidLoginError
 import PySide
 from PySide.QtCore import *
 from PySide.QtGui import (QApplication, QWidget, QTextCursor,
-                           QMenu, QAction,
+                           QMenu, QAction, QIcon,
                            QIcon, QFileDialog,
                            QVBoxLayout, QLabel,  QSystemTrayIcon,
                             qApp, QDialog, QPixmap, QTextEdit,
@@ -460,11 +460,10 @@ class MainWindow(QWidget, Ui_Form):
     def createTray(self):
         restoreAction = QAction("&Restore", self, triggered=self.showNormal)
         quitAction = QAction("&Quit", self, triggered=qApp.quit)
-        icon =  PySide.QtGui.QIcon(':/newPrefix/polibeep.svg')
         trayIconMenu = QMenu()
         trayIconMenu.addAction(restoreAction)
         trayIconMenu.addAction(quitAction)
-        trayIcon = QSystemTrayIcon(icon, self.w)
+        trayIcon = QSystemTrayIcon(self.icon, self.w)
         trayIcon.setContextMenu(trayIconMenu)
         trayIcon.show()
 
@@ -476,9 +475,7 @@ class MainWindow(QWidget, Ui_Form):
         Dialog = QDialog()
         Dialog.setObjectName("Dialog")
         Dialog.resize(379, 161)
-        icon = QIcon()
-        icon.addPixmap(QPixmap(":/newPrefix/polibeep-black.svg"), QIcon.Normal, QIcon.Off)
-        Dialog.setWindowIcon(icon)
+        Dialog.setWindowIcon(self.icon)
         verticalLayout = QVBoxLayout(Dialog)
         verticalLayout.setObjectName("verticalLayout")
         label = QLabel(Dialog)
