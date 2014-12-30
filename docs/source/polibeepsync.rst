@@ -7,7 +7,7 @@ Submodules
 polibeepsync.polibeepsync module
 --------------------------------
 
-.. automodule:: polibeepsync.polibeepsync
+.. automodule:: polibeepsync.common
     :members:
     :undoc-members:
     :show-inheritance:

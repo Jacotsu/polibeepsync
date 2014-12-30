@@ -23,13 +23,23 @@ PoliBeePsync is distributed under the GNU General Public License v3 or later
 Images
 =======
 
-Some example images
+.. image:: pbs-general.png
+	:alt: The general settings tab.
 
-Installation
-=============
+.. image:: pbs-courses.png
+	:alt: The list of courses available.
 
-Installation instructions are provided :doc:`installation` page for
-Windows, Mac OS and Linux.
+How to Install/Remove
+============================
+
+Installation (and removal) instructions are provided in the :doc:`installation` page for
+Windows and Linux. The program hasn't been tested on Mac OS X yet.
+
+Quickstart
+============
+
+After the :doc:`installation`, you need to configure the application.
+You can find more in the :doc:`quickstart` page.
 
 Support
 =======
@@ -49,11 +59,20 @@ on github.
 Source code
 ------------
 
-Source code is available on `<https://github.com/davethecipo/polibeepsync>`_.
 
+Source code is available on `<https://github.com/davethecipo/polibeepsync>`_.
+I recommend using a virtualenv in order to develop; the command used to create
+one may be different from the one I show below. The following instructions are
+for Linux.
 ::
 
     git clone https://github.com/davethecipo/polibeepsync.git
+    cd polibeepsync
+    python -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
+    pip install -r test-requirements.txt
+
 
 
 Indices and tables
