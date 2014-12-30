@@ -6,13 +6,19 @@ and click on
 
 * ``buildwin64`` if you're using a 64bit version of Windows
 * ``buildwin32`` if you're using a 32bit version of Windows
-* ``buildlinux64`` if you're using a 64bit version of Linux
+
 
 Now, on the upper right corner, click ``download/download as a .zip``.
 After the download has finished, extract the .zip archive.
 You can start the program by double-clicking on the ``qtgui`` program.
 Keep reading if you want to create an easy shortcut and/or start the 
 program automatically at boot.
+
+For the moment, don't download the linux version (I'm examining why it doesn't
+work); instead, download the package through pip (tested for python-3.4)
+::
+
+    pip install poliBeePsync
 
 How to create a shortcut (Windows)
 -----------------------------------
