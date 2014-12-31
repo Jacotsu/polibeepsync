@@ -124,7 +124,9 @@ class Course(GenericSet):
     def simplify_name(self, name):
         upper = name
         try:
-            upper = name.split('[')[1].split(']')[1].rstrip(" ").lstrip(' - ')
+            rmleftbrackets = "".join(name.split('[')[1:-1])
+            upper = rmleftbrackets.split("]")[1].lstrip(' - ').rstrip(" ")
+            #upper = name.split('[')[1].split(']')[1].rstrip(" ").lstrip(' - ')
         except Exception as err:
             logging.error('Failed to simplify course name {}'.format(name))
             logging.error(str(err))
