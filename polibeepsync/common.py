@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, tzinfo
 import requests
 import os
+import logging
 
 
 class InvalidLoginError(Exception):
@@ -28,9 +29,6 @@ class InvalidLoginError(Exception):
 class CourseNotFoundError(Exception):
     pass
 
-def modification_date(filename):
-    t = os.path.getmtime(filename)
-    return datetime.datetime.fromtimestamp(t)
 
 class GMT1(tzinfo):
     def utcoffset(self, dt):
@@ -113,6 +111,9 @@ class Courses(GenericSet):
 
 class Course(GenericSet):
     def __init__(self, name, documents_url, sync=False):
+        logging.debug('Creating course with name={},'
+                      ' documents_url={}, sync={}'
+                      .format(name, documents_url, sync))
         super(Course, self).__init__()
         self.name = name
         self.documents_url = documents_url
@@ -121,7 +122,12 @@ class Course(GenericSet):
         self.save_folder_name = ""
 
     def simplify_name(self, name):
-        upper = name.split('[')[1].split(']')[1].rstrip(" ").lstrip(' - ')
+        upper = name
+        try:
+            upper = name.split('[')[1].split(']')[1].rstrip(" ").lstrip(' - ')
+        except Exception as err:
+            logging.error('Failed to simplify course name {}'.format(name))
+            logging.error(str(err))
         return upper.title()
 
     def __hash__(self):
@@ -178,13 +184,6 @@ class User(object):
         self.available_courses = Courses()
         self.root_save_folder = ""
 
-    def visit(self):
-        """Visit the login webpage to test for working connection."""
-        try:
-            self.session.get('https://beep.metid.polimi.it' , timeout=5, verify=True)
-        except (requests.ConnectionError, requests.Timeout):
-            # re-raise the exception for the moment
-            raise
 
     def logout(self):
         """Logout.
@@ -208,6 +207,7 @@ class User(object):
         soup = BeautifulSoup(response.text)
         login_tag = soup.find('input', attrs={'id': 'login'})
         if login_tag is not None:
+            logging.info("The session has expired. Logging-in again...")
             self.logout()
             self.login()
             response = self.session.get(url, timeout=5, verify=True)
@@ -230,6 +230,7 @@ class User(object):
         response = self.session.get(url, timeout=5, verify=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
+            logging.info("The session has expired. Logging-in again...")
             self.logout()
             self.login()
             response = self.session.get(url, timeout=5, verify=True)
