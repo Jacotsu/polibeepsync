@@ -1,3 +1,6 @@
+.. image:: https://badge.waffle.io/davethecipo/polibeepsync.png?label=ready&title=Ready 
+ :target: https://waffle.io/davethecipo/polibeepsync
+ :alt: 'Stories in Ready'
 PoliBeePsync
 ============
 
