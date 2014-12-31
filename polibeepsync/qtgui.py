@@ -15,7 +15,6 @@ You should have received a copy of the GNU General Public License
 along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
-__version__ = 0.1
 
 from polibeepsync import filesettings
 from requests import ConnectionError, Timeout
@@ -32,7 +31,26 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                           qApp, QDialog)
 
 from polibeepsync.ui_resizable import Ui_Form
+import re
 
+
+def read(*names, **kwargs):
+    with open(
+        os.path.join(os.path.dirname(__file__), *names),
+        encoding=kwargs.get("encoding", "utf8")
+    ) as fp:
+        return fp.read()
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
+
+__version__ = find_version("__init__.py")
 
 class MySignal(QObject):
     sig = Signal(str)
