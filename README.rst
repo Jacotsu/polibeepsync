@@ -6,3 +6,5 @@ This program synces a local folder with files uploaded by professors on the
 
 This code is in the beta stage. Documentation is under construction
 `here <http://www.davideolianas.com/polibeepsync/index.html>`_.
+
+.. include:: CHANGES.rst
