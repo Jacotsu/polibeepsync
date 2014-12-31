@@ -24,14 +24,12 @@ import os
 import pickle
 import sys
 from polibeepsync.common import User, InvalidLoginError
-import PySide
-from PySide.QtCore import *
+from PySide.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
+                           QModelIndex, Qt, Slot, QTimer, QLocale, QPoint)
 from PySide.QtGui import (QApplication, QWidget, QTextCursor,
-                           QMenu, QAction, QIcon,
-                           QIcon, QFileDialog,
-                           QVBoxLayout, QLabel,  QSystemTrayIcon,
-                            qApp, QDialog, QPixmap, QTextEdit,
-                            )
+                          QMenu, QAction, QFileDialog,
+                          QVBoxLayout, QLabel, QSystemTrayIcon,
+                          qApp, QDialog)
 
 from polibeepsync.ui_resizable import Ui_Form
 
@@ -39,12 +37,13 @@ from polibeepsync.ui_resizable import Ui_Form
 class MySignal(QObject):
     sig = Signal(str)
 
+
 class CoursesSignal(QObject):
     sig = Signal(list)
 
 
 class DownloadThread(QThread):
-    def __init__(self, user, topdir, parent = None):
+    def __init__(self, user, topdir, parent=None):
         QThread.__init__(self, parent)
         self.exiting = False
         self.course_finished = MySignal()
@@ -72,8 +71,9 @@ class DownloadThread(QThread):
                         self.signal_error.sig.emit(str(err))
             self.exiting = True
 
+
 class LoginThread(QThread):
-    def __init__(self, user, parent = None):
+    def __init__(self, user, parent=None):
         QThread.__init__(self, parent)
         self.exiting = False
         self.signal_ok = MySignal()
@@ -81,12 +81,12 @@ class LoginThread(QThread):
         self.user = user
 
     def run(self):
-        while self.exiting==False:
+        while self.exiting == False:
             try:
                 self.user.logout()
                 self.user.login()
                 if self.user.logged == True:
-                    self.exiting=True
+                    self.exiting = True
                     self.signal_ok.sig.emit('Successful login.')
             except IndexError:
                 pass
@@ -100,12 +100,12 @@ class LoginThread(QThread):
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('I can\'t connect to the server.'
-                                 ' Is the Internet connection working?')
+                                           ' Is the Internet connection working?')
             except Timeout as err:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit("The timeout time has been reached."
-                                 " Is the Internet connection working?")
+                                           " Is the Internet connection working?")
 
             except Exception as err:
                 self.user.logout()
@@ -114,7 +114,7 @@ class LoginThread(QThread):
 
 
 class RefreshCoursesThread(QThread):
-    def __init__(self, user, parent = None):
+    def __init__(self, user, parent=None):
         QThread.__init__(self, parent)
         self.exiting = False
         self.refreshed = MySignal()
@@ -124,15 +124,16 @@ class RefreshCoursesThread(QThread):
         self.user = user
 
     def run(self):
-        while self.exiting==False:
+        while self.exiting == False:
             most_recent = self.user.get_online_courses()
             last = self.user.available_courses
-            new = most_recent -last
+            new = most_recent - last
             removable = last - most_recent
-            if len(removable) >0:
+            if len(removable) > 0:
                 self.refreshed.sig.emit('The following courses have'
                                         ' been removed because they '
-                      'aren\'t available online: {}'.format(removable))
+                                        'aren\'t available online: {}'.format(
+                    removable))
             if len(new) > 0:
                 for course in new:
                     course.save_folder_name = course.simplify_name(course.name)
@@ -148,12 +149,11 @@ class RefreshCoursesThread(QThread):
             # nel main thread chaimare dumpUser()
             # e emettere segnale che passa new e removable
 
-            #for course in new:
+            # for course in new:
             #    self.courses_model.insertRows(0, 1, course)
             #for course in removable:
             #    index = self.courses_model.courses.index(course)
             #    self.courses_model.removeRows(index, 1)
-
 
 
 class CoursesListModel(QAbstractTableModel):
@@ -168,15 +168,15 @@ class CoursesListModel(QAbstractTableModel):
     def columnCount(self, parent=QModelIndex()):
         return 3
 
-    def insertRows(self, position, rows, newcourse, parent= QModelIndex()):
-        self.beginInsertRows(parent, position, position + rows -1)
+    def insertRows(self, position, rows, newcourse, parent=QModelIndex()):
+        self.beginInsertRows(parent, position, position + rows - 1)
         for row in range(rows):
             self.courses.insert(position, newcourse)
         self.endInsertRows()
         return True
 
-    def removeRows(self, position, rows, parent = QModelIndex()):
-        self.beginRemoveRows(parent, position, position + rows -1)
+    def removeRows(self, position, rows, parent=QModelIndex()):
+        self.beginRemoveRows(parent, position, position + rows - 1)
         for row in range(rows):
             del self.courses[position]
         self.endRemoveRows()
@@ -187,10 +187,11 @@ class CoursesListModel(QAbstractTableModel):
             flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
             return flags
         elif index.column() == 1:
-            flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable\
-            | Qt.ItemIsUserCheckable
+            flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable \
+                    | Qt.ItemIsUserCheckable
             return flags
-        else: return Qt.ItemIsEnabled
+        else:
+            return Qt.ItemIsEnabled
 
     def setData(self, index, value, role=Qt.EditRole):
         if role == Qt.EditRole:
@@ -227,6 +228,7 @@ class CoursesListModel(QAbstractTableModel):
             elif col == 2:
                 return "Save as"
 
+
 class MainWindow(QWidget, Ui_Form):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -243,7 +245,7 @@ class MainWindow(QWidget, Ui_Form):
         self.load_data()
 
         self.timer.timeout.connect(self.syncfiles)
-        self.timer.start(1000*60*int(self.settings['UpdateEvery']))
+        self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
 
         self.loginthread = LoginThread(self.user)
         self.loginthread.signal_error.sig.connect(self.myStream_message)
@@ -276,14 +278,12 @@ class MainWindow(QWidget, Ui_Form):
         self.courses_model.dataChanged.connect(self.dumpUser)
         self.syncNow.clicked.connect(self.syncfiles)
 
-
-
         if self.settings['SyncNewCourses'] == str(True):
             self.sync_new = Qt.Checked
         else:
             self.sync_new = Qt.Unchecked
 
-        #if self.settings['NotifyNewCourses'] == str(True):
+        # if self.settings['NotifyNewCourses'] == str(True):
         #   self.notify_new = Qt.Checked
         #else:
         #    self.notify_new = Qt.Unchecked
@@ -311,7 +311,6 @@ class MainWindow(QWidget, Ui_Form):
                 elem.sync = True
 
 
-
     def load_settings(self):
         for path in [user_config_dir(self.appname),
                      user_data_dir(self.appname)]:
@@ -321,13 +320,14 @@ class MainWindow(QWidget, Ui_Form):
                 if not os.path.isdir(path):
                     self.myStream_message(str(err))
         self.settings_path = os.path.join(user_config_dir(self.appname),
-                                     self.settings_fname)
+                                          self.settings_fname)
         defaults = {
-        'UpdateEvery': '60',
-        'RootFolder': os.path.join(os.path.expanduser('~'), self.appname),
-        'SyncNewCourses': 'False'
+            'UpdateEvery': '60',
+            'RootFolder': os.path.join(os.path.expanduser('~'), self.appname),
+            'SyncNewCourses': 'False'
         }
-        self.settings = filesettings.settingsFromFile(self.settings_path, defaults)
+        self.settings = filesettings.settingsFromFile(self.settings_path,
+                                                      defaults)
 
     def load_data(self):
         try:
@@ -338,9 +338,9 @@ class MainWindow(QWidget, Ui_Form):
         except FileNotFoundError as err:
             self.user = User('', '')
             complete_message = str(err) + " ".join([
-    "\nThis error means that no data can be found in the predefined",
-    "directory. Ignore this if you're using poliBeePsync for "
-    "the first time."])
+                "\nThis error means that no data can be found in the predefined",
+                "directory. Ignore this if you're using poliBeePsync for "
+                "the first time."])
             self.myStream_message(complete_message)
         except Exception as err:
             self.user = User('', '')
@@ -349,7 +349,7 @@ class MainWindow(QWidget, Ui_Form):
     def loginstatus(self, status):
         self.login_attempt.setText(status)
 
-    #@Slot(int)
+    # @Slot(int)
     #def notifynew(self, state):
     #    if state == 2:
     #        self.settings['NotifyNewCourses'] = 'True'
@@ -369,7 +369,7 @@ class MainWindow(QWidget, Ui_Form):
     def updateminuteslot(self, minutes):
         self.settings['UpdateEvery'] = str(minutes)
         filesettings.settingsToFile(self.settings, self.settings_path)
-        self.timer.start(1000*60*int(self.settings['UpdateEvery']))
+        self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
 
     @Slot(str)
     def rootfolderslot(self, path):
@@ -380,8 +380,9 @@ class MainWindow(QWidget, Ui_Form):
     def chooserootdir(self):
         currentdir = self.settings['RootFolder']
         flags = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
-        newroot =  QFileDialog.getExistingDirectory(None,
-            "Open Directory", currentdir, flags)
+        newroot = QFileDialog.getExistingDirectory(None,
+                                                   "Open Directory",
+                                                   currentdir, flags)
         if newroot != "" and str(newroot) != currentdir:
             self.settings['RootFolder'] = str(newroot)
             filesettings.settingsToFile(self.settings, self.settings_path)
@@ -391,9 +392,10 @@ class MainWindow(QWidget, Ui_Form):
             # if there's a cleaner approach
             del self.downloadthread
             self.downloadthread = DownloadThread(self.user,
-                self.settings['RootFolder'])
+                                                 self.settings['RootFolder'])
             self.downloadthread.dumpuser.sig.connect(self.dumpUser)
-            self.downloadthread.course_finished.sig.connect(self.myStream_message)
+            self.downloadthread.course_finished.sig.connect(
+                self.myStream_message)
             self.downloadthread.signal_error.sig.connect(self.myStream_message)
 
 
@@ -465,7 +467,6 @@ class MainWindow(QWidget, Ui_Form):
             self.downloadthread.start()
 
 
-
     @Slot(str)
     def myStream_message(self, message):
         self.status.moveCursor(QTextCursor.End)
@@ -500,9 +501,13 @@ class MainWindow(QWidget, Ui_Form):
         label.setWordWrap(True)
         label.setObjectName("label")
         verticalLayout.addWidget(label)
-        text = "<html><head/><body><p>poliBeePsync version {}.</p><p>poliBeePsync is a program written by Davide Olianas, released under GNU GPLv3+.</p><p><br/></p><p>More information is available on the <a href=\"http://www.davideolianas.com/polibeepsync\"><span style=\" text-decoration: underline; color:#0000ff;\">official website</span></a>.</p></body></html>".format(__version__)
-        Dialog.setWindowTitle(QApplication.translate("Dialog", "About poliBeePsync", None, QApplication.UnicodeUTF8))
-        label.setText(QApplication.translate("Dialog", text, None, QApplication.UnicodeUTF8))
+        text = "<html><head/><body><p>poliBeePsync version {}.</p><p>poliBeePsync is a program written by Davide Olianas, released under GNU GPLv3+.</p><p><br/></p><p>More information is available on the <a href=\"http://www.davideolianas.com/polibeepsync\"><span style=\" text-decoration: underline; color:#0000ff;\">official website</span></a>.</p></body></html>".format(
+            __version__)
+        Dialog.setWindowTitle(
+            QApplication.translate("Dialog", "About poliBeePsync", None,
+                                   QApplication.UnicodeUTF8))
+        label.setText(QApplication.translate("Dialog", text, None,
+                                             QApplication.UnicodeUTF8))
         Dialog.exec_()
 
 
@@ -511,6 +516,7 @@ def main():
     frame = MainWindow()
     frame.show()
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()
