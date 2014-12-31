@@ -3,6 +3,14 @@ import pytest
 
 
 class TestCourse:
+    def test_simplifynamewithsquarebrackets(self):
+        course = Course('[2014-15] - OTTICA FISICA E TECNOLOGIE OTTICHE [C.I.] [ INGEGNERIA FISICA ]', 'beep.com')
+        assert course.simplify_name(course.name) == "Ottica Fisica E Tecnologie Ottiche C.I."
+
+    def test_simplifysimplename(self):
+        course = Course('[2014-15] - SOME STUFF [ A PROFESSOR ]', 'beep.com')
+        assert course.simplify_name(course.name) == "Some Stuff"
+
     def test_difference(self):
         a = CourseFile('a', 'url', '1990')
         b = CourseFile('b', 'url', '111')
