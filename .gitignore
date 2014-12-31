@@ -18,3 +18,4 @@ poliBeePsync.egg-info/
 /provapickle
 /.coverage
 docs/build
+run_codecov.sh
