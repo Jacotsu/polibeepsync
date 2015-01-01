@@ -15,7 +15,6 @@ You should have received a copy of the GNU General Public License
 along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
-
 from requests import ConnectionError, Timeout
 from appdirs import user_config_dir, user_data_dir
 import os
@@ -35,18 +34,34 @@ from polibeepsync import filesettings
 import re
 import logging
 
-LEVELS = {'debug': logging.DEBUG,
+LEVELS = {'notset': logging.NOTSET,
+          'debug': logging.DEBUG,
           'info': logging.INFO,
           'warning': logging.WARNING,
           'error': logging.ERROR,
           'critical': logging.CRITICAL,
 }
 
+level_name = 'notset'
 if len(sys.argv) > 1:
     level_name = sys.argv[1]
-    level = LEVELS.get(level_name, logging.NOTSET)
-    logging.basicConfig(level=level)
+level = LEVELS.get(level_name, logging.NOTSET)
 
+logger = logging.getLogger("polibeepsync.qtgui")
+logger.setLevel(level)
+# now get the logger used in the common module and set its level to what
+# we get from sys.argv
+commonlogger = logging.getLogger("polibeepsync.common")
+commonlogger.setLevel(level)
+
+formatter = logging.Formatter('[%(levelname)s] %(name)s %(message)s')
+
+handler = logging.StreamHandler(stream=sys.stdout)
+handler.setFormatter(formatter)
+handler.setLevel(logging.DEBUG)
+
+logger.addHandler(handler)
+commonlogger.addHandler(handler)
 
 def read(*names, **kwargs):
     with open(
@@ -101,9 +116,27 @@ class DownloadThread(QThread):
                         self.dumpuser.sig.emit('User object changed')
                         text = "Synced files for {}".format(course.name)
                         self.course_finished.sig.emit(text)
-                    except Exception as err:
-                        self.signal_error.sig.emit(str(err))
-                        logging.critical(str(err))
+                    except InvalidLoginError:
+                        self.user.logout()
+                        self.exiting = True
+                        self.signal_error.sig.emit('Login failed.')
+                        logger.info("Login failed.", exc_info=True)
+                    except ConnectionError:
+                        self.user.logout()
+                        self.exiting = True
+                        self.signal_error.sig.emit('I can\'t connect to'
+                                                   ' the server. Is the'
+                                                   ' Internet connection'
+                                                   ' working?')
+                        logger.error('Connection error.', exc_info=True)
+                    except Timeout:
+                        self.user.logout()
+                        self.exiting = True
+                        self.signal_error.sig.emit("The timeout time has"
+                                                   " been reached. Is the"
+                                                   " Internet connection"
+                                                   " working?")
+                        logger.error("Timeout error.", exc_info=True)
             self.exiting = True
 
 
@@ -116,40 +149,34 @@ class LoginThread(QThread):
         self.user = user
 
     def run(self):
+        logger.info('Logging in.')
         while self.exiting == False:
             try:
                 self.user.logout()
                 self.user.login()
                 if self.user.logged is True:
-                    self.exiting = True
                     self.signal_ok.sig.emit('Successful login.')
-            except IndexError as err:
-                logging.critical(str(err))
-                self.exiting = True
-                self.signal_error.sig.emit('Already logged-in.')
-            except InvalidLoginError as err:
+                    logger.info('Successful login.')
+                    self.exiting = True
+            except InvalidLoginError:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('Login failed.')
-                logging.critical(str(err))
-            except ConnectionError as err:
+                logger.error("Login failed.", exc_info=True)
+            except ConnectionError:
                 self.user.logout()
                 self.exiting = True
-                self.signal_error.sig.emit('I can\'t connect to the server.'
-                                           ' Is the Internet connection working?')
-                logging.critical(str(err))
-            except Timeout as err:
+                self.signal_error.sig.emit('I can\'t connect to the'
+                                           ' server. Is the Internet'
+                                           ' connection working?')
+                logger.error('Connection error.', exc_info=True)
+            except Timeout:
                 self.user.logout()
                 self.exiting = True
-                self.signal_error.sig.emit("The timeout time has been reached."
-                                           " Is the Internet connection working?")
-                logging.critical(str(err))
-
-            except Exception as err:
-                self.user.logout()
-                self.exiting = True
-                self.signal_error.sig.emit("An error occurred.")
-                logging.critical(str(err))
+                self.signal_error.sig.emit("The timeout time has been"
+                                           " reached. Is the Internet"
+                                           " connection working?")
+                logger.error("Timeout error.", exc_info=True)
 
 
 class RefreshCoursesThread(QThread):
@@ -171,8 +198,8 @@ class RefreshCoursesThread(QThread):
             if len(removable) > 0:
                 self.refreshed.sig.emit('The following courses have'
                                         ' been removed because they '
-                                        'aren\'t available online: {}'.format(
-                    removable))
+                                        'aren\'t available online: {}'
+                                        .format(removable))
             if len(new) > 0:
                 for course in new:
                     course.save_folder_name = course.simplify_name(course.name)
@@ -180,19 +207,12 @@ class RefreshCoursesThread(QThread):
                                             'was found: {}'.format(course))
             if len(new) == 0:
                 self.refreshed.sig.emit('No new courses found.')
+                logger.info('No new courses found.')
             self.user.sync_available_courses(most_recent)
-            self.dumpuser.sig.emit('User object changed')
+            logger.info('User object changed')
             self.newcourses.sig.emit(new)
             self.removable.sig.emit(removable)
             self.exiting = True
-            # nel main thread chaimare dumpUser()
-            # e emettere segnale che passa new e removable
-
-            # for course in new:
-            # self.courses_model.insertRows(0, 1, course)
-            #for course in removable:
-            #    index = self.courses_model.courses.index(course)
-            #    self.courses_model.removeRows(index, 1)
 
 
 class CoursesListModel(QAbstractTableModel):
@@ -281,6 +301,11 @@ class MainWindow(QWidget, Ui_Form):
         self.about.clicked.connect(self.about_box)
         self.timer = QTimer(self)
 
+        # settings_path is a string containing the path to settings
+        self.settings_path = None
+        # settings is a dictionary of settings
+        self.settings = None
+        # load_settings() sets settings_path and settings
         self.load_settings()
         self.load_data()
 
@@ -323,25 +348,14 @@ class MainWindow(QWidget, Ui_Form):
         else:
             self.sync_new = Qt.Unchecked
 
-        # if self.settings['NotifyNewCourses'] == str(True):
-        # self.notify_new = Qt.Checked
-        #else:
-        #    self.notify_new = Qt.Unchecked
-
         self.rootfolder.setText(self.settings['RootFolder'])
         self.rootfolder.textChanged.connect(self.rootfolderslot)
-
-        #self.notifyNewCourses.setCheckState(self.notify_new)
-
-        #self.notifyNewCourses.stateChanged.connect(self.notifynew)
-
 
         self.addSyncNewCourses.setCheckState(self.sync_new)
         self.addSyncNewCourses.stateChanged.connect(self.syncnewslot)
 
         self.timerMinutes.setValue(int(self.settings['UpdateEvery']))
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
-        #self.timerMinutes.valueChanged.connect(STUFF)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
 
@@ -350,16 +364,17 @@ class MainWindow(QWidget, Ui_Form):
             for elem in newlist:
                 elem.sync = True
 
-
     def load_settings(self):
         for path in [user_config_dir(self.appname),
                      user_data_dir(self.appname)]:
             try:
                 os.makedirs(path, exist_ok=True)
-            except OSError as err:
-                logging.critical(str(err))
-                if not os.path.isdir(path):
-                    self.myStream_message(str(err))
+            except OSError:
+                logger.critical('OSError while calling os.makedirs.',
+                                exc_info=True)
+                self.myStream_message("I couldn't create {}.\nStart"
+                                      " poliBeePsync with --debug "
+                                      "error to get more details.")
         self.settings_path = os.path.join(user_config_dir(self.appname),
                                           self.settings_fname)
         defaults = {
@@ -376,27 +391,23 @@ class MainWindow(QWidget, Ui_Form):
                                    self.data_fname), 'rb') as f:
                 self.user = pickle.load(f)
                 self.myStream_message("Data has been loaded successfully.")
-        except FileNotFoundError as err:
-            logging.critical(str(err))
+
+        except FileNotFoundError:
+            logger.error('Settings file not found.', exc_info=True)
             self.user = User('', '')
-            complete_message = str(err) + " ".join([
-                "\nThis error means that no data can be found in the predefined",
-                "directory. Ignore this if you're using poliBeePsync for "
-                "the first time."])
-            self.myStream_message(complete_message)
-        except Exception as err:
-            logging.critical(str(err))
-            self.user = User('', '')
-            self.myStream_message(str(err))
+            self.myStream_message("I couldn't find data in the"
+                                  " predefined directory. Ignore this"
+                                  "message if you're using poliBeePsync"
+                                  " for the first time.")
 
     def loginstatus(self, status):
         self.login_attempt.setText(status)
 
     # @Slot(int)
     # def notifynew(self, state):
-    #    if state == 2:
-    #        self.settings['NotifyNewCourses'] = 'True'
-    #    else:
+    # if state == 2:
+    # self.settings['NotifyNewCourses'] = 'True'
+    # else:
     #        self.settings['NotifyNewCourses'] = 'False'
     #    filesettings.settingsToFile(self.settings, self.settings_path)
 
@@ -450,9 +461,12 @@ class MainWindow(QWidget, Ui_Form):
             if len(newcode) == 8:
                 self.myStream_message("User code changed to {}."
                                       .format(newcode))
-        except Exception as err:
-            self.myStream_message(str(err))
-            logging.critical(str(err))
+        except OSError:
+            self.myStream_message("I couldn't save data to disk. Run"
+                                  " poliBeePsync with option --debug"
+                                  " error to get more details.")
+            logger.error('OSError raised while trying to write the User'
+                         'instance to disk.', exc_info=True)
 
 
     def setpassword(self):
@@ -461,9 +475,12 @@ class MainWindow(QWidget, Ui_Form):
         try:
             self.dumpUser()
             self.myStream_message("Password changed.")
-        except Exception as err:
-            self.myStream_message(str(err))
-            logging.critical(str(err))
+        except OSError:
+            self.myStream_message("I couldn't save data to disk. Run"
+                                  " poliBeePsync with option --debug"
+                                  " error to get more details.")
+            logger.error('OSError raised while trying to write the User'
+                         'instance to disk.', exc_info=True)
 
     def testlogin(self):
         if not self.loginthread.isRunning():
