@@ -22,6 +22,9 @@ import os
 import logging
 
 
+logger = logging.getLogger("polibeepsync.common")
+
+
 class InvalidLoginError(Exception):
     pass
 
@@ -111,7 +114,7 @@ class Courses(GenericSet):
 
 class Course(GenericSet):
     def __init__(self, name, documents_url, sync=False):
-        logging.debug('Creating course with name={},'
+        logger.debug('Creating course with name={},'
                       ' documents_url={}, sync={}'
                       .format(name, documents_url, sync))
         super(Course, self).__init__()
@@ -128,8 +131,8 @@ class Course(GenericSet):
             upper = rmleftbrackets.split("]")[1].lstrip(' - ').rstrip(" ")
             #upper = name.split('[')[1].split(']')[1].rstrip(" ").lstrip(' - ')
         except Exception as err:
-            logging.error('Failed to simplify course name {}'.format(name))
-            logging.error(str(err))
+            logger.error('Failed to simplify course name {}'.format(name))
+            logger.error(str(err))
         return upper.title()
 
     def __hash__(self):
@@ -209,7 +212,7 @@ class User(object):
         soup = BeautifulSoup(response.text)
         login_tag = soup.find('input', attrs={'id': 'login'})
         if login_tag is not None:
-            logging.info("The session has expired. Logging-in again...")
+            logger.info("The session has expired. Logging-in again...")
             self.logout()
             self.login()
             response = self.session.get(url, timeout=5, verify=True)
@@ -232,7 +235,7 @@ class User(object):
         response = self.session.get(url, timeout=5, verify=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
-            logging.info("The session has expired. Logging-in again...")
+            logger.info("The session has expired. Logging-in again...")
             self.logout()
             self.login()
             response = self.session.get(url, timeout=5, verify=True)
@@ -321,6 +324,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         Returns:
             online_courses (:class:`Courses`): a :class:`Courses` container of
             all courses available online."""
+        logger.info('Looking for new courses.')
         coursespage = self.get_page(self.courses_url)
         courses_soup = BeautifulSoup(coursespage.text)
         raw_courses = courses_soup.find_all('tr',
@@ -351,7 +355,9 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             # we ignore BeeP channel
             if str(name) != "BeeP channel":
                 course = Course(name, link)
+                logger.debug('Course found: {}'.format(course.name))
                 online_courses.append(course)
+        logger.debug('All courses got extracted from the webpage.')
         return online_courses
 
     def sync_available_courses(self, master_courses):
