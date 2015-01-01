@@ -90,7 +90,7 @@ class DownloadThread(QThread):
         while self.exiting == False:
             for course in self.user.available_courses:
                 subdir = course.save_folder_name
-                if course.sync == True:
+                if course.sync is True:
                     try:
                         self.user.update_course_files(course)
                         outdir = os.path.join(self.topdir, subdir)
@@ -120,7 +120,7 @@ class LoginThread(QThread):
             try:
                 self.user.logout()
                 self.user.login()
-                if self.user.logged == True:
+                if self.user.logged is True:
                     self.exiting = True
                     self.signal_ok.sig.emit('Successful login.')
             except IndexError as err:
@@ -546,8 +546,22 @@ class MainWindow(QWidget, Ui_Form):
         label.setWordWrap(True)
         label.setObjectName("label")
         verticalLayout.addWidget(label)
-        text = "<html><head/><body><p>poliBeePsync version {}.</p><p>poliBeePsync is a program written by Davide Olianas, released under GNU GPLv3+.</p><p><br/></p><p>More information is available on the <a href=\"http://www.davideolianas.com/polibeepsync\"><span style=\" text-decoration: underline; color:#0000ff;\">official website</span></a>.</p></body></html>".format(
-            __version__)
+        text = """
+<html>
+<head/>
+<body>
+  <p>poliBeePsync version {}.</p>
+  <p>poliBeePsync is a program written by Davide Olianas,
+released under GNU GPLv3+.</p>
+  <p><br/></p>
+  <p>More information is available on the
+  <a href=\"http://www.davideolianas.com/polibeepsync\">
+  <span style=\" text-decoration: underline; color:#0000ff;\">
+  official website</span></a>.
+  </p>
+</body>
+</html>
+""".format(__version__)
         Dialog.setWindowTitle(
             QApplication.translate("Dialog", "About poliBeePsync", None,
                                    QApplication.UnicodeUTF8))

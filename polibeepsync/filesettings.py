@@ -86,5 +86,5 @@ def settingsToFile(insettings, filepath):
         with open(filepath, 'w') as f:
             config.write(f)
     except OSError:
-         if not os.path.isdir(dirpath):
+        if not os.path.isdir(dirpath):
             raise
