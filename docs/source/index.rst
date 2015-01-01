@@ -32,8 +32,9 @@ Images
 How to Install/Remove
 ============================
 
-Installation (and removal) instructions are provided in the :doc:`installation` page for
-Windows and Linux. The program hasn't been tested on Mac OS X yet.
+Installation (and removal) instructions are provided in the
+:doc:`installation-win` page for Windows and :doc:`installation-linux`
+for Linux. The program hasn't been tested on Mac OS X yet.
 
 Quickstart
 ============

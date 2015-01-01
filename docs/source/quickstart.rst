@@ -1,7 +1,8 @@
 Quickstart
 ===========
 
-After you've followed the instructions from the :doc:`installation` page,
+After you've followed the instructions from the installation page
+(:doc:`installation-win` or :doc:`installation-linux`),
 you can configure the application.
 
 1. Insert usercode and password, then press "Try login credentials". If you
@@ -34,5 +35,8 @@ the problem persists.
 
 If you get ``Login failed.``, it means that the User code or the password is
 wrong (or both are).
+
+If you still have problems, use the debug mode as described
+in the :doc:`debug` page.
 
 If you still have problems, or other errors come up, `send me an e-mail <mailto:ubuntupk@gmail.com?Subject=[poliBeePsync]%20error>`_.
