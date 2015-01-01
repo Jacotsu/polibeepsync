@@ -49,7 +49,7 @@ def settingsFromFile(infile, defaults):
     config = RawConfigParser()
     config.optionxform = lambda option: option
     try:
-        with open(infile, 'rt') as f:
+        with open(infile) as f:
             try:
                 config.read_file(f)
             except MissingSectionHeaderError:
