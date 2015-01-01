@@ -15,7 +15,6 @@ You should have received a copy of the GNU General Public License
 along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
-
 from polibeepsync import filesettings
 from requests import ConnectionError, Timeout
 from appdirs import user_config_dir, user_data_dir
@@ -32,14 +31,29 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
 
 from polibeepsync.ui_resizable import Ui_Form
 import re
+import logging
+import sys
+
+LEVELS = {'debug': logging.DEBUG,
+          'info': logging.INFO,
+          'warning': logging.WARNING,
+          'error': logging.ERROR,
+          'critical': logging.CRITICAL,
+}
+
+if len(sys.argv) > 1:
+    level_name = sys.argv[1]
+    level = LEVELS.get(level_name, logging.NOTSET)
+    logging.basicConfig(level=level)
 
 
 def read(*names, **kwargs):
     with open(
-        os.path.join(os.path.dirname(__file__), *names),
-        encoding=kwargs.get("encoding", "utf8")
+            os.path.join(os.path.dirname(__file__), *names),
+            encoding=kwargs.get("encoding", "utf8")
     ) as fp:
         return fp.read()
+
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
@@ -51,6 +65,7 @@ def find_version(*file_paths):
 
 
 __version__ = find_version("__init__.py")
+
 
 class MySignal(QObject):
     sig = Signal(str)
@@ -87,6 +102,7 @@ class DownloadThread(QThread):
                         self.course_finished.sig.emit(text)
                     except Exception as err:
                         self.signal_error.sig.emit(str(err))
+                        logging.critical(str(err))
             self.exiting = True
 
 
@@ -107,28 +123,32 @@ class LoginThread(QThread):
                     self.exiting = True
                     self.signal_ok.sig.emit('Successful login.')
             except IndexError:
-                pass
+                logging.critical(str(err))
                 self.exiting = True
                 self.signal_error.sig.emit('Already logged-in.')
             except InvalidLoginError:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('Login failed.')
+                logging.critical(str(err))
             except ConnectionError as err:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('I can\'t connect to the server.'
                                            ' Is the Internet connection working?')
+                logging.critical(str(err))
             except Timeout as err:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit("The timeout time has been reached."
                                            " Is the Internet connection working?")
+                logging.critical(str(err))
 
             except Exception as err:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit("An error occurred.")
+                logging.critical(str(err))
 
 
 class RefreshCoursesThread(QThread):
@@ -168,7 +188,7 @@ class RefreshCoursesThread(QThread):
             # e emettere segnale che passa new e removable
 
             # for course in new:
-            #    self.courses_model.insertRows(0, 1, course)
+            # self.courses_model.insertRows(0, 1, course)
             #for course in removable:
             #    index = self.courses_model.courses.index(course)
             #    self.courses_model.removeRows(index, 1)
@@ -302,7 +322,7 @@ class MainWindow(QWidget, Ui_Form):
             self.sync_new = Qt.Unchecked
 
         # if self.settings['NotifyNewCourses'] == str(True):
-        #   self.notify_new = Qt.Checked
+        # self.notify_new = Qt.Checked
         #else:
         #    self.notify_new = Qt.Unchecked
 
@@ -335,6 +355,7 @@ class MainWindow(QWidget, Ui_Form):
             try:
                 os.makedirs(path, exist_ok=True)
             except OSError as err:
+                logging.critical(str(err))
                 if not os.path.isdir(path):
                     self.myStream_message(str(err))
         self.settings_path = os.path.join(user_config_dir(self.appname),
@@ -354,6 +375,7 @@ class MainWindow(QWidget, Ui_Form):
                 self.user = pickle.load(f)
                 self.myStream_message("Data has been loaded successfully.")
         except FileNotFoundError as err:
+            logging.critical(str(err))
             self.user = User('', '')
             complete_message = str(err) + " ".join([
                 "\nThis error means that no data can be found in the predefined",
@@ -361,6 +383,7 @@ class MainWindow(QWidget, Ui_Form):
                 "the first time."])
             self.myStream_message(complete_message)
         except Exception as err:
+            logging.critical(str(err))
             self.user = User('', '')
             self.myStream_message(str(err))
 
@@ -368,7 +391,7 @@ class MainWindow(QWidget, Ui_Form):
         self.login_attempt.setText(status)
 
     # @Slot(int)
-    #def notifynew(self, state):
+    # def notifynew(self, state):
     #    if state == 2:
     #        self.settings['NotifyNewCourses'] = 'True'
     #    else:
@@ -427,6 +450,7 @@ class MainWindow(QWidget, Ui_Form):
                                       .format(newcode))
         except Exception as err:
             self.myStream_message(str(err))
+            logging.critical(str(err))
 
 
     def setpassword(self):
@@ -437,6 +461,7 @@ class MainWindow(QWidget, Ui_Form):
             self.myStream_message("Password changed.")
         except Exception as err:
             self.myStream_message(str(err))
+            logging.critical(str(err))
 
     def testlogin(self):
         if not self.loginthread.isRunning():
