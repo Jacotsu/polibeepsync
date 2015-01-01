@@ -15,13 +15,13 @@ You should have received a copy of the GNU General Public License
 along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from polibeepsync import filesettings
+
 from requests import ConnectionError, Timeout
 from appdirs import user_config_dir, user_data_dir
 import os
 import pickle
 import sys
-from polibeepsync.common import User, InvalidLoginError
+
 from PySide.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
                            QModelIndex, Qt, Slot, QTimer, QLocale, QPoint)
 from PySide.QtGui import (QApplication, QWidget, QTextCursor,
@@ -29,10 +29,11 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                           QVBoxLayout, QLabel, QSystemTrayIcon,
                           qApp, QDialog)
 
+from polibeepsync.common import User, InvalidLoginError
 from polibeepsync.ui_resizable import Ui_Form
+from polibeepsync import filesettings
 import re
 import logging
-import sys
 
 LEVELS = {'debug': logging.DEBUG,
           'info': logging.INFO,
@@ -122,11 +123,11 @@ class LoginThread(QThread):
                 if self.user.logged == True:
                     self.exiting = True
                     self.signal_ok.sig.emit('Successful login.')
-            except IndexError:
+            except IndexError as err:
                 logging.critical(str(err))
                 self.exiting = True
                 self.signal_error.sig.emit('Already logged-in.')
-            except InvalidLoginError:
+            except InvalidLoginError as err:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('Login failed.')
@@ -197,7 +198,8 @@ class RefreshCoursesThread(QThread):
 class CoursesListModel(QAbstractTableModel):
     def __init__(self, courses):
         QAbstractTableModel.__init__(self)
-        # il mio è un mapping, mentre con tableview viene più comodo avere indici
+        # my object is a mapping, while table model uses an index (so it's
+        # more similar to a list
         self.courses = list(courses)
 
     def rowCount(self, parent=QModelIndex()):
