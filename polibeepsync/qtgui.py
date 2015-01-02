@@ -35,6 +35,12 @@ from polibeepsync import filesettings
 import re
 import logging
 
+
+# load options from cmdline
+parser = create_parser()
+args = parser.parse_args()
+
+# set debug levels
 LEVELS = {'notset': logging.NOTSET,
           'debug': logging.DEBUG,
           'info': logging.INFO,
@@ -44,8 +50,8 @@ LEVELS = {'notset': logging.NOTSET,
 }
 
 level_name = 'notset'
-if len(sys.argv) > 1:
-    level_name = sys.argv[1]
+if args.debug:
+    level_name = args.debug
 level = LEVELS.get(level_name, logging.NOTSET)
 
 logger = logging.getLogger("polibeepsync.qtgui")
@@ -63,6 +69,12 @@ handler.setLevel(logging.DEBUG)
 
 logger.addHandler(handler)
 commonlogger.addHandler(handler)
+
+
+
+
+
+
 
 def read(*names, **kwargs):
     with open(
@@ -590,9 +602,8 @@ released under GNU GPLv3+.</p>
 
 def main():
     app = QApplication(sys.argv)
-    parser = create_parser()
-    args = parser.parse_args()
     frame = MainWindow()
+    # args is defined at the top of this module
     if not args.hidden:
         frame.show()
     sys.exit(app.exec_())
