@@ -54,3 +54,41 @@ folder with files uploaded by professors on the
 This code is in the beta stage. Documentation is under construction
 `here <http://www.davideolianas.com/polibeepsync/index.html>`_.
 
+Changelog
+=========
+
+0.2.0 (2015-01-02)
+------------------
+
+New
+~~~
+
+- --hidden option works #6. [Davide Olianas]
+
+Changes
+~~~~~~~
+
+- --debug option works #6. [Davide Olianas]
+
+
+0.1.5 (2015-01-02)
+------------------
+
+New
+~~~
+
+- Basic working configuration for logging. [Davide Olianas]
+
+Changes
+~~~~~~~
+
+- Add debugging statements. [Davide Olianas]
+
+- Style fixes. [Davide Olianas]
+
+- Remove unused import. [Davide Olianas]
+
+- Add .ico icon for Windows. [Davide Olianas]
+
+- Store __version__ in __init__.py and use setuptools. [Davide Olianas]
+
