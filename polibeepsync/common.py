@@ -383,12 +383,21 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         # the "if not in" check is not really needed, since the append
         # function doesn't allow duplicates.
         for elem in master_courses:
+            logger.debug('Comparing course {} with the local copy'
+                          'of courses'.format(elem.name))
             if elem not in self.available_courses:
+                logger.debug("It's not present in the local copy;"
+                             " adding it")
                 self.available_courses.append(elem)
         # now do the opposite: if a course has been deleted,
         # do the same with the local copy
         for elem in self.available_courses:
+            logger.debug("Comparing course {} from the local data "
+                         "to the new list.".format(elem.name))
             if elem not in master_courses:
+                logger.debug("It's not present in the new list, "
+                             "therefore we remove it from the local"
+                             " data")
                 self.available_courses.remove(elem)
 
     def update_course_files(self, course):
@@ -404,7 +413,8 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
 
         tags.pop(0)
         tags.pop(0)
-
+        logger.debug("Tags from which we extract the list of files:"
+                     " {}".format(tags))
         rawdates = [elem.parent.parent.parent.next_sibling.next_sibling.
                     next_sibling.next_sibling.next_sibling.next_sibling
                     for elem in tags]
