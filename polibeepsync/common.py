@@ -241,17 +241,7 @@ class User(object):
             response = self.session.get(url, timeout=5, verify=True)
         return response
 
-    def login(self):
-        """Try logging in.
-
-        If the login is successful, :attr:`logged` is set to ``True``.
-        If it fails, :attr:`logged` is set to ``False`` and raises an
-        :class:`InvalidLoginError`.
-
-        Raises:
-            InvalidLoginError: when the login fails
-        """
-        # switch to english version if we're on the italian site
+    def _login_first_step(self):
         default_lang_page = self.session.get(self.loginurl, timeout=5, verify=True)
         lang_soup = BeautifulSoup(default_lang_page.text)
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
@@ -274,44 +264,66 @@ Gecko/20100101 Firefox/34.0',
 aunicalogin/controller/IdentificazioneUnica.do?\
 &jaf_currentWFID=main',
             data=payload, headers=login_headers)
-        login_soup = BeautifulSoup(login_response.text)
+        return login_response
+
+    def _do_shibboleth(self, first_response):
+        hidden_fields = BeautifulSoup(first_response.text).find_all(
+                'input', attrs={'type': 'hidden'})
+        # The SAML response wants '+' replaced by %2B
+        relay_state = hidden_fields[0].attrs['value']
+        saml_response = hidden_fields[1].attrs['value'].replace('+',
+                                                                '%2B')
+        final_request_data = "RelayState=%s&SAMLResponse=%s" % \
+                             (relay_state, saml_response)
+        final_headers = {
+            'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
+COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': len(final_request_data),
+        }
+        self.session.post(
+            'https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST',
+            data=final_request_data,
+            headers=final_headers)
+        cookies = requests.utils.dict_from_cookiejar(self.session.cookies)
+        for key in cookies:
+            if key.startswith('_shibsession'):
+                shibsessionstr = "%s=%s" % (key, cookies[key])
+        main_headers = {
+            'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
+COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
+                shibsessionstr)
+        }
+        mainpage = self.session.get(
+            'https://beep.metid.polimi.it/polimi/login',
+            headers=main_headers, timeout=5, verify=True)
+        return mainpage
+
+
+    def login(self):
+        """Try logging in.
+
+        If the login is successful, :attr:`logged` is set to ``True``.
+        If it fails, :attr:`logged` is set to ``False`` and raises an
+        :class:`InvalidLoginError`.
+
+        Raises:
+            InvalidLoginError: when the login fails
+        """
+
+
+        # switch to english version if we're on the italian site
+        first_response = self._login_first_step()
+        login_soup = BeautifulSoup(first_response.text)
         try:
             parenttag = login_soup.find_all('table')[3]
             parenttag.find('td',
                            text='\n\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\
 \t\tCode: 14 - Identificazione fallita\n\t\t\t\t\t\n\t\t\t\t')
         except IndexError:
-            hidden_fields = BeautifulSoup(login_response.text).find_all(
-                'input', attrs={'type': 'hidden'}
-            )
-            # The SAML response wants '+' replaced by %2B
-            relay_state = hidden_fields[0].attrs['value']
-            saml_response = hidden_fields[1].attrs['value'].replace('+',
-                                                                    '%2B')
-            final_request_data = "RelayState=%s&SAMLResponse=%s" % \
-                                 (relay_state, saml_response)
-            final_headers = {
-                'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(final_request_data),
-            }
-            self.session.post(
-                'https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST',
-                data=final_request_data,
-                headers=final_headers)
-            cookies = requests.utils.dict_from_cookiejar(self.session.cookies)
-            for key in cookies:
-                if key.startswith('_shibsession'):
-                    shibsessionstr = "%s=%s" % (key, cookies[key])
-            main_headers = {
-                'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
-                    shibsessionstr)
-            }
-            mainpage = self.session.get(
-                'https://beep.metid.polimi.it/polimi/login',
-                headers=main_headers, timeout=5, verify=True)
+            # Usercode and password are ok
+            # continue with Shibboleth
+            mainpage = self._do_shibboleth(first_response)
             self.courses_url = mainpage.url
             self.logged = True
         else:
