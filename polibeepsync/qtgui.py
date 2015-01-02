@@ -29,6 +29,7 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                           qApp, QDialog)
 
 from polibeepsync.common import User, InvalidLoginError
+from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
 import re
@@ -589,8 +590,11 @@ released under GNU GPLv3+.</p>
 
 def main():
     app = QApplication(sys.argv)
+    parser = create_parser()
+    args = parser.parse_args()
     frame = MainWindow()
-    frame.show()
+    if not args.hidden:
+        frame.show()
     sys.exit(app.exec_())
 
 
