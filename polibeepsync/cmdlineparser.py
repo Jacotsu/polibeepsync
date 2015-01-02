@@ -7,9 +7,8 @@ def create_parser():
     parser.add_argument('--hidden', action='store_true',
                         help="Don't show the main window, just the icon"
                              " in the system tray")
-    parser.add_argument('--debug', action='store', choices = debug_levels,
-                        help="Show debug information."
-                             " Defaults to --debug info.")
+    parser.add_argument('--debug', action='store', choices=debug_levels,
+                        help="Show debug information.")
     return parser
 
 def main():
