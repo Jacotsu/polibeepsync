@@ -20,7 +20,8 @@ from datetime import datetime, timedelta, tzinfo
 import requests
 import os
 import logging
-
+from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore,\
+    Literal, ParseException
 
 logger = logging.getLogger("polibeepsync.common")
 
@@ -39,7 +40,7 @@ class GMT1(tzinfo):
 
     def dst(self, dt):
         # DST starts last Sunday in March
-        d = datetime(dt.year, 4, 1)   # ends last Sunday in October
+        d = datetime(dt.year, 4, 1)  # ends last Sunday in October
         self.dston = d - timedelta(days=d.weekday() + 1)
         d = datetime(dt.year, 11, 1)
         self.dstoff = d - timedelta(days=d.weekday() + 1)
@@ -115,8 +116,8 @@ class Courses(GenericSet):
 class Course(GenericSet):
     def __init__(self, name, documents_url, sync=False):
         logger.debug('Creating course with name={},'
-                      ' documents_url={}, sync={}'
-                      .format(name, documents_url, sync))
+                     ' documents_url={}, sync={}'
+                     .format(name, documents_url, sync))
         super(Course, self).__init__()
         self.name = name
         self.documents_url = documents_url
@@ -125,15 +126,22 @@ class Course(GenericSet):
         self.save_folder_name = ""
 
     def simplify_name(self, name):
-        upper = name
+        simple = name
+        year = Group("[" + OneOrMore(Word(nums, exact=4) +
+                                     "-" + Word(nums, exact=2)) + "]")
+        no_squared_brackets = Word(
+            alphanums,
+            ",;.:-_@#°§+*{}^'?=)(/&%$£!\\|\""
+        )
+        bracketed = Group("[" + OneOrMore(no_squared_brackets) + "]")
+        middle = ~bracketed + OneOrMore(Word(alphas))
         try:
-            rmleftbrackets = "".join(name.split('[')[1:-1])
-            upper = rmleftbrackets.split("]")[1].lstrip(' - ').rstrip(" ")
-            #upper = name.split('[')[1].split(']')[1].rstrip(" ").lstrip(' - ')
-        except Exception as err:
-            logger.error('Failed to simplify course name {}'.format(name))
-            logger.error(str(err))
-        return upper.title()
+            grammar = year.suppress() + Literal("-").suppress() + middle
+            simple = " ".join(grammar.parseString(name))
+        except ParseException:
+            logger.error('Failed to simplify course name {}'.format(name),
+                         exc_info=True)
+        return simple.title()
 
     def __hash__(self):
         return hash(self.name)
@@ -161,7 +169,7 @@ class CourseFile(object):
         self.url = url
         self.last_online_edit_time = last_online_edit_time
         self.local_creation_time = datetime(1990, 1, 1, 1, 1,
-                                     tzinfo=gmt1)
+                                            tzinfo=gmt1)
 
     def __hash__(self):
         return hash(self.name)
@@ -194,9 +202,9 @@ class User(object):
         """Logout.
 
         It re-creates a session and sets :attr:`logged` to ``False``."""
-        del(self.session)
+        del (self.session)
         self.session = requests.Session()
-        #self.session.cookies.clear()
+        # self.session.cookies.clear()
         self.logged = False
 
     def get_page(self, url):
@@ -241,18 +249,9 @@ class User(object):
             response = self.session.get(url, timeout=5, verify=True)
         return response
 
-    def login(self):
-        """Try logging in.
-
-        If the login is successful, :attr:`logged` is set to ``True``.
-        If it fails, :attr:`logged` is set to ``False`` and raises an
-        :class:`InvalidLoginError`.
-
-        Raises:
-            InvalidLoginError: when the login fails
-        """
-        # switch to english version if we're on the italian site
-        default_lang_page = self.session.get(self.loginurl, timeout=5, verify=True)
+    def _login_first_step(self):
+        default_lang_page = self.session.get(self.loginurl, timeout=5,
+                                             verify=True)
         lang_soup = BeautifulSoup(default_lang_page.text)
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
@@ -274,49 +273,128 @@ Gecko/20100101 Firefox/34.0',
 aunicalogin/controller/IdentificazioneUnica.do?\
 &jaf_currentWFID=main',
             data=payload, headers=login_headers)
-        login_soup = BeautifulSoup(login_response.text)
+        return login_response
+
+    def _do_shibboleth(self, first_response):
+        hidden_fields = BeautifulSoup(first_response.text).find_all(
+            'input', attrs={'type': 'hidden'})
+        # The SAML response wants '+' replaced by %2B
+        relay_state = hidden_fields[0].attrs['value']
+        saml_response = hidden_fields[1].attrs['value'].replace('+',
+                                                                '%2B')
+        final_request_data = "RelayState=%s&SAMLResponse=%s" % \
+                             (relay_state, saml_response)
+        final_headers = {
+            'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
+COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': len(final_request_data),
+        }
+        self.session.post(
+            'https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST',
+            data=final_request_data,
+            headers=final_headers)
+        cookies = requests.utils.dict_from_cookiejar(self.session.cookies)
+        for key in cookies:
+            if key.startswith('_shibsession'):
+                shibsessionstr = "%s=%s" % (key, cookies[key])
+        main_headers = {
+            'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
+COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
+                shibsessionstr)
+        }
+        mainpage = self.session.get(
+            'https://beep.metid.polimi.it/polimi/login',
+            headers=main_headers, timeout=5, verify=True)
+        return mainpage
+
+
+    def login(self):
+        """Try logging in.
+
+        If the login is successful, :attr:`logged` is set to ``True``.
+        If it fails, :attr:`logged` is set to ``False`` and raises an
+        :class:`InvalidLoginError`.
+
+        Raises:
+            InvalidLoginError: when the login fails
+        """
+
+
+        # switch to english version if we're on the italian site
+        first_response = self._login_first_step()
+        login_soup = BeautifulSoup(first_response.text)
         try:
             parenttag = login_soup.find_all('table')[3]
             parenttag.find('td',
                            text='\n\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\
 \t\tCode: 14 - Identificazione fallita\n\t\t\t\t\t\n\t\t\t\t')
         except IndexError:
-            hidden_fields = BeautifulSoup(login_response.text).find_all(
-                'input', attrs={'type': 'hidden'}
-            )
-            # The SAML response wants '+' replaced by %2B
-            relay_state = hidden_fields[0].attrs['value']
-            saml_response = hidden_fields[1].attrs['value'].replace('+',
-                                                                    '%2B')
-            final_request_data = "RelayState=%s&SAMLResponse=%s" % \
-                                 (relay_state, saml_response)
-            final_headers = {
-                'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': len(final_request_data),
-            }
-            self.session.post(
-                'https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST',
-                data=final_request_data,
-                headers=final_headers)
-            cookies = requests.utils.dict_from_cookiejar(self.session.cookies)
-            for key in cookies:
-                if key.startswith('_shibsession'):
-                    shibsessionstr = "%s=%s" % (key, cookies[key])
-            main_headers = {
-                'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
-                    shibsessionstr)
-            }
-            mainpage = self.session.get(
-                'https://beep.metid.polimi.it/polimi/login',
-                headers=main_headers, timeout=5, verify=True)
+            # Usercode and password are ok
+            # continue with Shibboleth
+            mainpage = self._do_shibboleth(first_response)
             self.courses_url = mainpage.url
             self.logged = True
         else:
             self.logged = False
             raise InvalidLoginError
+
+    def _create_course(self, name, firstlink):
+        """Helper function to create a Course with the real URL.
+
+        This is done because the href present in the courses page is a
+        redirect to the real page.
+        """
+        link = self.get_page(firstlink).url
+        link = link.rstrip('attivita-online-e-avvisi')
+        weird_parameters = ['_20_folderId=0',
+                            '_20_displayStyle=list',
+                            '_20_viewEntries=0',
+                            '_20_viewFolders=0',
+                            '_20_entryEnd=500',
+                            '_20_entryStart=0',
+                            '_20_folderEnd=500',
+                            '_20_folderStart=0',
+                            '_20_viewEntriesPage=1',
+                            'p_p_id=20',
+                            'p_p_lifecycle=0'
+        ]
+        link = link + 'documenti-e-media?' + "&".join(weird_parameters)
+        course = Course(name, link)
+        logger.debug('Course found: {}'.format(course.name))
+        return course
+
+    def _courses_scraper(self, text):
+        """Return a list of tuples containing the courses from the input text.
+
+        Each tuple is (name, firstlink) where "name" is the complete name of
+        the course (not stripped of squared brackets) and firstlink is the
+        link to be followed in order to get the real course url.
+        """
+        courses_soup = BeautifulSoup(text)
+        raw_courses = courses_soup.find_all('tr',
+                                            attrs={'class': 'results-row'})
+        # the first tag is not a course
+        raw_courses.pop(0)
+        # online_courses = Courses()
+        # we iterate over the tags
+        temporary_courses = Courses()
+        # we only need year to parse for real courses
+        year = Group("[" + OneOrMore(
+            Word(nums, exact=4) + "-" + Word(nums, exact=2)) + "]")
+        #bracketed = Group("[" + OneOrMore(Word(printables, " ")) + "]")
+        #middle = ~bracketed + OneOrMore(Word(alphas))
+        #grammar = year.suppress() + Literal("-").suppress() + middle
+        grammar = year
+        for course in raw_courses:
+            firstlink = course.td.a['href']
+            name = course.td.a.strong.text.strip()
+            try:
+                grammar.parseString(name)
+                temporary_courses.append(Course(name, firstlink))
+            except ParseException:
+                pass
+        return temporary_courses
 
     def get_online_courses(self):
         """Return the courses available online.
@@ -326,39 +404,12 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             all courses available online."""
         logger.info('Looking for new courses.')
         coursespage = self.get_page(self.courses_url)
-        courses_soup = BeautifulSoup(coursespage.text)
-        raw_courses = courses_soup.find_all('tr',
-                                            attrs={'class': 'results-row'})
-        # the first tag is not a course
-        raw_courses.pop(0)
-        online_courses = Courses()
-        # we iterate over the tags
-        for course in raw_courses:
-            firstlink = course.td.a['href']
-            name = course.td.a.strong.text
-            # the real link is found after a redirect
-            link = self.get_page(firstlink).url
-            link = link.rstrip('attivita-online-e-avvisi')
-            weird_parameters = ['_20_folderId=0',
-                                '_20_displayStyle=list',
-                                '_20_viewEntries=0',
-                                '_20_viewFolders=0',
-                                '_20_entryEnd=500',
-                                '_20_entryStart=0',
-                                '_20_folderEnd=500',
-                                '_20_folderStart=0',
-                                '_20_viewEntriesPage=1',
-                                'p_p_id=20',
-                                'p_p_lifecycle=0'
-                                ]
-            link = link + 'documenti-e-media?' + "&".join(weird_parameters)
-            # we ignore BeeP channel
-            if str(name) != "BeeP channel":
-                course = Course(name, link)
-                logger.debug('Course found: {}'.format(course.name))
-                online_courses.append(course)
-        logger.debug('All courses got extracted from the webpage.')
-        return online_courses
+        temp_courses = self._courses_scraper(coursespage.text)
+        courses = Courses()
+        for elem in temp_courses:
+            course = self._create_course(elem[0], elem[1])
+            courses.append(course)
+        return courses
 
     def sync_available_courses(self, master_courses):
         """Sync :attr:`available_courses` to :attr:`master_courses`.
@@ -384,7 +435,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         # function doesn't allow duplicates.
         for elem in master_courses:
             logger.debug('Comparing course {} with the local copy'
-                          'of courses'.format(elem.name))
+                         'of courses'.format(elem.name))
             if elem not in self.available_courses:
                 logger.debug("It's not present in the local copy;"
                              " adding it")
@@ -416,10 +467,10 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         logger.debug("Tags from which we extract the list of files:"
                      " {}".format(tags))
         rawdates = [elem.parent.parent.parent.next_sibling.next_sibling.
-                    next_sibling.next_sibling.next_sibling.next_sibling
+                        next_sibling.next_sibling.next_sibling.next_sibling
                     for elem in tags]
         last_column = [elem.next_sibling.next_sibling.next_sibling.
-                       next_sibling for elem in rawdates]
+                           next_sibling for elem in rawdates]
 
         folder = Folder(thisfoldername, response.url)
 
@@ -454,30 +505,30 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                          for f in os.listdir(out_rootfolder)
                          if os.path.isfile(os.path.join(out_rootfolder, f))]
 
-            if os.path.exists(fname) and\
-                coursefile.local_creation_time < \
-                coursefile.last_online_edit_time:
+            if os.path.exists(fname) and \
+                            coursefile.local_creation_time < \
+                            coursefile.last_online_edit_time:
                 result = self.get_file(coursefile.url)
-                complete_basename = result.headers['Content-Disposition']\
-                .split("; ")[1].split("=")[1].strip('"')
+                complete_basename = result.headers['Content-Disposition'] \
+                    .split("; ")[1].split("=")[1].strip('"')
                 complete_name = os.path.join(out_rootfolder, complete_basename)
                 with open(complete_name, 'wb') as f:
                     f.write(result.content)
                 coursefile.local_creation_time = datetime.now(self.gmt1)
-            elif fname in basenames and\
-                coursefile.local_creation_time < \
-                coursefile.last_online_edit_time:
+            elif fname in basenames and \
+                            coursefile.local_creation_time < \
+                            coursefile.last_online_edit_time:
                 result = self.get_file(coursefile.url)
-                complete_basename = result.headers['Content-Disposition']\
-                .split("; ")[1].split("=")[1].strip('"')
+                complete_basename = result.headers['Content-Disposition'] \
+                    .split("; ")[1].split("=")[1].strip('"')
                 complete_name = os.path.join(out_rootfolder, complete_basename)
                 with open(complete_name, 'wb') as f:
                     f.write(result.content)
                 coursefile.local_creation_time = datetime.now(self.gmt1)
             elif not (os.path.exists(fname) and fname in basenames):
                 result = self.get_file(coursefile.url)
-                complete_basename = result.headers['Content-Disposition']\
-                .split("; ")[1].split("=")[1].strip('"')
+                complete_basename = result.headers['Content-Disposition'] \
+                    .split("; ")[1].split("=")[1].strip('"')
                 complete_name = os.path.join(out_rootfolder, complete_basename)
                 with open(complete_name, 'wb') as f:
                     f.write(result.content)
