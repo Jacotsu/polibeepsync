@@ -1,15 +1,71 @@
 from polibeepsync.common import Courses, Course, CourseFile, User
 import pytest
+import os
 
 
 class TestCourse:
     def test_simplifynamewithsquarebrackets(self):
         course = Course('[2014-15] - OTTICA FISICA E TECNOLOGIE OTTICHE [C.I.] [ INGEGNERIA FISICA ]', 'beep.com')
-        assert course.simplify_name(course.name) == "Ottica Fisica E Tecnologie Ottiche C.I."
+        assert course.simplify_name(course.name) == "Ottica Fisica E Tecnologie Ottiche"
 
     def test_simplifysimplename(self):
         course = Course('[2014-15] - SOME STUFF [ A PROFESSOR ]', 'beep.com')
         assert course.simplify_name(course.name) == "Some Stuff"
+
+    def test_simplify_mems(self):
+        course = Course('[2014-15] - MICRO ELECTRO MECHANICAL SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]', 'beep.com')
+        assert course.simplify_name(course.name) == "Micro Electro Mechanical Systems"
+
+    def test_ignorebeepcourse(self):
+        clean_list = [
+            Course('[2014-15] - ADVANCED CHEMISTRY FOR MATERIALS ENGINEERING [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
+            Course('[2014-15] - DURABILITY OF MATERIALS [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
+            Course('[2014-15] - FAILURE AND CONTROL OF METALS [ MAURIZIO VEDANI ]', 'beep.com'),
+            Course('[2014-15] - MATHEMATICAL METHODS FOR MATERIALS ENGINEERING [ MICHELE DI CRISTO ]', 'beep.com'),
+            Course('[2014-15] - MECHANICAL BEHAVIOUR OF MATERIALS [ LAURA VERGANI ]', 'beep.com'),
+            Course('[2014-15] - MICRO ELECTRO MECHANICAL SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]', 'beep.com'),
+            Course('[2014-15] - PHYSICAL PROPERTIES OF MOLECULAR MATERIALS [ MATTEO MARIA SAVERIO TOMMASINI ]', 'beep.com'),
+            Course('[2014-15] - PHYSICS OF NANOSTRUCTURES [ CARLO S. CASARI ]', 'beep.com'),
+            Course('[2014-15] - SOLID STATE PHYSICS [ CARLO ENRICO BOTTANI ]', 'beep.com'),
+            Course('[2014-15] - STRUCTURAL CHEMISTRY OF MATERIALS [ GUIDO RAOS ]', 'beep.com'),
+            ]
+        clean_courses = Courses()
+        clean_courses.append(*clean_list)
+        # the following file is an exact copy of what you get online.
+        # It's a one-line document
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'courses-page.html')
+        with open(path) as fake_courses:
+            text = fake_courses.read()
+            user = User("doesn't matter", 'nope')
+            courses = user._courses_scraper(text)
+            assert courses == clean_courses
+
+    def test_ignoreotherbadnames(self):
+        clean_list = [
+            Course('[2014-15] - ADVANCED CHEMISTRY FOR MATERIALS ENGINEERING [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
+            Course('[2014-15] - DURABILITY OF MATERIALS [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
+            Course('[2014-15] - FAILURE AND CONTROL OF METALS [ MAURIZIO VEDANI ]', 'beep.com'),
+            Course('[2014-15] - MATHEMATICAL METHODS FOR MATERIALS ENGINEERING [ MICHELE DI CRISTO ]', 'beep.com'),
+            Course('[2014-15] - MECHANICAL BEHAVIOUR OF MATERIALS [ LAURA VERGANI ]', 'beep.com'),
+            Course('[2014-15] - MICRO ELECTRO MECHANICAL SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]', 'beep.com'),
+            Course('[2014-15] - PHYSICAL PROPERTIES OF MOLECULAR MATERIALS [ MATTEO MARIA SAVERIO TOMMASINI ]', 'beep.com'),
+            Course('[2014-15] - PHYSICS OF NANOSTRUCTURES [ CARLO S. CASARI ]', 'beep.com'),
+            Course('[2014-15] - SOLID STATE PHYSICS [ CARLO ENRICO BOTTANI ]', 'beep.com'),
+            Course('[2014-15] - STRUCTURAL CHEMISTRY OF MATERIALS [ GUIDO RAOS ]', 'beep.com'),
+            ]
+        clean_courses = Courses()
+        clean_courses.append(*clean_list)
+        # the following html file is like courses-page.html, but prettified
+        # i.e has multiple lines, like humans would expect html pages.
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'nicer-courses-page.html')
+        with open(path) as fake_courses:
+            text = fake_courses.read()
+            user = User("doesn't matter", 'nope')
+            courses = user._courses_scraper(text)
+            assert courses == clean_courses
+
 
     def test_difference(self):
         a = CourseFile('a', 'url', '1990')
