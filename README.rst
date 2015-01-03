@@ -57,6 +57,15 @@ This code is in the beta stage. Documentation is under construction
 Changelog
 =========
 
+0.2.2 (2015-01-03)
+-------------------
+
+Fix
+~~~
+
+- Deny zero-length save folder names #10. [Davide Olianas]
+
+
 0.2.1 (2015-01-03)
 ------------------
 
