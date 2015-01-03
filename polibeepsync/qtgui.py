@@ -270,7 +270,7 @@ class CoursesListModel(QAbstractTableModel):
         if role == Qt.EditRole:
             if index.column() == 2:
                 other_names = [elem.save_folder_name for elem in self.courses]
-                if value not in other_names:
+                if value not in other_names and value is not "":
                     self.courses[index.row()].save_folder_name = value
                     self.dataChanged.emit(index, index)
                 return True
