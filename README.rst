@@ -57,6 +57,16 @@ This code is in the beta stage. Documentation is under construction
 Changelog
 =========
 
+0.2.1 (2015-01-03)
+------------------
+
+Changes
+~~~~~~~
+
+- Only links containing real courses are processed.
+  [Davide Olianas]
+
+
 0.2.0 (2015-01-02)
 ------------------
 
