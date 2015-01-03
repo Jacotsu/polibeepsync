@@ -21,7 +21,7 @@ import requests
 import os
 import logging
 from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore,\
-    Literal, printables, ParseException
+    Literal, ParseException
 
 logger = logging.getLogger("polibeepsync.common")
 
