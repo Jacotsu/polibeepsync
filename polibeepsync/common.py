@@ -378,7 +378,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         raw_courses.pop(0)
         # online_courses = Courses()
         # we iterate over the tags
-        temporary_courses = Courses()
+        temporary_courses = []
         # we only need year to parse for real courses
         year = Group("[" + OneOrMore(
             Word(nums, exact=4) + "-" + Word(nums, exact=2)) + "]")
@@ -391,7 +391,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             name = course.td.a.strong.text.strip()
             try:
                 grammar.parseString(name)
-                temporary_courses.append(Course(name, firstlink))
+                temporary_courses.append((name, firstlink))
             except ParseException:
                 pass
         return temporary_courses
