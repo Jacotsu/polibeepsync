@@ -44,7 +44,8 @@ setup(
         "requests",
         "appdirs",
         "PySide",
-        "beautifulsoup4"
+        "beautifulsoup4",
+        "pyparsing"
     ],
     packages = ['polibeepsync'],
     description = "Sync files from https://beep.metid.polimi.it "
