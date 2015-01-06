@@ -57,6 +57,16 @@ This code is in the beta stage. Documentation is under construction
 Changelog
 =========
 
+
+
+0.2.4 (2015-01-06)
+-------------------
+
+Fix
+~~~
+
+- KeyError fixed (bug #12)
+
 0.2.3 (2015-01-06)
 -------------------
 
