@@ -4,9 +4,9 @@ python:
 # command to install dependencies
 install:
   - sudo apt-get install libqt4-dev
-  - pip install PySide --no-index --find-links https://parkin.github.io/python-wheelhouse/;
+  - pip install --find-links https://parkin.github.io/python-wheelhouse/ --use-wheel PySide;
   # Travis CI servers use virtualenvs, so we need to finish the install by the following
-  - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py
+  - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
   - pip install -r requirements.txt
   - pip install -r test-requirements.txt
 # command to run tests
