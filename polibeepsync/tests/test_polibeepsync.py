@@ -38,7 +38,11 @@ class TestCourse:
         with open(path) as fake_courses:
             text = fake_courses.read()
             user = User("doesn't matter", 'nope')
-            courses = user._courses_scraper(text)
+            temp_courses = user._courses_scraper(text)
+            courses = Courses()
+            for elem in temp_courses:
+                course = Course(elem[0], elem[1])
+                courses.append(course)
             assert courses == clean_courses
 
     def test_ignoreotherbadnames(self):
@@ -63,7 +67,11 @@ class TestCourse:
         with open(path) as fake_courses:
             text = fake_courses.read()
             user = User("doesn't matter", 'nope')
-            courses = user._courses_scraper(text)
+            temp_courses = user._courses_scraper(text)
+            courses = Courses()
+            for elem in temp_courses:
+                course = Course(elem[0], elem[1])
+                courses.append(course)
             assert courses == clean_courses
 
 
