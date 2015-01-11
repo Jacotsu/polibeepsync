@@ -124,27 +124,13 @@ class DownloadThread():
                 try:
                     outdir = os.path.join(self.topdir, subdir)
                     os.makedirs(outdir, exist_ok=True)
-                    ondisk = diskstructure(outdir)
-                    # side effects:
-                    # 1. write course._total_file_size
-                    # 2. set course.documents (it's a Folder instance)
-                    print('documenti del corso senza fare nulla: {}'.format(
-                        course.documents.files))
                     self.user.update_course_files(course)
-                    print('dopo aver chiamato update_course_files')
-                    print(course.documents.files)
-                    syncdisk(course.documents, ondisk)
-                    print('dopo aver chiamato syncdisk')
-                    print(course.documents.files)
+                    syncthese = []
                     needsync = need_syncing(course.documents,
                                             os.path.join(self.topdir,
                                                          course.save_folder_name),
-                                            Folder('sync', 'fake'))
-                    print('needsync riga 136 è ')
-                    for f in needsync.folders:
-                        print(f)
-                    for f in needsync.files:
-                        print(f)
+                                            syncthese)
+
                     syncsize = total_size(needsync)
                     alreadysynced = course._total_file_size - syncsize
                     course._downloaded_size = alreadysynced
@@ -152,6 +138,8 @@ class DownloadThread():
 
                     self.user.save_files(course, needsync, outdir,
                                          self.download_signal)
+                    # adesso ogni file di syncthese ha la data di download
+                    # aggiornata, ma deve essere scritto su file
                     logger.info("Synced files for {}".format(course.name))
                 except InvalidLoginError:
                     self.user.logout()
@@ -342,13 +330,11 @@ class Folder(object):
             return False
 
 
-def total_size(parentfolder, size=0):
-    for folder in parentfolder.folders:
-        size += total_size(folder)
-    for f in parentfolder.files:
-        size += f.size
-    return size
-
+def total_size(listoffiles):
+    total = 0
+    for file, path in listoffiles:
+        total += file.size
+    return total
 
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
@@ -416,6 +402,7 @@ class User(object):
         self.courses_url = ""
         self.available_courses = Courses()
         self.root_save_folder = ""
+        self.chunk_download = sSignal(args=['course'])
 
 
     def logout(self):
@@ -460,13 +447,14 @@ class User(object):
         Returns:
             response (requests.Response): a :class:`requests.Response` object
         """
-        response = self.session.get(url, timeout=5, verify=True)
+        response = self.session.get(url, timeout=5, verify=True, stream=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
             logger.info("The session has expired. Logging-in again...")
             self.logout()
             self.login()
-            response = self.session.get(url, timeout=5, verify=True)
+            response = self.session.get(url, timeout=5, verify=True,
+                                        stream=True)
         return response
 
     def _login_first_step(self):
@@ -721,49 +709,24 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                 folder.folders.append(subfolder)
         return folder
 
+    def save_files(self, course, needsync, signal,
+                   chunk_size=512 * 1024):
+        for coursefile, path in needsync:
+            result = self.get_file(coursefile.url)
+            complete_basename = result.headers['Content-Disposition'] \
+                .split("; ")[1].split("=")[1].strip('"')
+            complete_name = os.path.join(path, complete_basename)
+            #print('complete_basename ', complete_basename)
+            #print('complete_name ', complete_name)
+            #print('masterfolder ', masterfolder)
+            #print('out_rootfolder ', out_rootfolder)
+            with open(complete_name, 'wb') as f:
+                logger.info('writing into {}'.format(complete_name))
+                for chunk in result.iter_content(chunk_size):
+                    if chunk:
+                        f.write(chunk)
+                        course._downloaded_size += len(chunk)
+                        logger.debug('chunk size: {}'.format(len(chunk)))
+                        signal.emit(course=course)
+                coursefile.local_creation_time = datetime.now(self.gmt1)
 
-    def save_files(self, masterfolder, out_rootfolder):
-        for coursefile in masterfolder.files:
-            fname = os.path.join(out_rootfolder, coursefile.name)
-            basenames = [os.path.splitext(os.path.basename(f))[0]
-                         for f in os.listdir(out_rootfolder)
-                         if os.path.isfile(os.path.join(out_rootfolder, f))]
-
-            if os.path.exists(fname) and \
-                            coursefile.local_creation_time < \
-                            coursefile.last_online_edit_time:
-                result = self.get_file(coursefile.url)
-                complete_basename = result.headers['Content-Disposition'] \
-                    .split("; ")[1].split("=")[1].strip('"')
-                complete_name = os.path.join(out_rootfolder, complete_basename)
-                with open(complete_name, 'wb') as f:
-                    f.write(result.content)
-                coursefile.local_creation_time = datetime.now(self.gmt1)
-            elif fname in basenames and \
-                            coursefile.local_creation_time < \
-                            coursefile.last_online_edit_time:
-                result = self.get_file(coursefile.url)
-                complete_basename = result.headers['Content-Disposition'] \
-                    .split("; ")[1].split("=")[1].strip('"')
-                complete_name = os.path.join(out_rootfolder, complete_basename)
-                with open(complete_name, 'wb') as f:
-                    f.write(result.content)
-                coursefile.local_creation_time = datetime.now(self.gmt1)
-            elif not (os.path.exists(fname) and fname in basenames):
-                result = self.get_file(coursefile.url)
-                complete_basename = result.headers['Content-Disposition'] \
-                    .split("; ")[1].split("=")[1].strip('"')
-                complete_name = os.path.join(out_rootfolder, complete_basename)
-                with open(complete_name, 'wb') as f:
-                    f.write(result.content)
-                coursefile.local_creation_time = datetime.now(self.gmt1)
-        if masterfolder.name == "rootfolder":
-            for folder in masterfolder.folders:
-                path = os.path.join(out_rootfolder, folder.name)
-                os.makedirs(path, exist_ok=True)
-                self.save_files(folder, path)
-        else:
-            for folder in masterfolder.folders:
-                path = os.path.join(out_rootfolder, folder.name)
-                os.makedirs(path, exist_ok=True)
-                self.save_files(folder, path)
