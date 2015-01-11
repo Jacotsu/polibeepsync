@@ -28,7 +28,8 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                           QVBoxLayout, QLabel, QSystemTrayIcon,
                           qApp, QDialog)
 
-from polibeepsync.common import User, InvalidLoginError, total_size, Course, DownloadThread
+from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
+    DownloadThread
 from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
@@ -313,6 +314,7 @@ class MainWindow(QWidget, Ui_Form):
         self.downloadthread = DownloadThread(self.user, self.settings['RootFolder'])
         self.downloadthread.download_signal.connect(self.update_course_download)
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
+        self.downloadthread.data_signal.connect(self.update_file_localtime)
 
         self.userCode.setText(str(self.user.username))
         self.userCode.textEdited.connect(self.setusercode)
@@ -342,6 +344,34 @@ class MainWindow(QWidget, Ui_Form):
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
 
+
+    def _update_time(self, folder, file, path_list):
+        print('inside ', folder.name)
+        print('path_list: ', path_list)
+        while len(path_list) > 0:
+            namegoto = path_list.pop(0)
+            print('namegoto: ', namegoto)
+            # perché a volte è vuoto?
+            if namegoto != "":
+                fakefolder = Folder(namegoto, 'fake')
+                print('contained folders: ', folder.folders)
+                ind = folder.folders.index(fakefolder)
+                goto = folder.folders[ind]
+                self._update_time(goto, file, path_list)
+        if file in folder.files:
+            ind = folder.files.index(file)
+            thisfile = folder.files[ind]
+            thisfile.local_creation_time = file.local_creation_time
+            self.dumpUser()
+
+    def update_file_localtime(self, data, **kwargs):
+        course, coursefile, path = data
+        rootpath = os.path.join(self.settings['RootFolder'],
+                                course.save_folder_name)
+        if path.startswith(rootpath):
+            partial = path[len(rootpath):]
+        path_list = partial.split(os.path.sep)
+        self._update_time(course.documents, coursefile, path_list)
 
     def update_course_download(self, course, **kwargs):
         logger.info('download size updated')
