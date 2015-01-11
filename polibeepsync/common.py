@@ -20,8 +20,10 @@ from datetime import datetime, timedelta, tzinfo
 import requests
 import os
 import logging
-from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore,\
+from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
     Literal, ParseException
+from threading import Thread, Condition
+from signalslot import Signal as sSignal
 
 logger = logging.getLogger("polibeepsync.common")
 
