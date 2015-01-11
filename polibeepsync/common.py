@@ -342,6 +342,13 @@ class Folder(object):
             return False
 
 
+def total_size(parentfolder, size=0):
+    for folder in parentfolder.folders:
+        size += total_size(folder)
+    for f in parentfolder.files:
+        size += f.size
+    return size
+
 class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
     gmt1 = GMT1()
