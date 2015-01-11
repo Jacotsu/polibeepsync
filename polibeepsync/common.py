@@ -309,11 +309,20 @@ class CourseFile(object):
         self.name = name
         self.url = url
         self.last_online_edit_time = last_online_edit_time
-        self.local_creation_time = datetime(1990, 1, 1, 1, 1,
-                                            tzinfo=gmt1)
+        self.local_creation_time = None
+        self.size = 0  # in bytes
 
     def __hash__(self):
         return hash(self.name)
+
+    def __repr__(self):
+        return self.name
+
+    def __eq__(self, other):
+        if os.path.splitext(self.name)[0] == os.path.splitext(other.name)[0]:
+            return True
+        else:
+            return False
 
 
 class Folder(object):
