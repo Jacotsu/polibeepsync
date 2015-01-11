@@ -384,6 +384,22 @@ def syncdisk(local, disk):
             syncdisk(folder, disk.folders[ind])
     return local
 
+
+def diskstructure(path, result=None):
+    """Given an absolute path, returns the corresponding Folder instance"""
+    if result is None:
+        result = Folder('root', 'local')
+    files = [CourseFile(f, 'local', datetime(1991, 1, 1, 1, 1))
+             for f in os.listdir(path) if
+             os.path.isfile(os.path.join(path, f))]
+    result.files = files
+    folders = [Folder(fold, 'local') for fold in os.listdir(path) if
+               os.path.isdir(os.path.join(path, fold))]
+    result.folders = folders
+    for folder in result.folders:
+        diskstructure(os.path.join(path, folder.name), folder)
+    return result
+
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
     for file in online.files:
