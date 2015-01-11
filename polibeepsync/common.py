@@ -28,6 +28,8 @@ from signalslot import Signal as sSignal
 logger = logging.getLogger("polibeepsync.common")
 
 
+# --- Custom Exceptions --- #
+
 class InvalidLoginError(Exception):
     pass
 
@@ -36,6 +38,141 @@ class CourseNotFoundError(Exception):
     pass
 
 
+# --- Custom Threads --- #
+class LoginThread(Thread):
+    def __init__(self, user):
+        Thread.__init__(self)
+        self.name = 'loginthread'
+        self.user = user
+        self.login_status = sSignal(args=['message'])
+
+    def run(self):
+        try:
+            self.user.logout()
+            self.user.login()
+            if self.user.logged is True:
+                self.login_status.emit(message='Successful login.')
+                logger.info('Successful login.')
+        except InvalidLoginError:
+            self.user.logout()
+            self.login_status.emit(message='Login failed.')
+            logger.error("Login failed.", exc_info=True)
+        except ConnectionError:
+            self.user.logout()
+            self.login_status.emit(message='I can\'t connect to the'
+                                           ' server. Is the Internet'
+                                           ' connection working?')
+            logger.error('Connection error.', exc_info=True)
+        except requests.Timeout:
+            self.user.logout()
+            self.login_status.emit(message="The timeout time has been"
+                                           " reached. Is the Internet connection"
+                                           " working?")
+            logger.error("Timeout error.", exc_info=True)
+
+
+class SyncThread(Thread):
+    def __init__(self, user):
+        Thread.__init__(self)
+        self.name = 'syncthread'
+        self.user = user
+        self.signal = sSignal(args=['message'])
+        self.new = sSignal(args=['course'])
+        self.old = sSignal(args=['course'])
+
+    def run(self):
+        most_recent = self.user.get_online_courses()
+        last = self.user.available_courses
+        new = most_recent - last
+        removable = last - most_recent
+        if len(removable) > 0:
+            self.signal.emit(message='The following courses have'
+                                     ' been removed because they '
+                                     'aren\'t available online: {}'
+                             .format(removable))
+            for course in removable:
+                self.old.emit(course=course)
+        if len(new) > 0:
+            for course in new:
+                course.save_folder_name = course.simplify_name(course.name)
+                self.signal.emit(message='A new course '
+                                         'was found: {}'.format(course))
+                self.new.emit(course=course)
+        if len(new) == 0:
+            self.signal.emit(message='No new courses found.')
+            logger.info('No new courses found.')
+        self.user.sync_available_courses(most_recent)
+        logger.info('User object changed')
+
+
+class DownloadThread():
+    def __init__(self, user, topdir, parent=None):
+        self.user = user
+        self.topdir = topdir
+        self.download_signal = sSignal(args=['course'])
+        self.initial_sizes = sSignal(args=['course'])
+
+
+    def start(self):
+        t = Thread(target=self.run)
+        t.start()
+
+    def run(self):
+        for course in self.user.available_courses:
+            subdir = course.save_folder_name
+            if course.sync is True:
+                try:
+                    outdir = os.path.join(self.topdir, subdir)
+                    os.makedirs(outdir, exist_ok=True)
+                    ondisk = diskstructure(outdir)
+                    # side effects:
+                    # 1. write course._total_file_size
+                    # 2. set course.documents (it's a Folder instance)
+                    print('documenti del corso senza fare nulla: {}'.format(
+                        course.documents.files))
+                    self.user.update_course_files(course)
+                    print('dopo aver chiamato update_course_files')
+                    print(course.documents.files)
+                    syncdisk(course.documents, ondisk)
+                    print('dopo aver chiamato syncdisk')
+                    print(course.documents.files)
+                    needsync = need_syncing(course.documents,
+                                            os.path.join(self.topdir,
+                                                         course.save_folder_name),
+                                            Folder('sync', 'fake'))
+                    print('needsync riga 136 è ')
+                    for f in needsync.folders:
+                        print(f)
+                    for f in needsync.files:
+                        print(f)
+                    syncsize = total_size(needsync)
+                    alreadysynced = course._total_file_size - syncsize
+                    course._downloaded_size = alreadysynced
+                    self.initial_sizes.emit(course=course)
+
+                    self.user.save_files(course, needsync, outdir,
+                                         self.download_signal)
+                    logger.info("Synced files for {}".format(course.name))
+                except InvalidLoginError:
+                    self.user.logout()
+                    logger.info("Login failed.", exc_info=True)
+                except ConnectionError:
+                    self.user.logout()
+                    # self.signal_error.sig.emit('I can\'t connect to'
+                    # ' the server. Is the'
+                    #                           ' Internet connection'
+                    #                           ' working?')
+                    logger.error('Connection error.', exc_info=True)
+                except requests.Timeout:
+                    self.user.logout()
+                    # self.signal_error.sig.emit("The timeout time has"
+                    # " been reached. Is the"
+                    #                           " Internet connection"
+                    #                           " working?")
+                    logger.error("Timeout error.", exc_info=True)
+
+
+# --- "Core" classes here --- #
 class GMT1(tzinfo):
     def utcoffset(self, dt):
         return timedelta(hours=1) + self.dst(dt)
