@@ -12,6 +12,10 @@ class TestCourse:
         course = Course('[2014-15] - SOME STUFF [ A PROFESSOR ]', 'beep.com')
         assert course.simplify_name(course.name) == "Some Stuff"
 
+    def test_cannotsimplifyname(self):
+        course = Course('Metid', 'beep.com')
+        assert course.simplify_name(course.name) == "Metid"
+
     def test_simplify_mems(self):
         course = Course('[2014-15] - MICRO ELECTRO MECHANICAL SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]', 'beep.com')
         assert course.simplify_name(course.name) == "Micro Electro Mechanical Systems"
@@ -222,6 +226,23 @@ class TestCourses:
         courses.append(Course('metalli', 'beep.com'),
                        Course('other', 'doesntmatter'))
         assert len(courses) == 2
+
+
+class TestCourseFile:
+    def test_repr(self):
+        a = CourseFile('nice name', 'beep.com', 'fake time')
+        assert repr(a) == "nice name"
+
+    def test_notequal(self):
+        a = CourseFile('nice name', 'beep.com', 'fake time')
+        b = CourseFile('another file', 'beep.com', 'fake time')
+        assert a != b
+
+
+class TestFolder:
+    def test_repr(self):
+        a = Folder('name', 'fakeurl')
+        assert repr(a) == "name folder"
 
 
 class TestUser:
