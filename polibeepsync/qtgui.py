@@ -28,7 +28,7 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                           QVBoxLayout, QLabel, QSystemTrayIcon,
                           qApp, QDialog)
 
-from polibeepsync.common import User, InvalidLoginError
+from polibeepsync.common import User, InvalidLoginError, total_size, Course, DownloadThread
 from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
@@ -104,53 +104,10 @@ class CoursesSignal(QObject):
     sig = Signal(list)
 
 
-class DownloadThread(QThread):
-    def __init__(self, user, topdir, parent=None):
-        QThread.__init__(self, parent)
-        self.exiting = False
-        self.course_finished = MySignal()
-        self.signal_error = MySignal()
-        self.user = user
-        self.topdir = topdir
-        self.dumpuser = MySignal()
+class DownloadChunkSignal(QObject):
+    sig = Signal(Course, int)
 
-    def run(self):
-        while self.exiting == False:
-            for course in self.user.available_courses:
-                subdir = course.save_folder_name
-                if course.sync is True:
-                    try:
-                        self.user.update_course_files(course)
-                        outdir = os.path.join(self.topdir, subdir)
-                        os.makedirs(outdir, exist_ok=True)
-                        rootdir = self.user.find_files_and_folders(
-                            course.documents_url, 'rootfolder')
-                        self.user.save_files(rootdir, outdir)
-                        self.dumpuser.sig.emit('User object changed')
-                        text = "Synced files for {}".format(course.name)
-                        self.course_finished.sig.emit(text)
-                    except InvalidLoginError:
-                        self.user.logout()
-                        self.exiting = True
-                        self.signal_error.sig.emit('Login failed.')
-                        logger.info("Login failed.", exc_info=True)
-                    except ConnectionError:
-                        self.user.logout()
-                        self.exiting = True
-                        self.signal_error.sig.emit('I can\'t connect to'
-                                                   ' the server. Is the'
-                                                   ' Internet connection'
-                                                   ' working?')
-                        logger.error('Connection error.', exc_info=True)
-                    except Timeout:
-                        self.user.logout()
-                        self.exiting = True
-                        self.signal_error.sig.emit("The timeout time has"
-                                                   " been reached. Is the"
-                                                   " Internet connection"
-                                                   " working?")
-                        logger.error("Timeout error.", exc_info=True)
-            self.exiting = True
+
 
 
 class LoginThread(QThread):
@@ -239,7 +196,7 @@ class CoursesListModel(QAbstractTableModel):
         return len(self.courses)
 
     def columnCount(self, parent=QModelIndex()):
-        return 3
+        return 4
 
     def insertRows(self, position, rows, newcourse, parent=QModelIndex()):
         self.beginInsertRows(parent, position, position + rows - 1)
@@ -280,7 +237,6 @@ class CoursesListModel(QAbstractTableModel):
                 return True
         return False
 
-
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
             if index.column() == 0:
@@ -289,6 +245,14 @@ class CoursesListModel(QAbstractTableModel):
                 return self.courses[index.row()].sync
             if index.column() == 2:
                 return self.courses[index.row()].save_folder_name
+            if index.column() == 3:
+                dw = self.courses[index.row()]._downloaded_size
+                total = self.courses[index.row()]._total_file_size
+                #if total != 0:
+                #    return dw/total*100
+                #else:
+                #    return 0
+                return (dw, total)
         elif role == Qt.CheckStateRole:
             return None
 
@@ -300,6 +264,8 @@ class CoursesListModel(QAbstractTableModel):
                 return "Sync"
             elif col == 2:
                 return "Save as"
+            elif col == 3:
+                return "Download %"
 
 
 class MainWindow(QWidget, Ui_Form):
@@ -338,11 +304,15 @@ class MainWindow(QWidget, Ui_Form):
         self.refreshcoursesthread.refreshed.sig.connect(self.myStream_message)
         self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
 
-        self.downloadthread = DownloadThread(self.user,
-                                             self.settings['RootFolder'])
-        self.downloadthread.dumpuser.sig.connect(self.dumpUser)
-        self.downloadthread.course_finished.sig.connect(self.myStream_message)
-        self.downloadthread.signal_error.sig.connect(self.myStream_message)
+        #self.downloadthread = DownloadThread(self.user,
+        #                                     self.settings['RootFolder'])
+        #self.downloadthread.dumpuser.sig.connect(self.dumpUser)
+        #self.downloadthread.course_finished.sig.connect(self.myStream_message)
+        #self.downloadthread.signal_error.sig.connect(self.myStream_message)
+
+        self.downloadthread = DownloadThread(self.user, self.settings['RootFolder'])
+        self.downloadthread.download_signal.connect(self.update_course_download)
+        self.downloadthread.initial_sizes.connect(self.setinizialsizes)
 
         self.userCode.setText(str(self.user.username))
         self.userCode.textEdited.connect(self.setusercode)
@@ -371,6 +341,28 @@ class MainWindow(QWidget, Ui_Form):
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
+
+
+    def update_course_download(self, course, **kwargs):
+        logger.info('download size updated')
+        if course in self.user.available_courses:
+            updating = self.user.available_courses[course.name]
+            updating._downloaded_size = course._downloaded_size
+            row = self.courses_model.courses.index(updating)
+            where = self.courses_model.index(row, 3)
+            self.courses_model.dataChanged.emit(where, where)
+            self.dumpUser()
+
+
+    def setinizialsizes(self, course, **kwargs):
+        if course in self.user.available_courses:
+            updating = self.user.available_courses[course.name]
+            updating._downloaded_size = course._downloaded_size
+            updating._total_file_size = course._total_file_size
+            row = self.courses_model.courses.index(updating)
+            where = self.courses_model.index(row, 3)
+            self.courses_model.dataChanged.emit(where, where)
+            self.dumpUser()
 
     def syncnewcourses(self, newlist):
         if self.settings['SyncNewCourses'] == 'True':
@@ -537,9 +529,7 @@ class MainWindow(QWidget, Ui_Form):
 
     def do_syncfiles(self):
         self.refreshcoursesthread.finished.disconnect(self.do_syncfiles)
-        if not self.downloadthread.isRunning():
-            self.downloadthread.exiting = False
-            self.downloadthread.start()
+        self.downloadthread.start()
 
 
     @Slot(str)
