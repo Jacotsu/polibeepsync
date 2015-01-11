@@ -332,6 +332,15 @@ class Folder(object):
         self.files = []
         self.folders = []
 
+    def __repr__(self):
+        return self.name + " folder"
+
+    def __eq__(self, other):
+        if self.name == other.name:
+            return True
+        else:
+            return False
+
 
 class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
