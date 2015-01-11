@@ -3,3 +3,4 @@ requests==2.3.0
 PySide==1.2.2
 appdirs==1.4.0
 pyparsing==2.0.3
+-e git://github.com/davethecipo/signalslot.git@ca41d813ed0007c8ea6743fd6332447b003a2390#egg=signalslot
