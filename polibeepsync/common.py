@@ -261,8 +261,10 @@ class Course(GenericSet):
         self.name = name
         self.documents_url = documents_url
         self.sync = sync
-        self.documents = ""
+        self.documents = Folder('root', self.documents_url)
         self.save_folder_name = ""
+        self._total_file_size = 0  # in bytes
+        self._downloaded_size = 0  # in bytes
 
     def simplify_name(self, name):
         simple = name
