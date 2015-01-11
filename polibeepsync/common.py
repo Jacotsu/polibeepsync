@@ -350,56 +350,6 @@ def total_size(parentfolder, size=0):
     return size
 
 
-def syncdisk(local, disk):
-    """Modifies local in order to reflect changes from disk"""
-    print('sono dentro syncdisk')
-    print('local è {}'.format(local))
-    print('mentre disk è {}'.format(disk))
-    print('quanti files in local:', len(local.files))
-    print('quanti files in disk:', len(disk.files))
-    for elem in local.files:
-        print(elem, ' questo è un file locale')
-    for elem in disk.files:
-        print(elem, ' questo è un file su disco')
-    remove_these = []
-    for file in local.files:
-        print('sto iterando su', file)
-        if file not in disk.files:
-            print('secondo me non è su disco')
-            ind = local.files.index(file)
-            print('indice ind: ', ind)
-            print('ricordo che local.files è', local.files)
-            remove_these.append(file)
-        else:
-            print('secondo me è su disco')
-    for elem in local.files:
-        if elem in remove_these:
-            del elem
-    print('now local files is {}'.format(local.files))
-    for folder in local.folders:
-        if folder not in disk.folders:
-            del folder
-        else:
-            ind = disk.folders.index(folder)
-            syncdisk(folder, disk.folders[ind])
-    return local
-
-
-def diskstructure(path, result=None):
-    """Given an absolute path, returns the corresponding Folder instance"""
-    if result is None:
-        result = Folder('root', 'local')
-    files = [CourseFile(f, 'local', datetime(1991, 1, 1, 1, 1))
-             for f in os.listdir(path) if
-             os.path.isfile(os.path.join(path, f))]
-    result.files = files
-    folders = [Folder(fold, 'local') for fold in os.listdir(path) if
-               os.path.isdir(os.path.join(path, fold))]
-    result.folders = folders
-    for folder in result.folders:
-        diskstructure(os.path.join(path, folder.name), folder)
-    return result
-
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
     for file in online.files:
@@ -408,13 +358,18 @@ def synclocalwithonline(local, online):
         else:
             ind = local.files.index(file)
             local.files[ind].last_online_edit_time = file.last_online_edit_time
+    oldfiles = [f for f in local.files if f not in online.files]
+    cleanfiles = [f for f in local.files if f not in oldfiles]
+    local.files = cleanfiles
+    old = [f for f in local.folders if f not in online.folders]
+    clean = [f for f in local.folders if f not in old]
+    local.folders = clean
     for folder in online.folders:
         if folder not in local.folders:
             local.folders.append(folder)
-            synclocalwithonline(local.folders[-1], folder)
-        else:
-            ind = local.folders.index(folder)
-            syncdisk(folder, local.folders[ind])
+    for folder in online.folders:
+        ind = local.folders.index(folder)
+        synclocalwithonline(local.folders[ind], folder)
     return local
 
 class User(object):
@@ -686,9 +641,10 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                 self.available_courses.remove(elem)
 
     def update_course_files(self, course):
-        rootfolder = self.find_files_and_folders(course.documents_url,
-                                                 'rootfolder')
-        course.documents = rootfolder
+        online = self.find_files_and_folders(course.documents_url,
+                                             'rootfolder')
+        synclocalwithonline(course.documents, online)
+        course._total_file_size = total_size(course.documents)
 
     def find_files_and_folders(self, link, thisfoldername):
         response = self.get_page(link)
