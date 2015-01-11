@@ -24,6 +24,8 @@ from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
     Literal, ParseException
 from threading import Thread, Condition
 from signalslot import Signal as sSignal
+from pprint import pprint
+
 
 logger = logging.getLogger("polibeepsync.common")
 
@@ -111,7 +113,7 @@ class DownloadThread():
         self.topdir = topdir
         self.download_signal = sSignal(args=['course'])
         self.initial_sizes = sSignal(args=['course'])
-
+        self.data_signal = sSignal(args=['data'])
 
     def start(self):
         t = Thread(target=self.run)
@@ -132,12 +134,16 @@ class DownloadThread():
                                             syncthese)
 
                     syncsize = total_size(needsync)
+                    print('****SYNCSIZE: ', syncsize)
                     alreadysynced = course._total_file_size - syncsize
+                    print('****ALREADYSYNCED ', alreadysynced)
                     course._downloaded_size = alreadysynced
+                    print('****DOWNLOADED SIZE setting to ', course._downloaded_size)
                     self.initial_sizes.emit(course=course)
 
-                    self.user.save_files(course, needsync, outdir,
-                                         self.download_signal)
+                    self.user.save_files(course, needsync,
+                                         self.download_signal,
+                                         self.data_signal)
                     # adesso ogni file di syncthese ha la data di download
                     # aggiornata, ma deve essere scritto su file
                     logger.info("Synced files for {}".format(course.name))
@@ -148,14 +154,14 @@ class DownloadThread():
                     self.user.logout()
                     # self.signal_error.sig.emit('I can\'t connect to'
                     # ' the server. Is the'
-                    #                           ' Internet connection'
+                    # ' Internet connection'
                     #                           ' working?')
                     logger.error('Connection error.', exc_info=True)
                 except requests.Timeout:
                     self.user.logout()
                     # self.signal_error.sig.emit("The timeout time has"
                     # " been reached. Is the"
-                    #                           " Internet connection"
+                    # " Internet connection"
                     #                           " working?")
                     logger.error("Timeout error.", exc_info=True)
 
@@ -336,6 +342,14 @@ def total_size(listoffiles):
         total += file.size
     return total
 
+
+def folder_total_size(parentfolder, size=0):
+    for folder in parentfolder.folders:
+        folder_total_size(folder, size)
+    for f in parentfolder.files:
+        size += f.size
+    return size
+
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
     for file in online.files:
@@ -371,7 +385,7 @@ def need_syncing(folder, parent_folder, syncthese):
     downloaded
     """
     print('calling with folder=', folder.name, ', parent folder= ',
-          parent_folder, ", syncthese = ", syncthese)
+          parent_folder, ", syncthese = ", pprint(syncthese))
     for f in folder.files:
         print(f.local_creation_time, f.last_online_edit_time)
         if f.local_creation_time is None:
@@ -380,7 +394,12 @@ def need_syncing(folder, parent_folder, syncthese):
         elif f.local_creation_time < f.last_online_edit_time:
             print('creazione < online')
             syncthese.append((f, parent_folder))
-        elif not os.path.exists(os.path.join(parent_folder, f.name)):
+        elif not os.path.exists(os.path.join(parent_folder, f.name)) and \
+            f.name not in [os.path.splitext(os.path.basename(f))[0]
+                         for f in os.listdir(parent_folder)
+                         if os.path.isfile(os.path.join(parent_folder, f))]:
+            print('scommetto che penso che esistono quelli senza estensione')
+            print('f.name = ', f.name)
             print('altrimenti')
             print('non esiste e allora aggiungo')
             syncthese.append((f, parent_folder))
@@ -403,7 +422,10 @@ class User(object):
         self.available_courses = Courses()
         self.root_save_folder = ""
         self.chunk_download = sSignal(args=['course'])
+        # self.chunk_download.connect(self.print_chunk)
 
+    # def print_chunk(self, **kwargs):
+    # print(kwargs['chunk_size'])
 
     def logout(self):
         """Logout.
@@ -590,7 +612,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         # we only need year to parse for real courses
         year = Group("[" + OneOrMore(
             Word(nums, exact=4) + "-" + Word(nums, exact=2)) + "]")
-        #bracketed = Group("[" + OneOrMore(Word(printables, " ")) + "]")
+        # bracketed = Group("[" + OneOrMore(Word(printables, " ")) + "]")
         #middle = ~bracketed + OneOrMore(Word(alphas))
         #grammar = year.suppress() + Literal("-").suppress() + middle
         grammar = year
@@ -663,7 +685,8 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         online = self.find_files_and_folders(course.documents_url,
                                              'rootfolder')
         synclocalwithonline(course.documents, online)
-        course._total_file_size = total_size(course.documents)
+        course._total_file_size = folder_total_size(course.documents)
+        print('****DIMENSIONE TOTALE: ', course._total_file_size)
 
     def find_files_and_folders(self, link, thisfoldername):
         response = self.get_page(link)
@@ -688,7 +711,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             rawdate = rawdates[i]
             day = int(rawdate.text.split(' ')[1].split('/')[0])
             month = int(rawdate.text.split(' ')[1].split('/')[1])
-            year = int(rawdate.text.split(' ')[1].split('/')[2])
+            year = int('20' + rawdate.text.split(' ')[1].split('/')[2])
             hour = int(rawdate.text.split(' ')[2].split('.')[0])
             minute = int(rawdate.text.split(' ')[2].split('.')[1])
             complete_date = datetime(year, month, day, hour, minute,
@@ -709,7 +732,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                 folder.folders.append(subfolder)
         return folder
 
-    def save_files(self, course, needsync, signal,
+    def save_files(self, course, needsync, downloadsignal, datesignal,
                    chunk_size=512 * 1024):
         for coursefile, path in needsync:
             result = self.get_file(coursefile.url)
@@ -720,6 +743,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             #print('complete_name ', complete_name)
             #print('masterfolder ', masterfolder)
             #print('out_rootfolder ', out_rootfolder)
+            os.makedirs(path, exist_ok=True)
             with open(complete_name, 'wb') as f:
                 logger.info('writing into {}'.format(complete_name))
                 for chunk in result.iter_content(chunk_size):
@@ -727,6 +751,9 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                         f.write(chunk)
                         course._downloaded_size += len(chunk)
                         logger.debug('chunk size: {}'.format(len(chunk)))
-                        signal.emit(course=course)
+                        downloadsignal.emit(course=course)
                 coursefile.local_creation_time = datetime.now(self.gmt1)
+                # we emit another signal here so that we can save to file
+                # the updated local creation time
+                datesignal.emit(data=(course, coursefile, path))
 
