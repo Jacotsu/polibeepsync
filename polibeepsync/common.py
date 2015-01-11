@@ -349,6 +349,41 @@ def total_size(parentfolder, size=0):
         size += f.size
     return size
 
+
+def syncdisk(local, disk):
+    """Modifies local in order to reflect changes from disk"""
+    print('sono dentro syncdisk')
+    print('local è {}'.format(local))
+    print('mentre disk è {}'.format(disk))
+    print('quanti files in local:', len(local.files))
+    print('quanti files in disk:', len(disk.files))
+    for elem in local.files:
+        print(elem, ' questo è un file locale')
+    for elem in disk.files:
+        print(elem, ' questo è un file su disco')
+    remove_these = []
+    for file in local.files:
+        print('sto iterando su', file)
+        if file not in disk.files:
+            print('secondo me non è su disco')
+            ind = local.files.index(file)
+            print('indice ind: ', ind)
+            print('ricordo che local.files è', local.files)
+            remove_these.append(file)
+        else:
+            print('secondo me è su disco')
+    for elem in local.files:
+        if elem in remove_these:
+            del elem
+    print('now local files is {}'.format(local.files))
+    for folder in local.folders:
+        if folder not in disk.folders:
+            del folder
+        else:
+            ind = disk.folders.index(folder)
+            syncdisk(folder, disk.folders[ind])
+    return local
+
 class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
     gmt1 = GMT1()
