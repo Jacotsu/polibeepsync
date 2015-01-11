@@ -372,6 +372,37 @@ def synclocalwithonline(local, online):
         synclocalwithonline(local.folders[ind], folder)
     return local
 
+
+def need_syncing(folder, parent_folder, syncthese):
+    """Return a flat list with files to download
+
+    Each element is a tuple like this
+    (file, path)
+
+    filename is the file as scraped from the web (its name can be with or
+    without the extension)
+    path is the absolute path of the folder in which the file should be
+    downloaded
+    """
+    print('calling with folder=', folder.name, ', parent folder= ',
+          parent_folder, ", syncthese = ", syncthese)
+    for f in folder.files:
+        print(f.local_creation_time, f.last_online_edit_time)
+        if f.local_creation_time is None:
+            print('data None')
+            syncthese.append((f, parent_folder))
+        elif f.local_creation_time < f.last_online_edit_time:
+            print('creazione < online')
+            syncthese.append((f, parent_folder))
+        elif not os.path.exists(os.path.join(parent_folder, f.name)):
+            print('altrimenti')
+            print('non esiste e allora aggiungo')
+            syncthese.append((f, parent_folder))
+    for f in folder.folders:
+        new_parent = os.path.join(parent_folder, f.name)
+        need_syncing(f, new_parent, syncthese)
+    return syncthese
+
 class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
     gmt1 = GMT1()
