@@ -1,3 +1,5 @@
 [run]
 omit = polibeepsync/tests/*
        polibeepsync/__init__.py
+       polibeepsync/icone_rc.py
+       polibeepsync/ui_resizable.py
