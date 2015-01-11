@@ -1,4 +1,4 @@
-from polibeepsync.common import Courses, Course, CourseFile, User
+from polibeepsync.common import Courses, Course, CourseFile, User, Folder, total_size
 import pytest
 import os
 
@@ -15,6 +15,20 @@ class TestCourse:
     def test_simplify_mems(self):
         course = Course('[2014-15] - MICRO ELECTRO MECHANICAL SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]', 'beep.com')
         assert course.simplify_name(course.name) == "Micro Electro Mechanical Systems"
+
+    def test_size_calculation(self):
+        #course = Course('fake', 'beep.com')
+        afile = CourseFile('name', 'url', '1000')
+        asecondfile = CourseFile('name', 'url', '10001')
+        afile.size = 1099776
+        asecondfile.size = 752640
+        #course.append(afile)
+        subfolder = Folder('subf', 'beep.com')
+        subfolder.files.append(asecondfile)
+        mainfolder = Folder('main', 'beep.com')
+        mainfolder.files.append(afile)
+        mainfolder.folders.append(subfolder)
+        assert total_size(mainfolder) == afile.size + asecondfile.size
 
     def test_ignorebeepcourse(self):
         clean_list = [
