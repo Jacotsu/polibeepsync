@@ -1,4 +1,4 @@
-.venv
+.venv*
 .directory
 .idea/
 __pycache__/
@@ -19,3 +19,6 @@ poliBeePsync.egg-info/
 /.coverage
 docs/build
 run_codecov.sh
+.prospector.yaml
+htmlcov
+dist
