@@ -384,6 +384,23 @@ def syncdisk(local, disk):
             syncdisk(folder, disk.folders[ind])
     return local
 
+def synclocalwithonline(local, online):
+    """Modifies local in order to reflect changes from online"""
+    for file in online.files:
+        if file not in local.files:
+            local.files.append(file)
+        else:
+            ind = local.files.index(file)
+            local.files[ind].last_online_edit_time = file.last_online_edit_time
+    for folder in online.folders:
+        if folder not in local.folders:
+            local.folders.append(folder)
+            synclocalwithonline(local.folders[-1], folder)
+        else:
+            ind = local.folders.index(folder)
+            syncdisk(folder, local.folders[ind])
+    return local
+
 class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
     gmt1 = GMT1()
