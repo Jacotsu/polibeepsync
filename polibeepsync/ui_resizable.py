@@ -2,7 +2,7 @@
 
 from PySide.QtGui import (QTableView, QStyledItemDelegate, QStyleOptionButton,
                           QStyle, QApplication, QIcon, QVBoxLayout, QTabWidget,
-                          QWidget, QHBoxLayout,
+                          QWidget, QHBoxLayout, QStyleOptionProgressBarV2,
                           QGridLayout, QLabel, QLineEdit, QSpacerItem,
                           QSizePolicy, QPushButton,
                           QSpinBox, QCheckBox, QTextEdit, QDialogButtonBox)
@@ -13,7 +13,35 @@ from PySide.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
 class CoursesListView(QTableView):
     def __init__(self, parent=None):
         QTableView.__init__(self, parent)
+        self.progbar = ProgressBarDelegate(self)
         self.setItemDelegateForColumn(1, CheckBoxDelegate(self))
+        self.setItemDelegateForColumn(3, self.progbar)
+
+
+class ProgressBarDelegate(QStyledItemDelegate):
+    def __init__(self, parent):
+        QStyledItemDelegate.__init__(self, parent)
+
+    def paint(self, painter, option, index):
+        progressBar = QStyleOptionProgressBarV2()
+        progressBar.state = QStyle.State_Enabled
+        progressBar.direction = QApplication.layoutDirection()
+        progressBar.rect = option.rect
+        progressBar.fontMetrics = QApplication.fontMetrics()
+        progressBar.minimum = 0
+        progressBar.maximum = 100
+        progressBar.textAlignment = Qt.AlignCenter
+        progressBar.textVisible = True
+        dw = index.data()[0]
+        tot = index.data()[1]
+        if tot != 0:
+            progressBar.progress = round(dw/tot*100, 2)
+        else:
+            progressBar.progress = 0
+        progressBar.text = "{} MB of {} MB total".format(round(dw/(
+            1024*1024), 2), round(tot/(1024*1024), 2))
+        QApplication.style().drawControl(QStyle.CE_ProgressBar, progressBar,
+                                         painter)
 
 
 class CheckBoxDelegate(QStyledItemDelegate):
