@@ -488,7 +488,10 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             elem = download_link[2]
             if elem.text.startswith('  Download ('):
                 link = elem['href']
+                size = int(float(elem.text.strip()[10:-2].replace(".", "").
+                                 replace(",", ".")) * 1024)
                 complete_file = CourseFile(name, link, complete_date)
+                complete_file.size = size
                 folder.files.append(complete_file)
 
             else:
