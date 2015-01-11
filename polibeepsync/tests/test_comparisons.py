@@ -1,7 +1,8 @@
 from datetime import datetime
 from polibeepsync.common import CourseFile, Folder,  GMT1, \
-    synclocalwithonline
+    synclocalwithonline, need_syncing, Course
 import pytest
+import os
 
 
 class TestLocalOnlineCompare:
@@ -101,3 +102,129 @@ class TestLocalOnlineCompare:
         synclocalwithonline(local, online)
         assert local.files[0].last_online_edit_time == \
             datetime(1991, 1, 1, 1, 1, tzinfo=gmt1)
+
+
+class TestNeedSync:
+    def test_flat_datenone(self):
+        gmt1 = GMT1()
+        top = '/a/fake/path'
+        a = CourseFile('a', 'url', datetime(1991, 1, 1, 1, 1, tzinfo=gmt1))
+        docs = Folder('root', 'fake')
+        docs.files.append(a)
+
+        assert need_syncing(docs, top, []) == [(a, top)]
+
+    def test_flat_olddate(self):
+        """local date older: should update the file (doesn't matter if file
+        exists or not"""
+        gmt1 = GMT1()
+        top = '/a/fake/path'
+        a = CourseFile('a', 'url', datetime(1991, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1990, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        docs.files.append(a)
+
+        assert need_syncing(docs, top, []) == [(a, top)]
+
+    def test_flat_newdate(self, tmpdir):
+        """local date newer: should not update the file if the file exists"""
+        gmt1 = GMT1()
+        b = tmpdir.join('a')
+        b.write('content')
+        a = CourseFile('a', 'url', datetime(1990, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1991, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        docs.files.append(a)
+
+        assert need_syncing(docs, str(tmpdir), []) == []
+
+    def test_flat_nofileondisk(self, tmpdir):
+        gmt1 = GMT1()
+        b = tmpdir.join('b')
+        b.write('content')
+        a = CourseFile('a.pdf', 'url', datetime(1990, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1991, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        docs.files.append(a)
+        assert need_syncing(docs, str(tmpdir), []) == [(a, str(tmpdir))]
+
+    def test_flat_nofileondisk2(self, tmpdir):
+        """Dates reversed from the previous test"""
+        gmt1 = GMT1()
+        b = tmpdir.join('b')
+        b.write('content')
+        a = CourseFile('a.pdf', 'url', datetime(1991, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1990, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        docs.files.append(a)
+        assert need_syncing(docs, str(tmpdir), []) == [(a, str(tmpdir))]
+
+    def test_recursive_datenone(self):
+        gmt1 = GMT1()
+        top = '/a/fake/path'
+        a = CourseFile('a', 'url', datetime(1991, 1, 1, 1, 1, tzinfo=gmt1))
+        docs = Folder('root', 'fake')
+        sub = Folder('sub', 'fake')
+        sub.files.append(a)
+        docs.folders.append(sub)
+        assert need_syncing(docs, top, []) == [(a, os.path.join(top, 'sub'))]
+
+    def test_recursive_olddate(self):
+        gmt1 = GMT1()
+        top = '/a/fake/path'
+        a = CourseFile('a', 'url', datetime(1991, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1990, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        sub = Folder('sub', 'fake')
+        sub.files.append(a)
+        docs.folders.append(sub)
+        assert need_syncing(docs, top, []) == [(a, os.path.join(top, 'sub'))]
+
+    def test_recursive_newdate(self, tmpdir):
+        gmt1 = GMT1()
+        b = tmpdir.mkdir('sub').join('a')
+        b.write('content')
+        a = CourseFile('a', 'url', datetime(1990, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1991, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        sub = Folder('sub', 'fake')
+        sub.files.append(a)
+        docs.folders.append(sub)
+
+        assert need_syncing(docs, str(tmpdir), []) == []
+
+    def test_recursive_nofileondisk(self, tmpdir):
+        gmt1 = GMT1()
+        b = tmpdir.mkdir('sub').join('b')
+        b.write('content')
+        a = CourseFile('a.pdf', 'url', datetime(1991, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1990, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        sub = Folder('sub', 'fake')
+        sub.files.append(a)
+        docs.folders.append(sub)
+        assert need_syncing(docs, str(tmpdir), []) == [(a, os.path.join(
+            str(tmpdir), 'sub'))]
+
+    def test_filenamewithoutextension(self, tmpdir):
+        gmt1 = GMT1()
+        b = tmpdir.join('a.pdf')
+        b.write('content')
+        a = CourseFile('a', 'url', datetime(1991, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1990, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        docs.files.append(a)
+        assert need_syncing(docs, str(tmpdir), []) == [(a, str(tmpdir))]
+
+    def test_recursive_filenamewithoutextension(self, tmpdir):
+        gmt1 = GMT1()
+        b = tmpdir.mkdir('sub').join('a.pdf')
+        b.write('content')
+        a = CourseFile('a', 'url', datetime(1991, 1, 1, 1, 1, tzinfo=gmt1))
+        a.local_creation_time = datetime(1990, 1, 1, 1, 1, tzinfo=gmt1)
+        docs = Folder('root', 'fake')
+        sub = Folder('sub', 'fake')
+        sub.files.append(a)
+        docs.folders.append(sub)
+        assert need_syncing(docs, str(tmpdir), []) == [(a, os.path.join(
+            str(tmpdir), 'sub'))]
