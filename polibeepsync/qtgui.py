@@ -371,7 +371,7 @@ class MainWindow(QWidget, Ui_Form):
     def setinizialsizes(self, course, **kwargs):
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
-            updating.downloaded_size = course._downloaded_size
+            updating.downloaded_size = course.downloaded_size
             updating.total_file_size = course.total_file_size
             row = self.courses_model.courses.index(updating)
             where = self.courses_model.index(row, 3)
