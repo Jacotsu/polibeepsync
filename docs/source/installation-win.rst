@@ -45,8 +45,17 @@ and then click ``Ok``. In the opened folder, go to ``Microsoft\Windows\Start Men
 and choose ``paste shortcut``. The next time you boot, the program will 
 start automatically.
 
+
+Upgrade
+==========
+
+Open the program ``cmd.exe``, Write the following and press ``Enter``
+::
+    pip install --upgrade poliBeePsync
+
+
 How to remove
---------------------------
+===============
 
 Open ``cmd.exe``
 ::

@@ -31,10 +31,11 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
 from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
     DownloadThread
 from polibeepsync.cmdlineparser import create_parser
-from polibeepsync.ui_resizable import Ui_Form
+from polibeepsync.widget import Ui_Form
 from polibeepsync import filesettings
 import re
 import logging
+import json
 
 
 # load options from cmdline
@@ -268,7 +269,7 @@ class MainWindow(QWidget, Ui_Form):
         self.setupUi(self)
         self.w = QWidget()
         self.createTray()
-        self.about.clicked.connect(self.about_box)
+        self.about_text()
         self.timer = QTimer(self)
 
         # settings_path is a string containing the path to settings
@@ -311,8 +312,11 @@ class MainWindow(QWidget, Ui_Form):
         self.courses_model = CoursesListModel(self.user.available_courses)
         self.coursesView.setModel(self.courses_model)
         self.refreshCourses.clicked.connect(self.refreshcourses)
+
         self.courses_model.dataChanged.connect(self.dumpUser)
         self.syncNow.clicked.connect(self.syncfiles)
+        self.pushButton.clicked.connect(self.syncfiles)
+        self.pushButton.clicked.connect(self.inittextincourses)
 
         if self.settings['SyncNewCourses'] == str(True):
             self.sync_new = Qt.Checked
@@ -329,6 +333,29 @@ class MainWindow(QWidget, Ui_Form):
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
+        self.version_label.setText("Current version: {}.".format(__version__))
+        self.pushButton_2.clicked.connect(self.checknewversion)
+
+    def inittextincourses(self):
+        self.label_7.setText('Started syncing.')
+
+    def checknewversion(self):
+        rawdata = requests.get('https://pypi.python.org/pypi/poliBeePsync/json')
+        latest = json.loads(rawdata.text)['info']['version']
+        self.version_label.setTextFormat(Qt.RichText)
+        self.version_label.setOpenExternalLinks(True)
+        self.version_label.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        self.version_label.setScaledContents(True)
+        self.version_label.setWordWrap(True)
+        if latest != __version__:
+            newtext = """<p>Current version: {}.<br>
+Latest version: {}. </p>
+<p>Visit <a href='http://www.davideolianas.com/polibeepsync/index.html#how-to\
+-install-upgrade-remove'>here</a> to find out how to upgrade.
+""".format(__version__, latest)
+        else:
+            newtext = "Current version: {} up-to-date.".format(__version__)
+        self.version_label.setText(newtext)
 
     def _update_time(self, folder, file, path_list):
         print('inside ', folder.name)
@@ -521,6 +548,8 @@ class MainWindow(QWidget, Ui_Form):
             pickle.dump(self.user, f)
 
     def refreshcourses(self):
+        self.label_7.setText('Searching for online updates...this may take a'
+                             ' while.')
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.signal_ok.sig.connect(self.do_refreshcourses)
@@ -560,29 +589,21 @@ class MainWindow(QWidget, Ui_Form):
         self.hide()
         event.ignore()
 
-    def about_box(self):
-        Dialog = QDialog()
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(379, 161)
-        Dialog.setWindowIcon(self.icon)
-        verticalLayout = QVBoxLayout(Dialog)
-        verticalLayout.setObjectName("verticalLayout")
-        label = QLabel(Dialog)
-        label.setTextFormat(Qt.RichText)
-        label.setOpenExternalLinks(True)
-        label.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
-        label.setScaledContents(True)
-        label.setWordWrap(True)
-        label.setObjectName("label")
-        verticalLayout.addWidget(label)
+    def about_text(self):
+        self.label_3.setTextFormat(Qt.RichText)
+        self.label_3.setOpenExternalLinks(True)
+        self.label_3.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        self.label_3.setScaledContents(True)
+        self.label_3.setWordWrap(True)
         text = """
 <html>
 <head/>
 <body>
-  <p>poliBeePsync version {}.</p>
   <p>poliBeePsync is a program written by Davide Olianas,
 released under GNU GPLv3+.</p>
-  <p><br/></p>
+  <p>Feel free to contact me at <a
+  href=\"mailto:ubuntupk@gmail.com\">ubuntupk@gmail.com</a> for
+  suggestions and bug reports.</p>
   <p>More information is available on the
   <a href=\"http://www.davideolianas.com/polibeepsync\">
   <span style=\" text-decoration: underline; color:#0000ff;\">
@@ -590,14 +611,9 @@ released under GNU GPLv3+.</p>
   </p>
 </body>
 </html>
-""".format(__version__)
-        Dialog.setWindowTitle(
-            QApplication.translate("Dialog", "About poliBeePsync", None,
-                                   QApplication.UnicodeUTF8))
-        label.setText(QApplication.translate("Dialog", text, None,
-                                             QApplication.UnicodeUTF8))
-        Dialog.exec_()
-
+"""
+        self.label_3.setText(QApplication.translate("Form", text, None,
+                                                    QApplication.UnicodeUTF8))
 
 def main():
     app = QApplication(sys.argv)

@@ -252,6 +252,8 @@ class Ui_Form(object):
         self.verticalLayout_4.addWidget(self.status)
         self.horizontalLayout_7.addLayout(self.verticalLayout_4)
         self.tabWidget.addTab(self.tab_3, "")
+        self.tab_4 = QWidget()
+        self.tab_4.setObjectName("tab_4")
         self.verticalLayout.addWidget(self.tabWidget)
         self.okButton = QDialogButtonBox(Form)
         self.okButton.setStandardButtons(QDialogButtonBox.Ok)
