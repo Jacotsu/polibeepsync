@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from requests import ConnectionError, Timeout
+import requests
 from appdirs import user_config_dir, user_data_dir
 import os
 import pickle
@@ -128,14 +128,14 @@ class LoginThread(QThread):
                 self.exiting = True
                 self.signal_error.sig.emit('Login failed.')
                 logger.error("Login failed.", exc_info=True)
-            except ConnectionError:
+            except requests.ConnectionError:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('I can\'t connect to the'
                                            ' server. Is the Internet'
                                            ' connection working?')
                 logger.error('Connection error.', exc_info=True)
-            except Timeout:
+            except requests.Timeout:
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit("The timeout time has been"
