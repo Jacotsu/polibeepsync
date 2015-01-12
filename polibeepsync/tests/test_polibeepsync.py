@@ -1,4 +1,5 @@
-from polibeepsync.common import Courses, Course, CourseFile, User, Folder, total_size
+from polibeepsync.common import Courses, Course, CourseFile, User, Folder, \
+    total_size, folder_total_size
 import pytest
 import os
 
@@ -27,6 +28,35 @@ class TestCourse:
         asecondfile.size = 752640
         complete_list = [(afile, '/his/path'), (asecondfile, '/another/path')]
         assert total_size(complete_list) == afile.size + asecondfile.size
+
+    def test_folder_size(self):
+        COMMON_SIZE = 1099776
+        a = CourseFile('name', 'url', '1000')
+        b = CourseFile('name', 'url', '10001')
+        c = CourseFile('name', 'url', '10001')
+        d = CourseFile('name', 'url', '10001')
+        e = CourseFile('name', 'url', '10001')
+        f = CourseFile('name', 'url', '10001')
+        a.size = COMMON_SIZE
+        b.size = COMMON_SIZE
+        c.size = COMMON_SIZE
+        d.size = COMMON_SIZE
+        e.size = COMMON_SIZE
+        f.size = COMMON_SIZE
+        top = Folder('top', 'url')
+        middle = Folder('middle', 'url')
+        bottom = Folder('bottom', 'url')
+        top.files.append(a)
+        middle.files.append(b)
+        middle.files.append(c)
+        bottom.files.append(d)
+        bottom.files.append(e)
+        bottom.files.append(f)
+        middle.folders.append(bottom)
+        top.folders.append(middle)
+        sizes = []
+        assert sum(folder_total_size(top, sizes)) == COMMON_SIZE*6
+
 
     def test_ignorebeepcourse(self):
         clean_list = [
