@@ -57,6 +57,13 @@ This code is in the beta stage. Documentation is under construction
 Changelog
 =========
 
+0.3.0 (2015-01-12)
+-------------------
+
+New
+~~~
+
+Progress bar for each course.
 
 
 0.2.4 (2015-01-06)
