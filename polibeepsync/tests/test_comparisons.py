@@ -90,7 +90,6 @@ class TestLocalOnlineCompare:
         assert local.folders[0].files == [b]
         assert local.folders[0].folders[0].files == [c]
 
-
     def test_neweronline(self):
         gmt1 = GMT1()
         online = Folder('online', 'fake')

@@ -22,9 +22,8 @@ import os
 import logging
 from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
     Literal, ParseException
-from threading import Thread, Condition
+from threading import Thread
 from signalslot import Signal as sSignal
-from pprint import pprint
 
 
 logger = logging.getLogger("polibeepsync.common")
@@ -33,11 +32,9 @@ logger = logging.getLogger("polibeepsync.common")
 # --- Custom Exceptions --- #
 
 class InvalidLoginError(Exception):
-    pass
-
-
-class CourseNotFoundError(Exception):
-    pass
+    """Exception raised when user code, password or both are wrong."""
+    def __init__(self):
+        pass
 
 
 # --- Custom Threads --- #
@@ -68,8 +65,8 @@ class LoginThread(Thread):
         except requests.Timeout:
             self.user.logout()
             self.login_status.emit(message="The timeout time has been"
-                                           " reached. Is the Internet connection"
-                                           " working?")
+                                           " reached. Is the Internet"
+                                           " connection working?")
             logger.error("Timeout error.", exc_info=True)
 
 
@@ -108,7 +105,7 @@ class SyncThread(Thread):
 
 
 class DownloadThread():
-    def __init__(self, user, topdir, parent=None):
+    def __init__(self, user, topdir):
         self.user = user
         self.topdir = topdir
         self.download_signal = sSignal(args=['course'])
@@ -128,9 +125,10 @@ class DownloadThread():
                     os.makedirs(outdir, exist_ok=True)
                     self.user.update_course_files(course)
                     syncthese = []
+                    savedhere = os.path.join(self.topdir,
+                                             course.save_folder_name)
                     needsync = need_syncing(course.documents,
-                                            os.path.join(self.topdir,
-                                                         course.save_folder_name),
+                                            savedhere,
                                             syncthese)
 
                     syncsize = total_size(needsync)
@@ -138,7 +136,8 @@ class DownloadThread():
                     alreadysynced = course._total_file_size - syncsize
                     print('****ALREADYSYNCED ', alreadysynced)
                     course._downloaded_size = alreadysynced
-                    print('****DOWNLOADED SIZE setting to ', course._downloaded_size)
+                    print('****DOWNLOADED SIZE setting to ',
+                          course._downloaded_size)
                     self.initial_sizes.emit(course=course)
 
                     self.user.save_files(course, needsync,
@@ -155,14 +154,14 @@ class DownloadThread():
                     # self.signal_error.sig.emit('I can\'t connect to'
                     # ' the server. Is the'
                     # ' Internet connection'
-                    #                           ' working?')
+                    # ' working?')
                     logger.error('Connection error.', exc_info=True)
                 except requests.Timeout:
                     self.user.logout()
                     # self.signal_error.sig.emit("The timeout time has"
                     # " been reached. Is the"
                     # " Internet connection"
-                    #                           " working?")
+                    # " working?")
                     logger.error("Timeout error.", exc_info=True)
 
 
@@ -356,6 +355,7 @@ def folder_total_size(parentfolder, sizes):
         # viene passata sempre la stessa dimensione della cartella più in alto
     return sizes
 
+
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
     for file in online.files:
@@ -400,7 +400,7 @@ def need_syncing(folder, parent_folder, syncthese):
                      for f in os.listdir(parent_folder)
                      if os.path.isfile(os.path.join(parent_folder, f))]
     for f in folder.files:
-        #print(f.local_creation_time, f.last_online_edit_time)
+        # print(f.local_creation_time, f.last_online_edit_time)
         simplename = os.path.join(parent_folder, f.name)
         if f.local_creation_time is None:
             print('data None')
@@ -418,6 +418,7 @@ def need_syncing(folder, parent_folder, syncthese):
         new_parent = os.path.join(parent_folder, f.name)
         need_syncing(f, new_parent, syncthese)
     return syncthese
+
 
 class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
@@ -442,7 +443,7 @@ class User(object):
         """Logout.
 
         It re-creates a session and sets :attr:`logged` to ``False``."""
-        del (self.session)
+        del self.session
         self.session = requests.Session()
         # self.session.cookies.clear()
         self.logged = False
@@ -541,14 +542,13 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
                 shibsessionstr = "%s=%s" % (key, cookies[key])
         main_headers = {
             'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
-                shibsessionstr)
+COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
+                      shibsessionstr
         }
         mainpage = self.session.get(
             'https://beep.metid.polimi.it/polimi/login',
             headers=main_headers, timeout=5, verify=True)
         return mainpage
-
 
     def login(self):
         """Try logging in.
@@ -560,8 +560,6 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         Raises:
             InvalidLoginError: when the login fails
         """
-
-
         # switch to english version if we're on the italian site
         first_response = self._login_first_step()
         login_soup = BeautifulSoup(first_response.text)
@@ -588,18 +586,19 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         """
         link = self.get_page(firstlink).url
         link = link.rstrip('attivita-online-e-avvisi')
-        weird_parameters = ['_20_folderId=0',
-                            '_20_displayStyle=list',
-                            '_20_viewEntries=0',
-                            '_20_viewFolders=0',
-                            '_20_entryEnd=500',
-                            '_20_entryStart=0',
-                            '_20_folderEnd=500',
-                            '_20_folderStart=0',
-                            '_20_viewEntriesPage=1',
-                            'p_p_id=20',
-                            'p_p_lifecycle=0'
-        ]
+        weird_parameters = [
+            '_20_folderId=0',
+            '_20_displayStyle=list',
+            '_20_viewEntries=0',
+            '_20_viewFolders=0',
+            '_20_entryEnd=500',
+            '_20_entryStart=0',
+            '_20_folderEnd=500',
+            '_20_folderStart=0',
+            '_20_viewEntriesPage=1',
+            'p_p_id=20',
+            'p_p_lifecycle=0'
+            ]
         link = link + 'documenti-e-media?' + "&".join(weird_parameters)
         course = Course(name, link)
         logger.debug('Course found: {}'.format(course.name))
@@ -624,8 +623,8 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         year = Group("[" + OneOrMore(
             Word(nums, exact=4) + "-" + Word(nums, exact=2)) + "]")
         # bracketed = Group("[" + OneOrMore(Word(printables, " ")) + "]")
-        #middle = ~bracketed + OneOrMore(Word(alphas))
-        #grammar = year.suppress() + Literal("-").suppress() + middle
+        # middle = ~bracketed + OneOrMore(Word(alphas))
+        # grammar = year.suppress() + Literal("-").suppress() + middle
         grammar = year
         for course in raw_courses:
             firstlink = course.td.a['href']
@@ -712,10 +711,10 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         logger.debug("Tags from which we extract the list of files:"
                      " {}".format(tags))
         rawdates = [elem.parent.parent.parent.next_sibling.next_sibling.
-                        next_sibling.next_sibling.next_sibling.next_sibling
+                    next_sibling.next_sibling.next_sibling.next_sibling
                     for elem in tags]
         last_column = [elem.next_sibling.next_sibling.next_sibling.
-                           next_sibling for elem in rawdates]
+                       next_sibling for elem in rawdates]
 
         folder = Folder(thisfoldername, response.url)
 
@@ -752,10 +751,6 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
             complete_basename = result.headers['Content-Disposition'] \
                 .split("; ")[1].split("=")[1].strip('"')
             complete_name = os.path.join(path, complete_basename)
-            #print('complete_basename ', complete_basename)
-            #print('complete_name ', complete_name)
-            #print('masterfolder ', masterfolder)
-            #print('out_rootfolder ', out_rootfolder)
             os.makedirs(path, exist_ok=True)
             with open(complete_name, 'wb') as f:
                 logger.info('writing into {}'.format(complete_name))
@@ -769,4 +764,3 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
                 # we emit another signal here so that we can save to file
                 # the updated local creation time
                 datesignal.emit(data=(course, coursefile, path))
-

@@ -27,6 +27,7 @@ def read(*names, **kwargs):
     ) as fp:
         return fp.read()
 
+
 def find_version(*file_paths):
     version_file = read(*file_paths)
     version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
@@ -37,6 +38,7 @@ def find_version(*file_paths):
 
 
 __version__ = find_version("__init__.py")
+
 
 def settingsFromFile(infile, defaults):
     """Given a path string :attr:`infile`, load settings and return them as

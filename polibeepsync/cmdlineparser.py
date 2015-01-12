@@ -1,5 +1,6 @@
 import argparse
 
+
 def create_parser():
     debug_levels = ['debug', 'info', 'warning', 'error', 'critical']
 
@@ -10,6 +11,7 @@ def create_parser():
     parser.add_argument('--debug', action='store', choices=debug_levels,
                         help="Show debug information.")
     return parser
+
 
 def main():
     parser = create_parser()

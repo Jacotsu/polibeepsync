@@ -57,7 +57,6 @@ class TestCourse:
         sizes = []
         assert sum(folder_total_size(top, sizes)) == COMMON_SIZE*6
 
-
     def test_ignorebeepcourse(self):
         clean_list = [
             Course('[2014-15] - ADVANCED CHEMISTRY FOR MATERIALS ENGINEERING [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
@@ -115,7 +114,6 @@ class TestCourse:
                 course = Course(elem[0], elem[1])
                 courses.append(course)
             assert courses == clean_courses
-
 
     def test_difference(self):
         a = CourseFile('a', 'url', '1990')
