@@ -1,6 +1,7 @@
+# coding=UTF-8
 __copyright__ = "Copyright 2014 Davide Olianas (ubuntupk@gmail.com)."
 
-__license__ = """This file is part of poliBeePsync.
+__license__ = """This f is part of poliBeePsync.
 poliBeePsync is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -56,7 +57,7 @@ class LoginThread(Thread):
             self.user.logout()
             self.login_status.emit(message='Login failed.')
             logger.error("Login failed.", exc_info=True)
-        except ConnectionError:
+        except requests.ConnectionError:
             self.user.logout()
             self.login_status.emit(message='I can\'t connect to the'
                                            ' server. Is the Internet'
@@ -104,7 +105,7 @@ class SyncThread(Thread):
         logger.info('User object changed')
 
 
-class DownloadThread():
+class DownloadThread(object):
     def __init__(self, user, topdir):
         self.user = user
         self.topdir = topdir
@@ -143,13 +144,13 @@ class DownloadThread():
                     self.user.save_files(course, needsync,
                                          self.download_signal,
                                          self.data_signal)
-                    # adesso ogni file di syncthese ha la data di download
-                    # aggiornata, ma deve essere scritto su file
+                    # adesso ogni f di syncthese ha la data di download
+                    # aggiornata, ma deve essere scritto su f
                     logger.info("Synced files for {}".format(course.name))
                 except InvalidLoginError:
                     self.user.logout()
                     logger.info("Login failed.", exc_info=True)
-                except ConnectionError:
+                except requests.ConnectionError:
                     self.user.logout()
                     # self.signal_error.sig.emit('I can\'t connect to'
                     # ' the server. Is the'
@@ -337,14 +338,16 @@ class Folder(object):
 
 def total_size(listoffiles):
     total = 0
-    for file, path in listoffiles:
-        total += file.size
+    for f, path in listoffiles:
+        logger.debug('Size of {}: {} bytes'.format(f.name, f.size))
+        total += f.size
+    logger.debug('Total size: {}'.format(total))
     return total
 
 
 def folder_total_size(parentfolder, sizes):
     for f in parentfolder.files:
-        print('il file ', f.name, ' è grosso ', f.size)
+        print('il f ', f.name, ' è grosso ', f.size)
         print('prima di aggiungere, size è ', sizes)
         sizes.append(f.size)
         print('dopo operazione, size è ', sizes)
@@ -358,12 +361,12 @@ def folder_total_size(parentfolder, sizes):
 
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
-    for file in online.files:
-        if file not in local.files:
-            local.files.append(file)
+    for f in online.files:
+        if f not in local.files:
+            local.files.append(f)
         else:
-            ind = local.files.index(file)
-            local.files[ind].last_online_edit_time = file.last_online_edit_time
+            ind = local.files.index(f)
+            local.files[ind].last_online_edit_time = f.last_online_edit_time
     oldfiles = [f for f in local.files if f not in online.files]
     cleanfiles = [f for f in local.files if f not in oldfiles]
     local.files = cleanfiles
@@ -383,17 +386,17 @@ def need_syncing(folder, parent_folder, syncthese):
     """Return a flat list with files to download
 
     Each element is a tuple like this
-    (file, path)
+    (f, path)
 
-    filename is the file as scraped from the web (its name can be with or
+    filename is the f as scraped from the web (its name can be with or
     without the extension)
-    path is the absolute path of the folder in which the file should be
+    path is the absolute path of the folder in which the f should be
     downloaded
     """
     print('calling with folder=', folder.name, ', parent folder= ',
           parent_folder, ", lunghezza syncthese = ", len(syncthese))
     # basenames contains the names of files without extension (this is used
-    # later because the website sometimes doesn't show the file extension)
+    # later because the website sometimes doesn't show the f extension)
     basenames = []
     if os.path.exists(parent_folder):
         basenames = [os.path.splitext(os.path.basename(f))[0]
@@ -468,10 +471,10 @@ class User(object):
         return response
 
     def get_file(self, url):
-        """Use this method to get a file.
+        """Use this method to get a f.
 
         It will check if the session is expired, and re-login if necessary.
-        The file bytes can be accessed with the :attr:`content` attribute
+        The f bytes can be accessed with the :attr:`content` attribute
 
         >>> user = User('username', 'password')
         >>> response = user.get_file('url_to_file', timeout=5, verify=True)
@@ -761,6 +764,6 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                         logger.debug('chunk size: {}'.format(len(chunk)))
                         downloadsignal.emit(course=course)
                 coursefile.local_creation_time = datetime.now(self.gmt1)
-                # we emit another signal here so that we can save to file
+                # we emit another signal here so that we can save to f
                 # the updated local creation time
                 datesignal.emit(data=(course, coursefile, path))
