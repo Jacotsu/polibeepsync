@@ -26,7 +26,7 @@ from PySide.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
 from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                           QMenu, QAction, QFileDialog,
                           QVBoxLayout, QLabel, QSystemTrayIcon,
-                          qApp, QDialog)
+                          qApp, QDialog, QCursor)
 
 from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
     DownloadThread
@@ -268,7 +268,7 @@ class MainWindow(QWidget, Ui_Form):
         self.data_fname = 'pbs.data'
         self.setupUi(self)
         self.w = QWidget()
-        self.createTray()
+
         self.about_text()
         self.timer = QTimer(self)
 
@@ -335,6 +335,11 @@ class MainWindow(QWidget, Ui_Form):
         self.changeRootFolder.clicked.connect(self.chooserootdir)
         self.version_label.setText("Current version: {}.".format(__version__))
         self.pushButton_2.clicked.connect(self.checknewversion)
+
+        self.trayIconMenu = QMenu()
+        self.trayIcon = QSystemTrayIcon(self.icon, self.w)
+        self.trayIcon.activated.connect(self._activate_traymenu)
+        self.createTray()
 
     def inittextincourses(self):
         self.label_7.setText('Started syncing.')
@@ -578,12 +583,18 @@ Latest version: {}. </p>
     def createTray(self):
         restoreAction = QAction("&Restore", self, triggered=self.showNormal)
         quitAction = QAction("&Quit", self, triggered=qApp.quit)
-        trayIconMenu = QMenu()
-        trayIconMenu.addAction(restoreAction)
-        trayIconMenu.addAction(quitAction)
-        trayIcon = QSystemTrayIcon(self.icon, self.w)
-        trayIcon.setContextMenu(trayIconMenu)
-        trayIcon.show()
+        self.trayIconMenu.addAction(restoreAction)
+        self.trayIconMenu.addAction(quitAction)
+        self.trayIcon.setContextMenu(self.trayIconMenu)
+        self.trayIcon.show()
+
+
+    def _activate_traymenu(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            self.showNormal()
+        else:
+            self.trayIconMenu.activateWindow()
+            self.trayIconMenu.popup(QCursor.pos())
 
     def closeEvent(self, event):
         self.hide()
