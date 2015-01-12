@@ -133,11 +133,11 @@ class DownloadThread():
 
                     syncsize = total_size(needsync)
                     print('****SYNCSIZE: ', syncsize)
-                    alreadysynced = course._total_file_size - syncsize
+                    alreadysynced = course.total_file_size - syncsize
                     print('****ALREADYSYNCED ', alreadysynced)
-                    course._downloaded_size = alreadysynced
+                    course.downloaded_size = alreadysynced
                     print('****DOWNLOADED SIZE setting to ',
-                          course._downloaded_size)
+                          course.downloaded_size)
                     self.initial_sizes.emit(course=course)
 
                     self.user.save_files(course, needsync,
@@ -256,8 +256,8 @@ class Course(GenericSet):
         self.sync = sync
         self.documents = Folder('root', self.documents_url)
         self.save_folder_name = ""
-        self._total_file_size = 0  # in bytes
-        self._downloaded_size = 0  # in bytes
+        self.total_file_size = 0  # in bytes
+        self.downloaded_size = 0  # in bytes
 
     def simplify_name(self, name):
         simple = name
@@ -696,9 +696,9 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                                              'rootfolder')
         synclocalwithonline(course.documents, online)
         sizes = []
-        course._total_file_size = sum(folder_total_size(course.documents,
+        course.total_file_size = sum(folder_total_size(course.documents,
                                                         sizes))
-        print('****DIMENSIONE TOTALE: ', course._total_file_size)
+        print('****DIMENSIONE TOTALE: ', course.total_file_size)
 
     def find_files_and_folders(self, link, thisfoldername):
         response = self.get_page(link)
@@ -757,7 +757,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 for chunk in result.iter_content(chunk_size):
                     if chunk:
                         f.write(chunk)
-                        course._downloaded_size += len(chunk)
+                        course.downloaded_size += len(chunk)
                         logger.debug('chunk size: {}'.format(len(chunk)))
                         downloadsignal.emit(course=course)
                 coursefile.local_creation_time = datetime.now(self.gmt1)

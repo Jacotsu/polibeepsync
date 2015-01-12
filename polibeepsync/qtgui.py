@@ -241,8 +241,8 @@ class CoursesListModel(QAbstractTableModel):
             if index.column() == 2:
                 return self.courses[index.row()].save_folder_name
             if index.column() == 3:
-                dw = self.courses[index.row()]._downloaded_size
-                total = self.courses[index.row()]._total_file_size
+                dw = self.courses[index.row()].downloaded_size
+                total = self.courses[index.row()].total_file_size
                 return (dw, total)
         elif role == Qt.CheckStateRole:
             return None
@@ -362,7 +362,7 @@ class MainWindow(QWidget, Ui_Form):
         logger.info('download size updated')
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
-            updating._downloaded_size = course._downloaded_size
+            updating.downloaded_size = course.downloaded_size
             row = self.courses_model.courses.index(updating)
             where = self.courses_model.index(row, 3)
             self.courses_model.dataChanged.emit(where, where)
@@ -371,8 +371,8 @@ class MainWindow(QWidget, Ui_Form):
     def setinizialsizes(self, course, **kwargs):
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
-            updating._downloaded_size = course._downloaded_size
-            updating._total_file_size = course._total_file_size
+            updating.downloaded_size = course.downloaded_size
+            updating.total_file_size = course.total_file_size
             row = self.courses_model.courses.index(updating)
             where = self.courses_model.index(row, 3)
             self.courses_model.dataChanged.emit(where, where)
