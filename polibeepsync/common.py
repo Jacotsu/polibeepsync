@@ -343,12 +343,18 @@ def total_size(listoffiles):
     return total
 
 
-def folder_total_size(parentfolder, size=0):
-    for folder in parentfolder.folders:
-        folder_total_size(folder, size)
+def folder_total_size(parentfolder, sizes):
     for f in parentfolder.files:
-        size += f.size
-    return size
+        print('il file ', f.name, ' è grosso ', f.size)
+        print('prima di aggiungere, size è ', sizes)
+        sizes.append(f.size)
+        print('dopo operazione, size è ', sizes)
+    for folder in parentfolder.folders:
+        print('sto controllando la dimensione della sottocartella ',
+              folder.name)
+        folder_total_size(folder, sizes)
+        # viene passata sempre la stessa dimensione della cartella più in alto
+    return sizes
 
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
@@ -385,19 +391,24 @@ def need_syncing(folder, parent_folder, syncthese):
     downloaded
     """
     print('calling with folder=', folder.name, ', parent folder= ',
-          parent_folder, ", syncthese = ", pprint(syncthese))
+          parent_folder, ", lunghezza syncthese = ", len(syncthese))
+    # basenames contains the names of files without extension (this is used
+    # later because the website sometimes doesn't show the file extension)
+    basenames = []
+    if os.path.exists(parent_folder):
+        basenames = [os.path.splitext(os.path.basename(f))[0]
+                     for f in os.listdir(parent_folder)
+                     if os.path.isfile(os.path.join(parent_folder, f))]
     for f in folder.files:
-        print(f.local_creation_time, f.last_online_edit_time)
+        #print(f.local_creation_time, f.last_online_edit_time)
+        simplename = os.path.join(parent_folder, f.name)
         if f.local_creation_time is None:
             print('data None')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
             print('creazione < online')
             syncthese.append((f, parent_folder))
-        elif not os.path.exists(os.path.join(parent_folder, f.name)) and \
-            f.name not in [os.path.splitext(os.path.basename(f))[0]
-                         for f in os.listdir(parent_folder)
-                         if os.path.isfile(os.path.join(parent_folder, f))]:
+        elif not os.path.exists(simplename) and f.name not in basenames:
             print('scommetto che penso che esistono quelli senza estensione')
             print('f.name = ', f.name)
             print('altrimenti')
@@ -685,7 +696,9 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" % (
         online = self.find_files_and_folders(course.documents_url,
                                              'rootfolder')
         synclocalwithonline(course.documents, online)
-        course._total_file_size = folder_total_size(course.documents)
+        sizes = []
+        course._total_file_size = sum(folder_total_size(course.documents,
+                                                        sizes))
         print('****DIMENSIONE TOTALE: ', course._total_file_size)
 
     def find_files_and_folders(self, link, thisfoldername):
