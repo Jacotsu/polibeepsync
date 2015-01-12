@@ -65,8 +65,22 @@ Desktop Environment. As an icon, you can use `this one <https://raw.githubuserco
 In this case, you would create an entry for the shell script.
 
 
+Upgrade
+===========
+
+If you installed poliBeePsync directly, open a terminal, write the following
+code and press ``Enter``
+::
+    pip install --upgrade poliBeePsync
+
+If you used a virtual environment, before issuing the command, remember to
+activate the virtual environment
+::
+    cd ~/polibeepsync-venv
+    source bin/activate
+
 How to remove
-----------------------
+====================
 
 Uninstall poliBeePsync by writing this code in a terminal
 ::

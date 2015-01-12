@@ -29,10 +29,10 @@ Images
 .. image:: pbs-courses.png
 	:alt: The list of courses available.
 
-How to Install/Remove
+How to Install/Upgrade/Remove
 ============================
 
-Installation (and removal) instructions are provided in the
+Installation/upgrade/removal instructions are provided in the
 :doc:`installation-win` page for Windows and :doc:`installation-linux`
 for Linux. The program hasn't been tested on Mac OS X yet.
 
