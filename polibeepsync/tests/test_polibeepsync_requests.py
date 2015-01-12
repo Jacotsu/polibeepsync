@@ -3,14 +3,17 @@ import requests_mock
 from polibeepsync.common import User
 import os
 
+
 def get_file(name):
     here = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(here, name)
+
 
 def test_logout():
     me = User(11111111, 'fakepassword')
     me.logout()
     assert me.logged is False
+
 
 # skip until I understand how to properly make assertions with requests
 @pytest.mark.skipif(True, reason="Study requests_mock")
@@ -25,5 +28,5 @@ def test_validloginfirststep_italian():
 aunicalogin/controller/IdentificazioneUnica.do?&jaf_currentWFID=main')
         me = User(11111111, 'fakepassword')
         me._login_first_step()
-        #assert False
+        # assert False
     bodyf.close()

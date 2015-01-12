@@ -22,7 +22,7 @@ import pickle
 import sys
 
 from PySide.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
-                           QModelIndex, Qt, Slot, QTimer, QLocale, QPoint)
+                           QModelIndex, Qt, Slot, QTimer, QLocale)
 from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                           QMenu, QAction, QFileDialog,
                           QVBoxLayout, QLabel, QSystemTrayIcon,
@@ -42,12 +42,13 @@ parser = create_parser()
 args = parser.parse_args()
 
 # set debug levels
-LEVELS = {'notset': logging.NOTSET,
-          'debug': logging.DEBUG,
-          'info': logging.INFO,
-          'warning': logging.WARNING,
-          'error': logging.ERROR,
-          'critical': logging.CRITICAL,
+LEVELS = {
+    'notset': logging.NOTSET,
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL,
 }
 
 level_name = 'notset'
@@ -70,11 +71,6 @@ handler.setLevel(logging.DEBUG)
 
 logger.addHandler(handler)
 commonlogger.addHandler(handler)
-
-
-
-
-
 
 
 def read(*names, **kwargs):
@@ -109,8 +105,6 @@ class DownloadChunkSignal(QObject):
     sig = Signal(Course, int)
 
 
-
-
 class LoginThread(QThread):
     def __init__(self, user, parent=None):
         QThread.__init__(self, parent)
@@ -121,7 +115,7 @@ class LoginThread(QThread):
 
     def run(self):
         logger.info('Logging in.')
-        while self.exiting == False:
+        while not self.exiting:
             try:
                 self.user.logout()
                 self.user.login()
@@ -161,7 +155,7 @@ class RefreshCoursesThread(QThread):
         self.user = user
 
     def run(self):
-        while self.exiting == False:
+        while not self.exiting:
             most_recent = self.user.get_online_courses()
             last = self.user.available_courses
             new = most_recent - last
@@ -218,8 +212,8 @@ class CoursesListModel(QAbstractTableModel):
             flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
             return flags
         elif index.column() == 1:
-            flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable \
-                    | Qt.ItemIsUserCheckable
+            flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | \
+                Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
             return flags
         else:
             return Qt.ItemIsEnabled
@@ -249,10 +243,6 @@ class CoursesListModel(QAbstractTableModel):
             if index.column() == 3:
                 dw = self.courses[index.row()]._downloaded_size
                 total = self.courses[index.row()]._total_file_size
-                #if total != 0:
-                #    return dw/total*100
-                #else:
-                #    return 0
                 return (dw, total)
         elif role == Qt.CheckStateRole:
             return None
@@ -305,14 +295,10 @@ class MainWindow(QWidget, Ui_Form):
         self.refreshcoursesthread.refreshed.sig.connect(self.myStream_message)
         self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
 
-        #self.downloadthread = DownloadThread(self.user,
-        #                                     self.settings['RootFolder'])
-        #self.downloadthread.dumpuser.sig.connect(self.dumpUser)
-        #self.downloadthread.course_finished.sig.connect(self.myStream_message)
-        #self.downloadthread.signal_error.sig.connect(self.myStream_message)
-
-        self.downloadthread = DownloadThread(self.user, self.settings['RootFolder'])
-        self.downloadthread.download_signal.connect(self.update_course_download)
+        self.downloadthread = DownloadThread(self.user,
+                                             self.settings['RootFolder'])
+        self.downloadthread.download_signal.connect(
+            self.update_course_download)
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
         self.downloadthread.data_signal.connect(self.update_file_localtime)
 
@@ -343,7 +329,6 @@ class MainWindow(QWidget, Ui_Form):
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
-
 
     def _update_time(self, folder, file, path_list):
         print('inside ', folder.name)
@@ -382,7 +367,6 @@ class MainWindow(QWidget, Ui_Form):
             where = self.courses_model.index(row, 3)
             self.courses_model.dataChanged.emit(where, where)
             self.dumpUser()
-
 
     def setinizialsizes(self, course, **kwargs):
         if course in self.user.available_courses:
@@ -443,7 +427,7 @@ class MainWindow(QWidget, Ui_Form):
     # if state == 2:
     # self.settings['NotifyNewCourses'] = 'True'
     # else:
-    #        self.settings['NotifyNewCourses'] = 'False'
+    # self.settings['NotifyNewCourses'] = 'False'
     #    filesettings.settingsToFile(self.settings, self.settings_path)
 
     @Slot(int)
@@ -464,7 +448,6 @@ class MainWindow(QWidget, Ui_Form):
     def rootfolderslot(self, path):
         self.settings['RootFolder'] = path
         filesettings.settingsToFile(self.settings, self.settings_path)
-
 
     def chooserootdir(self):
         currentdir = self.settings['RootFolder']
@@ -487,7 +470,6 @@ class MainWindow(QWidget, Ui_Form):
                 self.myStream_message)
             self.downloadthread.signal_error.sig.connect(self.myStream_message)
 
-
     def setusercode(self):
         newcode = self.userCode.text()
         self.user.username = newcode
@@ -502,7 +484,6 @@ class MainWindow(QWidget, Ui_Form):
                                   " error to get more details.")
             logger.error('OSError raised while trying to write the User'
                          'instance to disk.', exc_info=True)
-
 
     def setpassword(self):
         newpass = self.password.text()
@@ -533,7 +514,6 @@ class MainWindow(QWidget, Ui_Form):
             index = self.courses_model.courses.index(elem)
             self.courses_model.removeRows(index, 1)
 
-
     def dumpUser(self):
         # we don't use the message...
         with open(os.path.join(user_data_dir(self.appname),
@@ -560,7 +540,6 @@ class MainWindow(QWidget, Ui_Form):
     def do_syncfiles(self):
         self.refreshcoursesthread.finished.disconnect(self.do_syncfiles)
         self.downloadthread.start()
-
 
     @Slot(str)
     def myStream_message(self, message):
