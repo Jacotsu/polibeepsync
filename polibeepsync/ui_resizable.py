@@ -38,7 +38,7 @@ class ProgressBarDelegate(QStyledItemDelegate):
             progressBar.progress = round(dw/tot*100, 2)
         else:
             progressBar.progress = 0
-        progressBar.text = "{} MB of {} MB total".format(round(dw/(
+        progressBar.text = "{} MB of {} MB".format(round(dw/(
             1024*1024), 2), round(tot/(1024*1024), 2))
         QApplication.style().drawControl(QStyle.CE_ProgressBar, progressBar,
                                          painter)
