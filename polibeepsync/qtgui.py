@@ -300,6 +300,7 @@ class MainWindow(QWidget, Ui_Form):
                                              self.settings['RootFolder'])
         self.downloadthread.download_signal.connect(
             self.update_course_download)
+        #self.downloadthread.download_signal.connect(self._resizeview)
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
         self.downloadthread.data_signal.connect(self.update_file_localtime)
 
@@ -311,6 +312,7 @@ class MainWindow(QWidget, Ui_Form):
 
         self.courses_model = CoursesListModel(self.user.available_courses)
         self.coursesView.setModel(self.courses_model)
+        self._resizeview()
         self.refreshCourses.clicked.connect(self.refreshcourses)
 
         self.courses_model.dataChanged.connect(self.dumpUser)
@@ -340,6 +342,11 @@ class MainWindow(QWidget, Ui_Form):
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
         self.trayIcon.activated.connect(self._activate_traymenu)
         self.createTray()
+
+    def _resizeview(self, **kwargs):
+        self.coursesView.setColumnWidth(3, 160)
+        self.coursesView.resizeColumnToContents(1)
+        self.coursesView.setColumnWidth(0, 320)
 
     def inittextincourses(self):
         self.label_7.setText('Started syncing.')
