@@ -187,6 +187,7 @@ class MainWindow(QWidget, Ui_Form):
         self.settings = None
         # load_settings() sets settings_path and settings
         self.load_settings()
+        self.user = User('', '')
         self.load_data()
 
         self.timer.timeout.connect(self.syncfiles)
@@ -274,11 +275,13 @@ class MainWindow(QWidget, Ui_Form):
         self.label_7.setText('Started syncing.')
 
     def checknewversion(self):
-        rawdata = requests.get('https://pypi.python.org/pypi/poliBeePsync/json')
+        jsonurl = 'https://pypi.python.org/pypi/poliBeePsync/json'
+        rawdata = requests.get(jsonurl)
         latest = json.loads(rawdata.text)['info']['version']
         self.version_label.setTextFormat(Qt.RichText)
         self.version_label.setOpenExternalLinks(True)
-        self.version_label.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        self.version_label.setLocale(QLocale(QLocale.English,
+                                             QLocale.UnitedStates))
         self.version_label.setScaledContents(True)
         self.version_label.setWordWrap(True)
         if latest != __version__:
