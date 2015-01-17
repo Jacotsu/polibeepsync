@@ -39,40 +39,13 @@ import logging
 import json
 
 
-# load options from cmdline
-parser = create_parser()
-args = parser.parse_args()
+class AboutTabHandler(logging.Handler):
+    def __init__(self, how):
+        logging.Handler.__init__(self)
+        self.callable = how
 
-# set debug levels
-LEVELS = {
-    'notset': logging.NOTSET,
-    'debug': logging.DEBUG,
-    'info': logging.INFO,
-    'warning': logging.WARNING,
-    'error': logging.ERROR,
-    'critical': logging.CRITICAL,
-}
-
-level_name = 'notset'
-if args.debug:
-    level_name = args.debug
-level = LEVELS.get(level_name, logging.NOTSET)
-
-logger = logging.getLogger("polibeepsync.qtgui")
-logger.setLevel(level)
-# now get the logger used in the common module and set its level to what
-# we get from sys.argv
-commonlogger = logging.getLogger("polibeepsync.common")
-commonlogger.setLevel(level)
-
-formatter = logging.Formatter('[%(levelname)s] %(name)s %(message)s')
-
-handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(formatter)
-handler.setLevel(logging.DEBUG)
-
-logger.addHandler(handler)
-commonlogger.addHandler(handler)
+    def emit(self, record):
+        self.callable(record.getMessage())
 
 
 def read(*names, **kwargs):
@@ -175,7 +148,7 @@ class CoursesListModel(QAbstractTableModel):
 
 
 class MainWindow(QWidget, Ui_Form):
-    def __init__(self, parent=None):
+    def __init__(self, debuglevel, parent=None):
         super(MainWindow, self).__init__(parent)
         self.appname = "poliBeePsync"
         self.settings_fname = 'pbs-settings.ini'
@@ -185,6 +158,28 @@ class MainWindow(QWidget, Ui_Form):
 
         self.about_text()
         self.timer = QTimer(self)
+
+        self.logger = logging.getLogger("polibeepsync.qtgui")
+        self.logger.setLevel(debuglevel)
+        # now get the logger used in the common module and set its level to what
+        # we get from sys.argv
+        self.commonlogger = logging.getLogger("polibeepsync.common")
+        self.commonlogger.setLevel(debuglevel)
+
+        formatter = logging.Formatter('[%(levelname)s] %(name)s %(message)s')
+
+        handler = logging.StreamHandler(stream=sys.stdout)
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.DEBUG)
+        aboutabhandler = AboutTabHandler(self.myStream_message)
+        aboutabhandler.setFormatter(formatter)
+        aboutabhandler.setLevel(logging.INFO)
+
+        self.logger.addHandler(handler)
+        self.commonlogger.addHandler(handler)
+
+        self.logger.addHandler(aboutabhandler)
+        self.commonlogger.addHandler(aboutabhandler)
 
         # settings_path is a string containing the path to settings
         self.settings_path = None
@@ -325,7 +320,7 @@ Latest version: {}. </p>
         self._update_time(course.documents, coursefile, path_list)
 
     def update_course_download(self, course, **kwargs):
-        logger.info('download size updated')
+        self.logger.debug('download size updated')
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
             updating.downloaded_size = course.downloaded_size
@@ -354,7 +349,7 @@ Latest version: {}. </p>
             try:
                 os.makedirs(path, exist_ok=True)
             except OSError:
-                logger.critical('OSError while calling os.makedirs.',
+                self.logger.critical('OSError while calling os.makedirs.',
                                 exc_info=True)
                 self.myStream_message("I couldn't create {}.\nStart"
                                       " poliBeePsync with --debug "
@@ -515,10 +510,26 @@ released under GNU GPLv3+.</p>
         self.label_3.setText(QApplication.translate("Form", text, None,
                                                     QApplication.UnicodeUTF8))
 
+
 def main():
+    # set debug levels
+    LEVELS = {
+        'notset': logging.NOTSET,
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        'critical': logging.CRITICAL,
+    }
+    parser = create_parser()
+    args = parser.parse_args()
+    level_name = 'info'
+    if args.debug:
+        level_name = args.debug
+    level = LEVELS.get(level_name, logging.NOTSET)
+
     app = QApplication(sys.argv)
-    frame = MainWindow()
-    # args is defined at the top of this module
+    frame = MainWindow(level)
     if not args.hidden:
         frame.show()
     sys.exit(app.exec_())
