@@ -358,13 +358,8 @@ def total_size(listoffiles):
 
 def folder_total_size(parentfolder, sizes):
     for f in parentfolder.files:
-        print('il f ', f.name, ' è grosso ', f.size)
-        print('prima di aggiungere, size è ', sizes)
         sizes.append(f.size)
-        print('dopo operazione, size è ', sizes)
     for folder in parentfolder.folders:
-        print('sto controllando la dimensione della sottocartella ',
-              folder.name)
         folder_total_size(folder, sizes)
         # viene passata sempre la stessa dimensione della cartella più in alto
     return sizes
@@ -404,8 +399,6 @@ def need_syncing(folder, parent_folder, syncthese):
     path is the absolute path of the folder in which the f should be
     downloaded
     """
-    print('calling with folder=', folder.name, ', parent folder= ',
-          parent_folder, ", lunghezza syncthese = ", len(syncthese))
     # basenames contains the names of files without extension (this is used
     # later because the website sometimes doesn't show the f extension)
     basenames = []
@@ -414,19 +407,12 @@ def need_syncing(folder, parent_folder, syncthese):
                      for f in os.listdir(parent_folder)
                      if os.path.isfile(os.path.join(parent_folder, f))]
     for f in folder.files:
-        # print(f.local_creation_time, f.last_online_edit_time)
         simplename = os.path.join(parent_folder, f.name)
         if f.local_creation_time is None:
-            print('data None')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
-            print('creazione < online')
             syncthese.append((f, parent_folder))
         elif not os.path.exists(simplename) and f.name not in basenames:
-            print('scommetto che penso che esistono quelli senza estensione')
-            print('f.name = ', f.name)
-            print('altrimenti')
-            print('non esiste e allora aggiungo')
             syncthese.append((f, parent_folder))
     for f in folder.folders:
         new_parent = os.path.join(parent_folder, f.name)
@@ -718,7 +704,6 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         sizes = []
         course.total_file_size = sum(folder_total_size(course.documents,
                                                         sizes))
-        print('****DIMENSIONE TOTALE: ', course.total_file_size)
 
     def find_files_and_folders(self, link, thisfoldername):
         response = self.get_page(link)
