@@ -12,7 +12,7 @@ Open the program ``cmd.exe``, then write
 
 .. image:: pipinstall.png
 
-...and press ``Enter``. Words will appear, wait. Once it says it has finished,
+...and press ``Enter`` (if you get an error telling that ``pip`` is not a recognized command, logout and re-login, then write the command). Words will appear, wait. Once it says it has finished,
 look where it has been installed.
 
 .. image:: whereisinstalled.png
