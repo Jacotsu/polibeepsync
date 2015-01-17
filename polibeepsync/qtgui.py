@@ -95,93 +95,6 @@ def find_version(*file_paths):
 __version__ = find_version("__init__.py")
 
 
-class MySignal(QObject):
-    sig = Signal(str)
-
-
-class CoursesSignal(QObject):
-    sig = Signal(list)
-
-
-class DownloadChunkSignal(QObject):
-    sig = Signal(Course, int)
-
-
-class LoginThread(QThread):
-    def __init__(self, user, parent=None):
-        QThread.__init__(self, parent)
-        self.exiting = False
-        self.signal_ok = MySignal()
-        self.signal_error = MySignal()
-        self.user = user
-
-    def run(self):
-        logger.info('Logging in.')
-        while not self.exiting:
-            try:
-                self.user.logout()
-                self.user.login()
-                if self.user.logged is True:
-                    self.signal_ok.sig.emit('Successful login.')
-                    logger.info('Successful login.')
-                    self.exiting = True
-            except InvalidLoginError:
-                self.user.logout()
-                self.exiting = True
-                self.signal_error.sig.emit('Login failed.')
-                logger.error("Login failed.", exc_info=True)
-            except requests.ConnectionError:
-                self.user.logout()
-                self.exiting = True
-                self.signal_error.sig.emit('I can\'t connect to the'
-                                           ' server. Is the Internet'
-                                           ' connection working?')
-                logger.error('Connection error.', exc_info=True)
-            except requests.Timeout:
-                self.user.logout()
-                self.exiting = True
-                self.signal_error.sig.emit("The timeout time has been"
-                                           " reached. Is the Internet"
-                                           " connection working?")
-                logger.error("Timeout error.", exc_info=True)
-
-
-class RefreshCoursesThread(QThread):
-    def __init__(self, user, parent=None):
-        QThread.__init__(self, parent)
-        self.exiting = False
-        self.refreshed = MySignal()
-        self.dumpuser = MySignal()
-        self.newcourses = CoursesSignal()
-        self.removable = CoursesSignal()
-        self.user = user
-
-    def run(self):
-        while not self.exiting:
-            most_recent = self.user.get_online_courses()
-            last = self.user.available_courses
-            new = most_recent - last
-            removable = last - most_recent
-            if len(removable) > 0:
-                self.refreshed.sig.emit('The following courses have'
-                                        ' been removed because they '
-                                        'aren\'t available online: {}'
-                                        .format(removable))
-            if len(new) > 0:
-                for course in new:
-                    course.save_folder_name = course.simplify_name(course.name)
-                    self.refreshed.sig.emit('A new course '
-                                            'was found: {}'.format(course))
-            if len(new) == 0:
-                self.refreshed.sig.emit('No new courses found.')
-                logger.info('No new courses found.')
-            self.user.sync_available_courses(most_recent)
-            logger.info('User object changed')
-            self.newcourses.sig.emit(new)
-            self.removable.sig.emit(removable)
-            self.exiting = True
-
-
 class CoursesListModel(QAbstractTableModel):
     def __init__(self, courses):
         QAbstractTableModel.__init__(self)
@@ -285,25 +198,30 @@ class MainWindow(QWidget, Ui_Form):
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
 
         self.loginthread = LoginThread(self.user)
-        self.loginthread.signal_error.sig.connect(self.myStream_message)
-        self.loginthread.signal_error.sig.connect(self.loginstatus)
-        self.loginthread.signal_ok.sig.connect(self.myStream_message)
-        self.loginthread.signal_ok.sig.connect(self.loginstatus)
+        self.loginthread.login_status.connect(self.loginstatus)
 
-        self.refreshcoursesthread = RefreshCoursesThread(self.user)
-        self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
-        self.refreshcoursesthread.newcourses.sig.connect(self.addtocoursesview)
-        self.refreshcoursesthread.newcourses.sig.connect(self.syncnewcourses)
-        self.refreshcoursesthread.refreshed.sig.connect(self.myStream_message)
-        self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
+
+        self.refreshcoursesthread = SyncThread(self.user)
+
+        self.refreshcoursesthread.new.connect(self.addtocoursesview)
+        self.refreshcoursesthread.new.connect(self.syncnewcourses)
+        # TODO: quelli passati a syncnewcourses poi dove finiscono? oppure
+        # in memoria fanno sempre riferimento agli stessi oggetti quindi in
+        # effetti ottengono il valore giusto anche quelli passati a
+        # completedrefreshedcourses? -> SI lo ottengono
+        # quindi fra le altre cose...i corsi vecchi vengono eliminati? -> su
+        #  questo non lo so (si riesce a fare test?)
+        self.refreshcoursesthread.complete.connect(
+            self.completedrefreshcourses)
+        self.refreshcoursesthread.old.connect(self.rmfromcoursesview)
 
         self.downloadthread = DownloadThread(self.user,
                                              self.settings['RootFolder'])
         self.downloadthread.download_signal.connect(
             self.update_course_download)
-        #self.downloadthread.download_signal.connect(self._resizeview)
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
         self.downloadthread.data_signal.connect(self.update_file_localtime)
+        self.downloadthread.infosignal.connect(self._coursestabinfo)
 
         self.userCode.setText(str(self.user.username))
         self.userCode.textEdited.connect(self.setusercode)
@@ -343,6 +261,14 @@ class MainWindow(QWidget, Ui_Form):
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
         self.trayIcon.activated.connect(self._activate_traymenu)
         self.createTray()
+
+        self.user.errorsignal.connect(self._coursestaberror)
+
+    def _coursestabinfo(self, info, **kwargs):
+        self.label_7.setText(info)
+
+    def _coursestaberror(self, **kwargs):
+        self.label_7.setText('An error occured, look at the Status tab')
 
     def _resizeview(self, **kwargs):
         self.coursesView.setColumnWidth(3, 160)
@@ -418,10 +344,9 @@ Latest version: {}. </p>
             self.courses_model.dataChanged.emit(where, where)
             self.dumpUser()
 
-    def syncnewcourses(self, newlist):
+    def syncnewcourses(self, course, **kwargs):
         if self.settings['SyncNewCourses'] == 'True':
-            for elem in newlist:
-                elem.sync = True
+            course.sync = True
 
     def load_settings(self):
         for path in [user_config_dir(self.appname),
@@ -448,24 +373,8 @@ Latest version: {}. </p>
         path = os.path.join(user_data_dir(self.appname), self.data_fname)
         self.user = load_user_from_disk(path)
 
-        except FileNotFoundError:
-            logger.error('Settings file not found.', exc_info=True)
-            self.user = User('', '')
-            self.myStream_message("I couldn't find data in the"
-                                  " predefined directory. Ignore this"
-                                  "message if you're using poliBeePsync"
-                                  " for the first time.")
-
-    def loginstatus(self, status):
-        self.login_attempt.setText(status)
-
-    # @Slot(int)
-    # def notifynew(self, state):
-    # if state == 2:
-    # self.settings['NotifyNewCourses'] = 'True'
-    # else:
-    # self.settings['NotifyNewCourses'] = 'False'
-    #    filesettings.settingsToFile(self.settings, self.settings_path)
+    def loginstatus(self, message, **kwargs):
+        self.login_attempt.setText(message)
 
     @Slot(int)
     def syncnewslot(self, state):
@@ -502,10 +411,11 @@ Latest version: {}. </p>
             del self.downloadthread
             self.downloadthread = DownloadThread(self.user,
                                                  self.settings['RootFolder'])
-            self.downloadthread.dumpuser.sig.connect(self.dumpUser)
-            self.downloadthread.course_finished.sig.connect(
-                self.myStream_message)
-            self.downloadthread.signal_error.sig.connect(self.myStream_message)
+            self.downloadthread.download_signal.connect(
+                self.update_course_download)
+            self.downloadthread.initial_sizes.connect(self.setinizialsizes)
+            self.downloadthread.data_signal.connect(self.update_file_localtime)
+            self.downloadthread.infosignal.connect(self._coursestabinfo)
 
     def setusercode(self):
         newcode = self.userCode.text()
@@ -518,20 +428,16 @@ Latest version: {}. </p>
         self.dumpUser()
 
     def testlogin(self):
-        if not self.loginthread.isRunning():
-            self.loginthread.exiting = False
-            self.loginthread.start()
-            self.login_attempt.setStyleSheet("color: rgba(0, 0, 0, 255);")
-            self.login_attempt.setText("Logging in, please wait.")
+        self.loginthread.start()
+        self.login_attempt.setStyleSheet("color: rgba(0, 0, 0, 255);")
+        self.login_attempt.setText("Logging in, please wait.")
 
-    def addtocoursesview(self, addlist):
-        for elem in addlist:
-            self.courses_model.insertRows(0, 1, elem)
+    def addtocoursesview(self, course, **kwargs):
+        self.courses_model.insertRows(0, 1, course)
 
-    def rmfromcoursesview(self, removelist):
-        for elem in removelist:
-            index = self.courses_model.courses.index(elem)
-            self.courses_model.removeRows(index, 1)
+    def rmfromcoursesview(self, course, **kwargs):
+        index = self.courses_model.courses.index(course)
+        self.courses_model.removeRows(index, 1)
 
     def dumpUser(self):
         path = os.path.join(user_data_dir(self.appname), self.data_fname)
@@ -540,24 +446,22 @@ Latest version: {}. </p>
     def refreshcourses(self):
         self.label_7.setText('Searching for online updates...this may take a'
                              ' while.')
-        if not self.loginthread.isRunning():
-            self.loginthread.exiting = False
-            self.loginthread.signal_ok.sig.connect(self.do_refreshcourses)
-            self.loginthread.start()
+        self.refreshcoursesthread.start()
 
-    def do_refreshcourses(self):
-        self.loginthread.signal_ok.sig.disconnect(self.do_refreshcourses)
-        if not self.refreshcoursesthread.isRunning():
-            self.refreshcoursesthread.exiting = False
-            self.refreshcoursesthread.start()
+    def completedrefreshcourses(self, courses, **kwargs):
+        self.user.available_courses = courses
+        self.dumpUser()
+        self.label_7.setText('Synced with online courses list.')
 
     @Slot()
     def syncfiles(self):
-        self.refreshcoursesthread.finished.connect(self.do_syncfiles)
-        self.refreshcourses()
-
-    def do_syncfiles(self):
-        self.refreshcoursesthread.finished.disconnect(self.do_syncfiles)
+        # chiamare refreshcoursesthread e quando ha finito lui con i
+        # suoi segnali, scaricare
+        #self.refreshcoursesthread.start()
+        #self.refreshcoursesthread.join()  # ma il join non basta...perché
+        #  ci sono gli slot collegati che devono operare prima di poter
+        # iniziare il download
+        # faccio prima a togliere l'opzione
         self.downloadthread.start()
 
     @Slot(str)

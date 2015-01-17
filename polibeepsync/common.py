@@ -47,6 +47,10 @@ class LoginThread(Thread):
         self.user = user
         self.login_status = sSignal(args=['message'])
 
+    def start(self):
+        self.t = Thread(target=self.run)
+        self.t.start()
+
     def run(self):
         try:
             self.user.logout()
@@ -57,19 +61,15 @@ class LoginThread(Thread):
         except InvalidLoginError:
             self.user.logout()
             self.login_status.emit(message='Login failed.')
-            logger.error("Login failed.", exc_info=True)
+            logger.error("Login failed. Are the username and password "
+                         "correct?", exc_info=True)
         except requests.ConnectionError:
             self.user.logout()
-            self.login_status.emit(message='I can\'t connect to the'
-                                           ' server. Is the Internet'
-                                           ' connection working?')
-            logger.error('Connection error.', exc_info=True)
+            self.login_status.emit(message="Connection error.")
+            #raise
         except requests.Timeout:
             self.user.logout()
-            self.login_status.emit(message="The timeout time has been"
-                                           " reached. Is the Internet"
-                                           " connection working?")
-            logger.error("Timeout error.", exc_info=True)
+            logger.login_status.emit(message="Timeout error.")
 
 
 class SyncThread(Thread):
@@ -80,8 +80,15 @@ class SyncThread(Thread):
         self.signal = sSignal(args=['message'])
         self.new = sSignal(args=['course'])
         self.old = sSignal(args=['course'])
+        self.complete = sSignal(args=['courses'])
+
+    def start(self):
+        self.t = Thread(target=self.run)
+        self.t.start()
 
     def run(self):
+        self.user.logout()
+        self.user.login()
         most_recent = self.user.get_online_courses()
         last = self.user.available_courses
         new = most_recent - last
@@ -103,13 +110,15 @@ class SyncThread(Thread):
             self.signal.emit(message='No new courses found.')
             logger.info('No new courses found.')
         self.user.sync_available_courses(most_recent)
-        logger.info('User object changed')
+        self.complete.emit(courses=self.user.available_courses)
+        logger.info('The local list of courses has been updated.')
 
 
 class DownloadThread(object):
     def __init__(self, user, topdir):
         self.user = user
         self.topdir = topdir
+        self.infosignal = sSignal(args=['info'])
         self.download_signal = sSignal(args=['course'])
         self.initial_sizes = sSignal(args=['course'])
         self.data_signal = sSignal(args=['data'])
@@ -119,52 +128,53 @@ class DownloadThread(object):
         t.start()
 
     def run(self):
+        self.user.logout()
+        self.user.login()
         for course in self.user.available_courses:
             subdir = course.save_folder_name
             if course.sync is True:
                 try:
+                    searchinfo = "Searching online updates for course {}"\
+                        .format(course.name)
+                    self.infosignal.emit(info=searchinfo)
+                    logger.info(searchinfo)
                     outdir = os.path.join(self.topdir, subdir)
                     os.makedirs(outdir, exist_ok=True)
                     self.user.update_course_files(course)
                     syncthese = []
                     savedhere = os.path.join(self.topdir,
                                              course.save_folder_name)
+                    compareinfo = 'Searching if local files are outdated'
+                    logger.info(compareinfo)
+                    self.infosignal.emit(info=compareinfo)
                     needsync = need_syncing(course.documents,
                                             savedhere,
                                             syncthese)
 
                     syncsize = total_size(needsync)
-                    print('****SYNCSIZE: ', syncsize)
                     alreadysynced = course.total_file_size - syncsize
-                    print('****ALREADYSYNCED ', alreadysynced)
                     course.downloaded_size = alreadysynced
-                    print('****DOWNLOADED SIZE setting to ',
-                          course.downloaded_size)
                     self.initial_sizes.emit(course=course)
-
+                    downloadinginfo = 'Downloading files...'
+                    if len(needsync) == 0:  # causa segfault!!!
+                        downloadinginfo = 'Files are already synced.'
+                    logger.info(downloadinginfo)
+                    self.infosignal.emit(info=downloadinginfo)
                     self.user.save_files(course, needsync,
                                          self.download_signal,
                                          self.data_signal)
                     # adesso ogni f di syncthese ha la data di download
                     # aggiornata, ma deve essere scritto su f
                     logger.info("Synced files for {}".format(course.name))
+                # TODO: move exceptions statements to to get method
+                # TODO: every exception also sends a signal, so that it's
+                # caught by the GUI which chooses what to do (writing a nice
+                # message in the courses tab saying to look at the status
+                # tab; the logger logs a nice message and then the stacktrace
                 except InvalidLoginError:
                     self.user.logout()
                     logger.info("Login failed.", exc_info=True)
-                except requests.ConnectionError:
-                    self.user.logout()
-                    # self.signal_error.sig.emit('I can\'t connect to'
-                    # ' the server. Is the'
-                    # ' Internet connection'
-                    # ' working?')
-                    logger.error('Connection error.', exc_info=True)
-                except requests.Timeout:
-                    self.user.logout()
-                    # self.signal_error.sig.emit("The timeout time has"
-                    # " been reached. Is the"
-                    # " Internet connection"
-                    # " working?")
-                    logger.error("Timeout error.", exc_info=True)
+                    self.infosignal.emit(info="Login failed")
 
 
 # --- "Core" classes here --- #
@@ -446,10 +456,8 @@ class User(object):
         self.available_courses = Courses()
         self.root_save_folder = ""
         self.chunk_download = sSignal(args=['course'])
-        # self.chunk_download.connect(self.print_chunk)
-
-    # def print_chunk(self, **kwargs):
-    # print(kwargs['chunk_size'])
+        self.errorsignal = sSignal()
+        # TODO: connect user errorsignal to GUI
 
     def logout(self):
         """Logout.
