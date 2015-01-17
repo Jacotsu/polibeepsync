@@ -454,6 +454,33 @@ class User(object):
         # self.session.cookies.clear()
         self.logged = False
 
+    def _safe_get(self, url, **kwargs):
+        """Helper function that logs exceptions for requests"""
+        print('url: ', url)
+        try:
+            response = self.session.get(url, timeout=5, verify=True, **kwargs)
+
+            # print('kwargs', **kwargs)
+            return response
+        except requests.ConnectionError:
+            self.logout()
+            logger.error('Connection error, please check your Internet '
+                         'connectivity', exc_info=True)
+            self.errorsignal.emit()
+            raise
+        except requests.Timeout:
+            self.logout()
+            logger.error("Timeout error. It's not your fault, the website "
+                         "sucks balls. Try again", exc_info=True)
+            self.errorsignal.emit()
+            raise
+        except Exception:
+            logger.error("An exception has occurred. Run the program with "
+                         "debug enabled to get more information.",
+                         exc_info=True)
+            self.errorsignal.emit()
+            raise
+
     def get_page(self, url):
         """Use this method to get a webpage.
 
@@ -463,14 +490,14 @@ class User(object):
             response (:class:`requests.Response`): a :class:`requests.Response`
             instance
         """
-        response = self.session.get(url, timeout=5, verify=True)
+        response = self._safe_get(url)
         soup = BeautifulSoup(response.text)
         login_tag = soup.find('input', attrs={'id': 'login'})
         if login_tag is not None:
             logger.info("The session has expired. Logging-in again...")
             self.logout()
             self.login()
-            response = self.session.get(url, timeout=5, verify=True)
+            response = self._safe_get(url)
         return response
 
     def get_file(self, url):
@@ -487,24 +514,22 @@ class User(object):
         Returns:
             response (requests.Response): a :class:`requests.Response` object
         """
-        response = self.session.get(url, timeout=5, verify=True, stream=True)
+        response = self._safe_get(url, stream=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
             logger.info("The session has expired. Logging-in again...")
             self.logout()
             self.login()
-            response = self.session.get(url, timeout=5, verify=True,
-                                        stream=True)
+            response = self._safe_get(url, stream=True)
         return response
 
     def _login_first_step(self):
-        default_lang_page = self.session.get(self.loginurl, timeout=5,
-                                             verify=True)
+        default_lang_page = self._safe_get(self.loginurl)
         lang_soup = BeautifulSoup(default_lang_page.text)
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
-            self.session.get('https://aunicalogin.polimi.it' +
-                             lang_tag['href'], timeout=5, verify=True)
+            self._safe_get('https://aunicalogin.polimi.it' +
+                             lang_tag['href'])
         payload = "login=%s&password=%s" % (self.username, self.password) + \
                   '&evn_conferma%3Devento=Accedi'
         login_headers = {
@@ -551,9 +576,9 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
 COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                       shibsessionstr
         }
-        mainpage = self.session.get(
+        mainpage = self._safe_get(
             'https://beep.metid.polimi.it/polimi/login',
-            headers=main_headers, timeout=5, verify=True)
+            headers=main_headers)
         return mainpage
 
     def login(self):
