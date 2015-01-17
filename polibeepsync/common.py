@@ -21,6 +21,7 @@ from datetime import datetime, timedelta, tzinfo
 import requests
 import os
 import logging
+import pickle
 from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
     Literal, ParseException
 from threading import Thread
@@ -423,6 +424,14 @@ def need_syncing(folder, parent_folder, syncthese):
     return syncthese
 
 
+class SimplifiedUser(object):
+    def __init__(self, username, password, courses_url, courses):
+        self.username = username
+        self.password = password
+        self.courses_url = courses_url
+        self.courses = courses
+
+
 class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
     gmt1 = GMT1()
@@ -767,3 +776,32 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 # we emit another signal here so that we can save to f
                 # the updated local creation time
                 datesignal.emit(data=(course, coursefile, path))
+
+
+def dump_user_to_disk(user, path):
+    simpleuser = SimplifiedUser(user.username, user.password,
+                                user.courses_url,
+                                user.available_courses)
+    try:
+        with open(path, 'wb') as f:
+            pickle.dump(simpleuser, f)
+    except OSError:
+        logger.error('OSError raised while trying to write the User'
+                     'information to disk. Is the disk full? Are the data '
+                     'and configuration folders writable?', exc_info=True)
+
+
+def load_user_from_disk(path):
+    try:
+        with open(path, 'rb') as f:
+            simpleuser = pickle.load(f)
+            completeuser = User(simpleuser.username, simpleuser.password)
+            completeuser.courses_url = simpleuser.courses_url
+            completeuser.available_courses = simpleuser.courses
+            logger.info('Loaded user data from disk.')
+            return completeuser
+    except FileNotFoundError:
+        logger.error("I couldn't find data in the predefined directory. Ignore"
+                     " this message if you're using poliBeePsync for the first"
+                     " time.")
+        return User('', '')

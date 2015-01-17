@@ -29,7 +29,8 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                           qApp, QDialog, QCursor)
 
 from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
-    DownloadThread
+    DownloadThread, LoginThread, SyncThread, dump_user_to_disk, \
+    load_user_from_disk
 from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.widget import Ui_Form
 from polibeepsync import filesettings
@@ -444,11 +445,8 @@ Latest version: {}. </p>
                                                       defaults)
 
     def load_data(self):
-        try:
-            with open(os.path.join(user_data_dir(self.appname),
-                                   self.data_fname), 'rb') as f:
-                self.user = pickle.load(f)
-                self.myStream_message("Data has been loaded successfully.")
+        path = os.path.join(user_data_dir(self.appname), self.data_fname)
+        self.user = load_user_from_disk(path)
 
         except FileNotFoundError:
             logger.error('Settings file not found.', exc_info=True)
@@ -512,30 +510,12 @@ Latest version: {}. </p>
     def setusercode(self):
         newcode = self.userCode.text()
         self.user.username = newcode
-        try:
-            self.dumpUser()
-            if len(newcode) == 8:
-                self.myStream_message("User code changed to {}."
-                                      .format(newcode))
-        except OSError:
-            self.myStream_message("I couldn't save data to disk. Run"
-                                  " poliBeePsync with option --debug"
-                                  " error to get more details.")
-            logger.error('OSError raised while trying to write the User'
-                         'instance to disk.', exc_info=True)
+        self.dumpUser()
 
     def setpassword(self):
         newpass = self.password.text()
         self.user.password = newpass
-        try:
-            self.dumpUser()
-            self.myStream_message("Password changed.")
-        except OSError:
-            self.myStream_message("I couldn't save data to disk. Run"
-                                  " poliBeePsync with option --debug"
-                                  " error to get more details.")
-            logger.error('OSError raised while trying to write the User'
-                         'instance to disk.', exc_info=True)
+        self.dumpUser()
 
     def testlogin(self):
         if not self.loginthread.isRunning():
@@ -554,10 +534,8 @@ Latest version: {}. </p>
             self.courses_model.removeRows(index, 1)
 
     def dumpUser(self):
-        # we don't use the message...
-        with open(os.path.join(user_data_dir(self.appname),
-                               self.data_fname), 'wb') as f:
-            pickle.dump(self.user, f)
+        path = os.path.join(user_data_dir(self.appname), self.data_fname)
+        dump_user_to_disk(self.user, path)
 
     def refreshcourses(self):
         self.label_7.setText('Searching for online updates...this may take a'
