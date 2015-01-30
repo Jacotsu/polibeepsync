@@ -37,7 +37,7 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 
-__version__ = find_version("__init__.py")
+#__version__ = find_version("polibeepsync/version.py")
 
 
 def settingsFromFile(infile, defaults):

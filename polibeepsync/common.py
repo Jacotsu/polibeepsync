@@ -27,6 +27,13 @@ from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
 from threading import Thread
 from signalslot import Signal as sSignal
 
+import sys
+
+def resource_path(relative):
+    return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath(".")),
+                        relative)
+
+cert_path = resource_path('cacert.pem')
 
 logger = logging.getLogger("polibeepsync.common")
 
@@ -458,7 +465,7 @@ class User(object):
         """Helper function that logs exceptions for requests"""
         print('url: ', url)
         try:
-            response = self.session.get(url, timeout=5, verify=True, **kwargs)
+            response = self.session.get(url, timeout=5, verify=cert_path, **kwargs)
 
             # print('kwargs', **kwargs)
             return response
@@ -507,7 +514,7 @@ class User(object):
         The f bytes can be accessed with the :attr:`content` attribute
 
         >>> user = User('username', 'password')
-        >>> response = user.get_file('url_to_file', timeout=5, verify=True)
+        >>> response = user.get_file('url_to_file', timeout=5, verify=cert_path)
         >>> with open('outfile','wb') as f:
         ...    f.write(response.content)
 

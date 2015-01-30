@@ -65,7 +65,7 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 
-__version__ = find_version("__init__.py")
+#__version__ = find_version("polibeepsync/version.py")
 
 
 class CoursesListModel(QAbstractTableModel):
@@ -250,6 +250,7 @@ class MainWindow(QWidget, Ui_Form):
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
+        __version__ = 'fake'
         self.version_label.setText("Current version: {}.".format(__version__))
         self.pushButton_2.clicked.connect(self.checknewversion)
 
