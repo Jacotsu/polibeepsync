@@ -30,14 +30,16 @@ from PySide.QtGui import (QApplication, QWidget, QTextCursor,
 
 from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
     DownloadThread, LoginThread, SyncThread, dump_user_to_disk, \
-    load_user_from_disk
+    load_user_from_disk, resource_path
 from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.widget import Ui_Form
 from polibeepsync import filesettings
 import re
 import logging
 import json
+import sys
 
+cert_path = resource_path('cacert.pem')
 
 class AboutTabHandler(logging.Handler):
     def __init__(self, how):
@@ -277,7 +279,7 @@ class MainWindow(QWidget, Ui_Form):
 
     def checknewversion(self):
         jsonurl = 'https://pypi.python.org/pypi/poliBeePsync/json'
-        rawdata = requests.get(jsonurl)
+        rawdata = requests.get(jsonurl, verify=cert_path)
         latest = json.loads(rawdata.text)['info']['version']
         self.version_label.setTextFormat(Qt.RichText)
         self.version_label.setOpenExternalLinks(True)
