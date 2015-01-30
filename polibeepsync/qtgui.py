@@ -68,7 +68,7 @@ def find_version(*file_paths):
 
 
 #__version__ = find_version("polibeepsync/version.py")
-
+__version__ = 'fake'  # until I solve a problem related to cx_freeze
 
 class CoursesListModel(QAbstractTableModel):
     def __init__(self, courses):
@@ -252,7 +252,7 @@ class MainWindow(QWidget, Ui_Form):
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
-        __version__ = 'fake'
+
         self.version_label.setText("Current version: {}.".format(__version__))
         self.pushButton_2.clicked.connect(self.checknewversion)
 
