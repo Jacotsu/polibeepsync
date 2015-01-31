@@ -6,4 +6,6 @@ pyflakes==0.8.1
 cov-core==1.15.0
 py==1.4.26
 requests_mock
+cx_Freeze
+esky
 
