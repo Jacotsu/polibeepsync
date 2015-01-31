@@ -20,6 +20,7 @@ from appdirs import user_config_dir, user_data_dir
 import os
 import pickle
 import sys
+import esky
 
 from PySide.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
                            QModelIndex, Qt, Slot, QTimer, QLocale)
@@ -68,7 +69,7 @@ def find_version(*file_paths):
 
 
 #__version__ = find_version("polibeepsync/version.py")
-__version__ = 'fake'  # until I solve a problem related to cx_freeze
+__version__ = '0.3.1'  # until I solve a problem related to cx_freeze
 
 class CoursesListModel(QAbstractTableModel):
     def __init__(self, courses):
@@ -278,6 +279,19 @@ class MainWindow(QWidget, Ui_Form):
         self.label_7.setText('Started syncing.')
 
     def checknewversion(self):
+        if getattr(sys, "frozen", False):
+            app = esky.Esky(sys.executable, "http://www.davideolianas.com/listing")
+            try:
+                if app.find_update() is not None:
+                    print('there is an update')
+                    app.auto_update()
+                    appexe = esky.util.appexe_from_executable(sys.executable)
+                    os.execv(appexe, [appexe] + sys.argv[1:])
+                else:
+                    print('no updates')
+            except Exception as e:
+                raise
+            app.cleanup()
         jsonurl = 'https://pypi.python.org/pypi/poliBeePsync/json'
         rawdata = requests.get(jsonurl, verify=cert_path)
         latest = json.loads(rawdata.text)['info']['version']

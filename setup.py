@@ -35,7 +35,8 @@ classifiers = [
 
 setup(
     name='poliBeePsync',
-    version = find_version("polibeepsync/__init__.py"),
+    #version = find_version("polibeepsync/__init__.py"),
+    version = "0.3.1a",
     url = "http://www.davideolianas.com/polibeepsync",
     author= "Davide Olianas",
     author_email= "ubuntupk@gmail.com",
