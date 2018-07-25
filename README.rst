@@ -1,4 +1,7 @@
-.. image:: https://badge.waffle.io/davethecipo/polibeepsync.png?label=ready&title=Ready 
+.. image:: https://api.travis-ci.org/Jacotsu/polibeepsync.svg?branch=master
+  :alt: Build status
+
+.. image:: https://badge.waffle.io/davethecipo/polibeepsync.png?label=ready&title=Ready
  :target: https://waffle.io/davethecipo/polibeepsync
  :alt: 'Stories in Ready'
 
