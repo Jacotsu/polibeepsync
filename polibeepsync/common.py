@@ -733,13 +733,13 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             name_span = v.find('span', attrs={'class': 'taglib-text'})
             name = name_span.text
             rawdate = v.find('td', attrs={'class': 'col-5'}).text
-            last_column = v.find('td', attrs={'class': 'col-7'}).text
+            last_column = v.find('td', attrs={'class': 'col-6'}).text
 
-            day = int(rawdate.text.split(' ')[1].split('/')[0])
-            month = int(rawdate.text.split(' ')[1].split('/')[1])
-            year = int('20' + rawdate.text.split(' ')[1].split('/')[2])
-            hour = int(rawdate.text.split(' ')[2].split('.')[0])
-            minute = int(rawdate.text.split(' ')[2].split('.')[1])
+            day = int(rawdate.split(' ')[1].split('/')[0])
+            month = int(rawdate.split(' ')[1].split('/')[1])
+            year = int('20' + rawdate.split(' ')[1].split('/')[2])
+            hour = int(rawdate.split(' ')[2].split('.')[0])
+            minute = int(rawdate.split(' ')[2].split('.')[1])
             complete_date = datetime(year, month, day, hour, minute,
                                      tzinfo=self.gmt1)
 
