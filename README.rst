@@ -57,6 +57,22 @@ This code is in the beta stage. Documentation is under construction
 Changelog
 =========
 
+0.3.1 (2018-07-25)
+------------------
+New
+~~~
+- PySide2 support added for python3.6 [DCDRJ]
+
+Fix
+~~~
+- Fixed Gui code where app couldn't find button [DCDRJ]
+- Now sync message label works [DCDRJ]
+- Fixed login error [DCDRJ]
+- Fixed labels typos [DCDRJ]
+- Added status label [DCDRJ]
+- Fixed sync code [DCDRJ]
+
+
 0.3.0 (2015-01-12)
 -------------------
 
