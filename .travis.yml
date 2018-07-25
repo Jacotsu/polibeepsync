@@ -3,16 +3,12 @@ python:
   - "3.6"
 # command to install dependencies
 install:
-  - sudo apt-get install libqt4-dev libqt5-dev
-  - mkdir virtualenv
-  - virtualenv3 virtualenv
-  - cd virtualenv
+  - sudo apt-get install libqt4-dev
   - source bin/activate
   - pip install PySide2;
   # Travis CI servers use virtualenvs, so we need to finish the install by the following
-  - python ~/virtualenv/bin/pyside_postinstall.py -install
+  - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
   - pip install -e .
   - pip install -r test-requirements.txt
-  - deactivate
 # command to run tests
 script: pytest polibeepsync
