@@ -723,20 +723,17 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
     def find_files_and_folders(self, link, thisfoldername):
         response = self.get_page(link)
         soup = BeautifulSoup(response.text)
-        tag_spans = soup.find_all('span', attrs={'class': 'taglib-text'})
-        not_allowed_tags = ['Azioni', 'Ordina per', 'Aggiungi']
-        tags = filter(lambda x: all((x.text, x.text not in not_allowed_tags)),
-                      tag_spans)
+        tags = soup.find_all('tr', attrs={'class': 'document-display-style'})
 
         folder = Folder(thisfoldername, response.url)
 
         for v in tags:
             logger.debug("Tags from which we extract the list of files:"
                          " {}".format(v))
-            name = v.text
-            rawdate = v.parent.parent.parent.next_sibling.next_sibling.\
-                next_sibling.next_sibling.next_sibling.next_sibling
-            last_column = rawdate.next_sibling.next_sibling.text
+            name_span = v.find('span', attrs={'class': 'taglib-text'})
+            name = name_span.text
+            rawdate = v.find('td', attrs={'class': 'col-5'}).text
+            last_column = v.find('td', attrs={'class': 'col-7'}).text
 
             day = int(rawdate.text.split(' ')[1].split('/')[0])
             month = int(rawdate.text.split(' ')[1].split('/')[1])
@@ -747,7 +744,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                                      tzinfo=self.gmt1)
 
             if '--' not in last_column:
-                download_page_link = v.parent['href']
+                download_page_link = name_span.parent['href']
                 response = self.get_page(download_page_link)
                 download_page = BeautifulSoup(response.text)
 
@@ -772,7 +769,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 folder.files.append(complete_file)
 
             else:
-                link = v.parent['href']
+                link = name_span.parent['href']
                 subfolder = self.find_files_and_folders(link, name)
                 folder.folders.append(subfolder)
         return folder
