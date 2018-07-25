@@ -21,17 +21,32 @@ import os
 import pickle
 import sys
 
-from PySide.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
-                           QModelIndex, Qt, Slot, QTimer, QLocale)
-from PySide.QtGui import (QApplication, QWidget, QTextCursor,
-                          QMenu, QAction, QFileDialog,
-                          QVBoxLayout, QLabel, QSystemTrayIcon,
-                          qApp, QDialog, QCursor)
+pysideVersion = '0.0.0'
+try:
+    from PySide.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
+                               QModelIndex, Qt, Slot, QTimer, QLocale)
+    from PySide.QtGui import (QApplication, QWidget, QTextCursor,
+                              QMenu, QAction, QFileDialog,
+                              QVBoxLayout, QLabel, QSystemTrayIcon,
+                              qApp, QDialog, QCursor)
+    import PySide
+    pysideVersion = PySide.__version__
+
+except ImportError:
+
+    from PySide2.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
+                               QModelIndex, Qt, Slot, QTimer, QLocale)
+    from PySide2.QtGui import (QTextCursor, QCursor
+                           )
+    from PySide2.QtWidgets import (QWidget,QMenu,QAction,QFileDialog,QVBoxLayout,QLabel, QSystemTrayIcon,
+                          qApp, QDialog, QApplication)
+    import PySide2
+    pysideVersion = PySide2.__version__
 
 from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
     DownloadThread
 from polibeepsync.cmdlineparser import create_parser
-from polibeepsync.widget import Ui_Form
+from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
 import re
 import logging
@@ -317,8 +332,8 @@ class MainWindow(QWidget, Ui_Form):
 
         self.courses_model.dataChanged.connect(self.dumpUser)
         self.syncNow.clicked.connect(self.syncfiles)
-        self.pushButton.clicked.connect(self.syncfiles)
-        self.pushButton.clicked.connect(self.inittextincourses)
+        #self.pushButton.clicked.connect(self.syncfiles)
+        #self.pushButton.clicked.connect(self.inittextincourses)
 
         if self.settings['SyncNewCourses'] == str(True):
             self.sync_new = Qt.Checked
@@ -335,8 +350,8 @@ class MainWindow(QWidget, Ui_Form):
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
-        self.version_label.setText("Current version: {}.".format(__version__))
-        self.pushButton_2.clicked.connect(self.checknewversion)
+        #self.version_label.setText("Current version: {}.".format(__version__))
+        #self.pushButton_2.clicked.connect(self.checknewversion)
 
         self.trayIconMenu = QMenu()
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
@@ -349,7 +364,7 @@ class MainWindow(QWidget, Ui_Form):
         self.coursesView.setColumnWidth(0, 320)
 
     def inittextincourses(self):
-        self.label_7.setText('Started syncing.')
+        self.statusLabel.setText('Started syncing.')
 
     def checknewversion(self):
         rawdata = requests.get('https://pypi.python.org/pypi/poliBeePsync/json')
@@ -560,7 +575,7 @@ Latest version: {}. </p>
             pickle.dump(self.user, f)
 
     def refreshcourses(self):
-        self.label_7.setText('Searching for online updates...this may take a'
+        self.statusLabel.setText('Searching for online updates...this may take a'
                              ' while.')
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
@@ -580,6 +595,7 @@ Latest version: {}. </p>
 
     def do_syncfiles(self):
         self.refreshcoursesthread.finished.disconnect(self.do_syncfiles)
+        self.inittextincourses()
         self.downloadthread.start()
 
     @Slot(str)
@@ -608,6 +624,7 @@ Latest version: {}. </p>
         event.ignore()
 
     def about_text(self):
+        self.label_3 = QLabel()
         self.label_3.setTextFormat(Qt.RichText)
         self.label_3.setOpenExternalLinks(True)
         self.label_3.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
@@ -630,11 +647,17 @@ released under GNU GPLv3+.</p>
 </body>
 </html>
 """
-        self.label_3.setText(QApplication.translate("Form", text, None,
-                                                    QApplication.UnicodeUTF8))
+
+        if pysideVersion == '1.2.2':
+            self.label_3.setText(QApplication.translate("Form", text, None,
+                                                        QApplication.UnicodeUTF8))
+        else:
+            self.label_3.setText(QApplication.translate("Form", text, None))
+
 
 def main():
     app = QApplication(sys.argv)
+
     frame = MainWindow()
     # args is defined at the top of this module
     if not args.hidden:

@@ -43,7 +43,7 @@ setup(
     install_requires = [
         "requests",
         "appdirs",
-        "PySide",
+        "PySide2",
         "beautifulsoup4",
         "pyparsing",
         "signalslot"

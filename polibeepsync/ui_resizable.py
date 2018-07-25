@@ -1,13 +1,30 @@
 # -*- coding: utf-8 -*-
 
-from PySide.QtGui import (QTableView, QStyledItemDelegate, QStyleOptionButton,
-                          QStyle, QApplication, QIcon, QVBoxLayout, QTabWidget,
-                          QWidget, QHBoxLayout, QStyleOptionProgressBarV2,
-                          QGridLayout, QLabel, QLineEdit, QSpacerItem,
-                          QSizePolicy, QPushButton,
-                          QSpinBox, QCheckBox, QTextEdit, QDialogButtonBox)
-from PySide.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
-                           QMetaObject)
+pysideVersion = '0.0.0'
+try:
+    from PySide.QtGui import (QTableView, QStyledItemDelegate, QStyleOptionButton,
+                              QStyle, QApplication, QIcon, QVBoxLayout, QTabWidget,
+                              QWidget, QHBoxLayout, QStyleOptionProgressBarV2,
+                              QGridLayout, QLabel, QLineEdit, QSpacerItem,
+                              QSizePolicy, QPushButton,
+                              QSpinBox, QCheckBox, QTextEdit, QDialogButtonBox)
+    from PySide.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
+                               QMetaObject)
+    import PySide
+    pysideVersion = PySide.__version__
+except ImportError:
+    from PySide2.QtGui import (   QIcon, )
+
+    from PySide2.QtWidgets import (QApplication,QVBoxLayout, QTabWidget,QTableView,QStyledItemDelegate, QStyleOptionButton,
+                              QStyle,
+                              QWidget, QHBoxLayout, QStyleOptionProgressBar,
+                              QGridLayout, QLabel, QLineEdit, QSpacerItem,
+                              QSizePolicy, QPushButton,
+                              QSpinBox, QCheckBox, QTextEdit, QDialogButtonBox)
+    from PySide2.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
+                               QMetaObject)
+    import PySide2
+    pysideVersion = PySide2.__version__
 
 
 class CoursesListView(QTableView):
@@ -23,11 +40,16 @@ class ProgressBarDelegate(QStyledItemDelegate):
         QStyledItemDelegate.__init__(self, parent)
 
     def paint(self, painter, option, index):
-        progressBar = QStyleOptionProgressBarV2()
-        progressBar.state = QStyle.State_Enabled
+        progressBar = None
+        if pysideVersion == '1.2.2':
+            progressBar = QStyleOptionProgressBarV2()
+            progressBar.state = QStyle.State_Enabled
+        else:
+            progressBar = QStyleOptionProgressBar()
+            progressBar.state = QStyle.State_Enabled
         progressBar.direction = QApplication.layoutDirection()
-        progressBar.rect = option.rect
         progressBar.fontMetrics = QApplication.fontMetrics()
+        progressBar.rect = option.rect
         progressBar.minimum = 0
         progressBar.maximum = 100
         progressBar.textAlignment = Qt.AlignCenter
@@ -41,7 +63,7 @@ class ProgressBarDelegate(QStyledItemDelegate):
         progressBar.text = "{} MB of {} MB".format(round(dw/(
             1024*1024), 2), round(tot/(1024*1024), 2))
         QApplication.style().drawControl(QStyle.CE_ProgressBar, progressBar,
-                                         painter)
+                                     painter)
 
 
 class CheckBoxDelegate(QStyledItemDelegate):
@@ -126,8 +148,11 @@ class Ui_Form(object):
         Form.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
         self.verticalLayout = QVBoxLayout(Form)
         self.verticalLayout.setObjectName("verticalLayout")
+
         self.tabWidget = QTabWidget(Form)
         self.tabWidget.setObjectName("tabWidget")
+
+        # Tab General Settings
         self.tab = QWidget()
         self.tab.setObjectName("tab")
         self.horizontalLayout = QHBoxLayout(self.tab)
@@ -210,6 +235,8 @@ class Ui_Form(object):
         self.verticalLayout_2.addWidget(self.addSyncNewCourses)
         self.horizontalLayout.addLayout(self.verticalLayout_2)
         self.tabWidget.addTab(self.tab, "")
+
+        # Tab Courses
         self.tab_2 = QWidget()
         self.tab_2.setObjectName("tab_2")
         self.horizontalLayout_2 = QHBoxLayout(self.tab_2)
@@ -230,6 +257,8 @@ class Ui_Form(object):
         self.verticalLayout_3.addWidget(self.coursesView)
         self.horizontalLayout_2.addLayout(self.verticalLayout_3)
         self.tabWidget.addTab(self.tab_2, "")
+
+        # Tab Status
         self.tab_3 = QWidget()
         self.tab_3.setObjectName("tab_3")
         self.horizontalLayout_7 = QHBoxLayout(self.tab_3)
@@ -252,14 +281,20 @@ class Ui_Form(object):
         self.verticalLayout_4.addWidget(self.status)
         self.horizontalLayout_7.addLayout(self.verticalLayout_4)
         self.tabWidget.addTab(self.tab_3, "")
+
         self.tab_4 = QWidget()
         self.tab_4.setObjectName("tab_4")
         self.verticalLayout.addWidget(self.tabWidget)
+
         self.okButton = QDialogButtonBox(Form)
         self.okButton.setStandardButtons(QDialogButtonBox.Ok)
         self.okButton.setObjectName("okButton")
         self.okButton.clicked.connect(self.hide)
         self.verticalLayout.addWidget(self.okButton)
+
+        self.statusLabel = QLabel(Form)
+        self.statusLabel.setObjectName("statusLabel")
+        self.verticalLayout.addWidget(self.statusLabel)
 
         self.retranslateUi(Form)
         self.tabWidget.setCurrentIndex(0)
@@ -267,50 +302,81 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         Form.setWindowTitle("poliBeePsync")
-        self.label_2.setText(QApplication.translate("Form", "Password", None,
-                                                    QApplication.UnicodeUTF8))
-        self.label.setText(QApplication.translate("Form", "User code", None,
-                                                  QApplication.UnicodeUTF8))
-        self.trylogin.setText(
-            QApplication.translate("Form", "Try login credentials", None,
-                                   QApplication.UnicodeUTF8))
-        self.login_attempt.setText(
-            QApplication.translate("Form", "Login successful", None,
-                                   QApplication.UnicodeUTF8))
-        self.label_4.setText(
-            QApplication.translate("Form", "Root folder", None,
-                                   QApplication.UnicodeUTF8))
-        self.changeRootFolder.setText(
-            QApplication.translate("Form", "Change", None,
-                                   QApplication.UnicodeUTF8))
-        self.label_5.setText(QApplication.translate("Form", "Sync every", None,
-                                                    QApplication.UnicodeUTF8))
-        self.label_6.setText(QApplication.translate("Form", "minutes", None,
-                                                    QApplication.UnicodeUTF8))
-        self.syncNow.setText(QApplication.translate("Form", "Sync now", None,
-                                                    QApplication.UnicodeUTF8))
-        self.addSyncNewCourses.setText(QApplication.translate("Form",
-                                                              "Automatically add and sync new available courses",
-                                                              None,
-                                                              QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab),
-                                  QApplication.translate("Form",
-                                                         "General settings",
-                                                         None,
-                                                         QApplication.UnicodeUTF8))
-        self.refreshCourses.setText(
-            QApplication.translate("Form", "Refresh list", None,
-                                   QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2),
-                                  QApplication.translate("Form", "Courses",
-                                                         None,
-                                                         QApplication.UnicodeUTF8))
-        self.about.setText(QApplication.translate("Form", "About", None,
-                                                  QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3),
-                                  QApplication.translate("Form", "Status",
-                                                         None,
-                                                         QApplication.UnicodeUTF8))
+        if pysideVersion == '1.2.2':
+            self.label_2.setText(QApplication.translate("Form", "Password", None,
+                                                        QApplication.UnicodeUTF8))
+            self.label.setText(QApplication.translate("Form", "User code", None,
+                                                      QApplication.UnicodeUTF8))
+            self.trylogin.setText(
+                QApplication.translate("Form", "Try login credentials", None,
+                                       QApplication.UnicodeUTF8))
+            self.login_attempt.setText(
+                QApplication.translate("Form", "Login successful", None,
+                                       QApplication.UnicodeUTF8))
+            self.label_4.setText(
+                QApplication.translate("Form", "Root folder", None,
+                                       QApplication.UnicodeUTF8))
+            self.changeRootFolder.setText(
+                QApplication.translate("Form", "Change", None,
+                                       QApplication.UnicodeUTF8))
+            self.label_5.setText(QApplication.translate("Form", "Sync every", None,
+                                                        QApplication.UnicodeUTF8))
+            self.label_6.setText(QApplication.translate("Form", "minutes", None,
+                                                        QApplication.UnicodeUTF8))
+            self.syncNow.setText(QApplication.translate("Form", "Sync now", None,
+                                                        QApplication.UnicodeUTF8))
+            self.addSyncNewCourses.setText(QApplication.translate("Form",
+                                                                  "Automatically add and sync new available courses",
+                                                                  None,
+                                                                  QApplication.UnicodeUTF8))
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab),
+                                      QApplication.translate("Form",
+                                                             "General settings",
+                                                             None,
+                                                             QApplication.UnicodeUTF8))
+            self.refreshCourses.setText(
+                QApplication.translate("Form", "Refresh list", None,
+                                       QApplication.UnicodeUTF8))
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2),
+                                      QApplication.translate("Form", "Courses",
+                                                             None,
+                                                             QApplication.UnicodeUTF8))
+            self.about.setText(QApplication.translate("Form", "About", None,
+                                                      QApplication.UnicodeUTF8))
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3),
+                                      QApplication.translate("Form", "Status",
+                                                             None,
+                                                             QApplication.UnicodeUTF8))
+        else:
+            self.label_2.setText(QApplication.translate("Form", "Password", None))
+            self.label.setText(QApplication.translate("Form", "User code", None))
+            self.trylogin.setText(
+                QApplication.translate("Form", "Try login credentials", None))
+            self.login_attempt.setText(
+                QApplication.translate("Form", "Login successful", None))
+            self.label_4.setText(
+                QApplication.translate("Form", "Root folder", None))
+            self.changeRootFolder.setText(
+                QApplication.translate("Form", "Change", None))
+            self.label_5.setText(QApplication.translate("Form", "Sync every", None))
+            self.label_6.setText(QApplication.translate("Form", "minutes", None))
+            self.syncNow.setText(QApplication.translate("Form", "Sync now", None))
+            self.addSyncNewCourses.setText(QApplication.translate("Form",
+                                                                  "Automatically add and sync new available courses",
+                                                                  None))
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab),
+                                      QApplication.translate("Form",
+                                                             "General settings",
+                                                             None))
+            self.refreshCourses.setText(
+                QApplication.translate("Form", "Refresh list", None))
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2),
+                                      QApplication.translate("Form", "Courses",
+                                                             None))
+            self.about.setText(QApplication.translate("Form", "About", None))
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3),
+                                      QApplication.translate("Form", "Status",
+                                                             None))
 
 
 from polibeepsync import icone_rc

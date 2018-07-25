@@ -21,6 +21,9 @@ from datetime import datetime, timedelta, tzinfo
 import requests
 import os
 import logging
+import pdb
+import re
+from pprint import pprint as pp
 from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
     Literal, ParseException
 from threading import Thread
@@ -502,16 +505,13 @@ class User(object):
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' +
                              lang_tag['href'], timeout=5, verify=True)
-        payload = "login=%s&password=%s" % (self.username, self.password) + \
-                  '&evn_conferma%3Devento=Accedi'
+        payload = {'login': self.username,
+                   'password': self.password,
+                   'evn_conferma': ''
+                   }
         login_headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)\
-Gecko/20100101 Firefox/34.0',
-
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': len(payload),
-            'Accept': 'text/html,application/xhtml+xml,\
-            application/xml;q=0.9,*/*;q=0.8'
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)'
+                          'Gecko/20100101 Firefox/34.0',
         }
         login_response = self.session.post(
             'https://aunicalogin.polimi.it:443/aunicalogin/\
@@ -533,7 +533,6 @@ aunicalogin/controller/IdentificazioneUnica.do?\
             'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
 COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': len(final_request_data),
         }
         self.session.post(
             'https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST',
@@ -565,7 +564,25 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         """
         # switch to english version if we're on the italian site
         first_response = self._login_first_step()
-        login_soup = BeautifulSoup(first_response.text)
+        first_soup = BeautifulSoup(first_response.text)
+        form = first_soup.find_all('form')[0]
+        url = form['action']
+        payload = {}
+        for x in form.find_all('input'):
+            try:
+                payload[x['name']] = x['value']
+            except KeyError:
+                pass
+
+        login_headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)'
+                          'Gecko/20100101 Firefox/34.0',
+        }
+        second_response = self.session.post(url,
+                                            data=payload,
+                                            headers=login_headers)
+
+        login_soup = BeautifulSoup(second_response.text)
         try:
             parenttag = login_soup.find_all('table')[3]
             parenttag.find('td',
@@ -706,24 +723,21 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
     def find_files_and_folders(self, link, thisfoldername):
         response = self.get_page(link)
         soup = BeautifulSoup(response.text)
-        tags = soup.find_all('span', attrs={'class': 'taglib-text'})
-        tags = [elem for elem in tags if elem.text != ""]
-
-        tags.pop(0)
-        tags.pop(0)
-        logger.debug("Tags from which we extract the list of files:"
-                     " {}".format(tags))
-        rawdates = [elem.parent.parent.parent.next_sibling.next_sibling.
-                    next_sibling.next_sibling.next_sibling.next_sibling
-                    for elem in tags]
-        last_column = [elem.next_sibling.next_sibling.next_sibling.
-                       next_sibling for elem in rawdates]
+        tag_spans = soup.find_all('span', attrs={'class': 'taglib-text'})
+        not_allowed_tags = ['Azioni', 'Ordina per', 'Aggiungi']
+        tags = filter(lambda x: all((x.text, x.text not in not_allowed_tags)),
+                      tag_spans)
 
         folder = Folder(thisfoldername, response.url)
 
-        for i, v in enumerate(tags):
+        for v in tags:
+            logger.debug("Tags from which we extract the list of files:"
+                         " {}".format(v))
             name = v.text
-            rawdate = rawdates[i]
+            rawdate = v.parent.parent.parent.next_sibling.next_sibling.\
+                next_sibling.next_sibling.next_sibling.next_sibling
+            last_column = rawdate.next_sibling.next_sibling.text
+
             day = int(rawdate.text.split(' ')[1].split('/')[0])
             month = int(rawdate.text.split(' ')[1].split('/')[1])
             year = int('20' + rawdate.text.split(' ')[1].split('/')[2])
@@ -731,13 +745,29 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             minute = int(rawdate.text.split(' ')[2].split('.')[1])
             complete_date = datetime(year, month, day, hour, minute,
                                      tzinfo=self.gmt1)
-            download_link = last_column[i].find_all('a')
-            elem = download_link[2]
-            if elem.text.startswith('  Download ('):
-                link = elem['href']
-                size = int(float(elem.text.strip()[10:-2].replace(".", "").
+
+            if '--' not in last_column:
+                download_page_link = v.parent['href']
+                response = self.get_page(download_page_link)
+                download_page = BeautifulSoup(response.text)
+
+                try:
+                    down_div = download_page.find_all('span',
+                                                      {'class':
+                                                       'download-document'})[0]
+                    down_span = down_div.find_all('span',
+                                                  {'class': 'taglib-text'})[0]
+                except IndexError:
+                    pdb.set_trace()
+                    raise
+
+                down_link = down_div.find_all('a')[0]['href']
+                regex = re.search('(?<=\\()(.*?)(?=\\))', down_span.text)
+                size = regex.group(0)
+                size = re.sub('[^0-9\\.,]','', size)
+                size = int(float(size.strip().replace(".", "").
                                  replace(",", ".")) * 1024)
-                complete_file = CourseFile(name, link, complete_date)
+                complete_file = CourseFile(name, down_link, complete_date)
                 complete_file.size = size
                 folder.files.append(complete_file)
 

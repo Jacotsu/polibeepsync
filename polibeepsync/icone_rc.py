@@ -8,7 +8,15 @@
 # WARNING! All changes made in this file will be lost!
 
 #from PySide import QtCore
-from PySide.QtCore import qRegisterResourceData, qUnregisterResourceData
+pysideVersion = '0.0.0'
+try:
+    from PySide.QtCore import qRegisterResourceData, qUnregisterResourceData
+    import PySide
+    pysideVersion = PySide.__version__
+except ImportError:
+    from PySide2.QtCore import qRegisterResourceData, qUnregisterResourceData
+    import PySide2
+    pysideVersion = PySide2.__version__
 
 qt_resource_data = b"\
 \x00\x00\x05\x29\
