@@ -23,7 +23,7 @@ import os
 import logging
 import pdb
 import re
-from pprint import pprint as pp
+from concurrent.futures import ThreadPoolExecutor
 from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
     Literal, ParseException
 from threading import Thread
@@ -121,52 +121,56 @@ class DownloadThread(object):
         t.start()
 
     def run(self):
-        for course in self.user.available_courses:
+        with ThreadPoolExecutor(max_workers=16) as TExec:
+            for course in self.user.available_courses:
+                if course.sync is True:
+                    TExec.submit(self.sync_course, course)
+
+    def sync_course(self, course):
+        try:
             subdir = course.save_folder_name
-            if course.sync is True:
-                try:
-                    outdir = os.path.join(self.topdir, subdir)
-                    os.makedirs(outdir, exist_ok=True)
-                    self.user.update_course_files(course)
-                    syncthese = []
-                    savedhere = os.path.join(self.topdir,
-                                             course.save_folder_name)
-                    needsync = need_syncing(course.documents,
-                                            savedhere,
-                                            syncthese)
+            outdir = os.path.join(self.topdir, subdir)
+            os.makedirs(outdir, exist_ok=True)
+            self.user.update_course_files(course)
+            syncthese = []
+            savedhere = os.path.join(self.topdir,
+                                     course.save_folder_name)
+            needsync = need_syncing(course.documents,
+                                    savedhere,
+                                    syncthese)
 
-                    syncsize = total_size(needsync)
-                    print('****SYNCSIZE: ', syncsize)
-                    alreadysynced = course.total_file_size - syncsize
-                    print('****ALREADYSYNCED ', alreadysynced)
-                    course.downloaded_size = alreadysynced
-                    print('****DOWNLOADED SIZE setting to ',
-                          course.downloaded_size)
-                    self.initial_sizes.emit(course=course)
+            syncsize = total_size(needsync)
+            print('****SYNCSIZE: ', syncsize)
+            alreadysynced = course.total_file_size - syncsize
+            print('****ALREADYSYNCED ', alreadysynced)
+            course.downloaded_size = alreadysynced
+            print('****DOWNLOADED SIZE setting to ',
+                  course.downloaded_size)
+            self.initial_sizes.emit(course=course)
 
-                    self.user.save_files(course, needsync,
-                                         self.download_signal,
-                                         self.data_signal)
-                    # adesso ogni f di syncthese ha la data di download
-                    # aggiornata, ma deve essere scritto su f
-                    logger.info("Synced files for {}".format(course.name))
-                except InvalidLoginError:
-                    self.user.logout()
-                    logger.info("Login failed.", exc_info=True)
-                except requests.ConnectionError:
-                    self.user.logout()
-                    # self.signal_error.sig.emit('I can\'t connect to'
-                    # ' the server. Is the'
-                    # ' Internet connection'
-                    # ' working?')
-                    logger.error('Connection error.', exc_info=True)
-                except requests.Timeout:
-                    self.user.logout()
-                    # self.signal_error.sig.emit("The timeout time has"
-                    # " been reached. Is the"
-                    # " Internet connection"
-                    # " working?")
-                    logger.error("Timeout error.", exc_info=True)
+            self.user.save_files(course, needsync,
+                                 self.download_signal,
+                                 self.data_signal)
+            # adesso ogni f di syncthese ha la data di download
+            # aggiornata, ma deve essere scritto su f
+            logger.info("Synced files for {}".format(course.name))
+        except InvalidLoginError:
+            self.user.logout()
+            logger.info("Login failed.", exc_info=True)
+        except requests.ConnectionError:
+            self.user.logout()
+            # self.signal_error.sig.emit('I can\'t connect to'
+            # ' the server. Is the'
+            # ' Internet connection'
+            # ' working?')
+            logger.error('Connection error.', exc_info=True)
+        except requests.Timeout:
+            self.user.logout()
+            # self.signal_error.sig.emit("The timeout time has"
+            # " been reached. Is the"
+            # " Internet connection"
+            # " working?")
+            logger.error("Timeout error.", exc_info=True)
 
 
 # --- "Core" classes here --- #

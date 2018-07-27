@@ -4,8 +4,6 @@
 
 - [ ] Write Tests
 
-- [ ] Implement multithreaded download
-
 - [ ] Fix graphical glitches
 
 - [ ] Move from Beautiful soup to simple lxml to remove horrendous code
@@ -14,3 +12,5 @@
       teachers' website
 
 - [ ] Improve look and feel
+
+- [X] Implement multithreaded download
