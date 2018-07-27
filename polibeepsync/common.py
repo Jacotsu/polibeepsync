@@ -780,21 +780,26 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
 
     def save_files(self, course, needsync, downloadsignal, datesignal,
                    chunk_size=512 * 1024):
-        for coursefile, path in needsync:
-            result = self.get_file(coursefile.url)
-            complete_basename = result.headers['Content-Disposition'] \
-                .split("; ")[1].split("=")[1].strip('"')
-            complete_name = os.path.join(path, complete_basename)
-            os.makedirs(path, exist_ok=True)
-            with open(complete_name, 'wb') as f:
-                logger.info('writing into {}'.format(complete_name))
-                for chunk in result.iter_content(chunk_size):
-                    if chunk:
-                        f.write(chunk)
-                        course.downloaded_size += len(chunk)
-                        logger.debug('chunk size: {}'.format(len(chunk)))
-                        downloadsignal.emit(course=course)
-                coursefile.local_creation_time = datetime.now(self.gmt1)
-                # we emit another signal here so that we can save to f
-                # the updated local creation time
-                datesignal.emit(data=(course, coursefile, path))
+        with ThreadPoolExecutor(max_workers=16) as TExec:
+            for coursefile, path in needsync:
+                def download_file(course, needsync, downloadsignal,
+                                  datesignal, chunk_size):
+                    result = self.get_file(coursefile.url)
+                    complete_basename = result.headers['Content-Disposition'] \
+                        .split("; ")[1].split("=")[1].strip('"')
+                    complete_name = os.path.join(path, complete_basename)
+                    os.makedirs(path, exist_ok=True)
+                    with open(complete_name, 'wb') as f:
+                        logger.info('writing into {}'.format(complete_name))
+                        for chunk in result.iter_content(chunk_size):
+                            if chunk:
+                                f.write(chunk)
+                                course.downloaded_size += len(chunk)
+                                logger.debug('chunk size: {}'.format(len(chunk)))
+                                downloadsignal.emit(course=course)
+                        coursefile.local_creation_time = datetime.now(self.gmt1)
+                        # we emit another signal here so that we can save to f
+                        # the updated local creation time
+                        datesignal.emit(data=(course, coursefile, path))
+                TExec.submit(download_file, course, needsync, downloadsignal,
+                             datesignal, chunk_size)
