@@ -780,7 +780,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
 
     def save_files(self, course, needsync, downloadsignal, datesignal,
                    chunk_size=512 * 1024):
-        with ThreadPoolExecutor(max_workers=16) as TExec:
+        with ThreadPoolExecutor(max_workers=4) as TExec:
             for coursefile, path in needsync:
                 def download_file(course, needsync, downloadsignal,
                                   datesignal, chunk_size):

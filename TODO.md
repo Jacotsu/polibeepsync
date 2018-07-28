@@ -2,6 +2,8 @@
 
 - [ ] Fix bug that crashes the app when incorrect credentials are used
 
+- [ ] Fix bug where syncs downloaded size exceeds actual size
+
 - [ ] Write Tests
 
 - [ ] Fix graphical glitches
