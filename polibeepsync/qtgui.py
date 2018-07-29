@@ -139,7 +139,7 @@ class LoginThread(QThread):
                     self.signal_ok.sig.emit('Successful login.')
                     logger.info('Successful login.')
                     self.exiting = True
-            except InvalidLoginError:
+            except (InvalidLoginError, requests.exceptions.MissingSchema):
                 self.user.logout()
                 self.exiting = True
                 self.signal_error.sig.emit('Login failed.')

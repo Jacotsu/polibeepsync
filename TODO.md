@@ -2,6 +2,8 @@
 
 - [ ] Fix bug that crashes the app when incorrect credentials are used
 
+- [ ] Add desktop link creation during installation
+
 - [ ] Write Tests
 
 - [ ] Fix graphical glitches
