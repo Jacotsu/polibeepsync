@@ -124,6 +124,7 @@ class DownloadThread(object):
         with ThreadPoolExecutor(max_workers=16) as TExec:
             for course in self.user.available_courses:
                 if course.sync is True:
+                    logger.debug(f'Syncing {course}')
                     TExec.submit(self.sync_course, course)
 
     def sync_course(self, course):
@@ -140,11 +141,11 @@ class DownloadThread(object):
                                     syncthese)
 
             syncsize = total_size(needsync)
-            print('****SYNCSIZE: ', syncsize)
+            logger.info('****SYNCSIZE: ', syncsize)
             alreadysynced = course.total_file_size - syncsize
-            print('****ALREADYSYNCED ', alreadysynced)
+            logger.info('****ALREADYSYNCED ', alreadysynced)
             course.downloaded_size = alreadysynced
-            print('****DOWNLOADED SIZE setting to ',
+            logger.info('****DOWNLOADED SIZE setting to ',
                   course.downloaded_size)
             self.initial_sizes.emit(course=course)
 
@@ -400,8 +401,9 @@ def need_syncing(folder, parent_folder, syncthese):
     path is the absolute path of the folder in which the f should be
     downloaded
     """
-    print('calling with folder=', folder.name, ', parent folder= ',
-          parent_folder, ", lunghezza syncthese = ", len(syncthese))
+    logger.info(f'calling with folder={folder.name}, parent '
+                'folder={foparent_folder}, lunghezza syncthese ='
+                '{len(syncthese)}')
     # basenames contains the names of files without extension (this is used
     # later because the website sometimes doesn't show the f extension)
     basenames = []
@@ -413,16 +415,17 @@ def need_syncing(folder, parent_folder, syncthese):
         # print(f.local_creation_time, f.last_online_edit_time)
         simplename = os.path.join(parent_folder, f.name)
         if f.local_creation_time is None:
-            print('data None')
+            logger.debug('data None')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
-            print('creazione < online')
+            logger.debug('creazione < online')
             syncthese.append((f, parent_folder))
         elif not os.path.exists(simplename) and f.name not in basenames:
-            print('scommetto che penso che esistono quelli senza estensione')
-            print('f.name = ', f.name)
-            print('altrimenti')
-            print('non esiste e allora aggiungo')
+            logger.debug('scommetto che penso che esistono quelli senza '
+                         'estensione')
+            logger.debug('f.name = ', f.name)
+            logger.debug('altrimenti')
+            logger.debug('non esiste e allora aggiungo')
             syncthese.append((f, parent_folder))
     for f in folder.folders:
         new_parent = os.path.join(parent_folder, f.name)
@@ -722,7 +725,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         sizes = []
         course.total_file_size = sum(folder_total_size(course.documents,
                                                         sizes))
-        print('****DIMENSIONE TOTALE: ', course.total_file_size)
+        logger.info('****DIMENSIONE TOTALE: ', course.total_file_size)
 
     def find_files_and_folders(self, link, thisfoldername):
         response = self.get_page(link)
@@ -782,24 +785,25 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                    chunk_size=512 * 1024):
         with ThreadPoolExecutor(max_workers=4) as TExec:
             for coursefile, path in needsync:
-                def download_file(course, needsync, downloadsignal,
-                                  datesignal, chunk_size):
-                    result = self.get_file(coursefile.url)
-                    complete_basename = result.headers['Content-Disposition'] \
-                        .split("; ")[1].split("=")[1].strip('"')
-                    complete_name = os.path.join(path, complete_basename)
-                    os.makedirs(path, exist_ok=True)
-                    with open(complete_name, 'wb') as f:
-                        logger.info('writing into {}'.format(complete_name))
-                        for chunk in result.iter_content(chunk_size):
-                            if chunk:
-                                f.write(chunk)
-                                course.downloaded_size += len(chunk)
-                                logger.debug('chunk size: {}'.format(len(chunk)))
-                                downloadsignal.emit(course=course)
-                        coursefile.local_creation_time = datetime.now(self.gmt1)
-                        # we emit another signal here so that we can save to f
-                        # the updated local creation time
-                        datesignal.emit(data=(course, coursefile, path))
-                TExec.submit(download_file, course, needsync, downloadsignal,
-                             datesignal, chunk_size)
+                TExec.submit(self.download_file, course, path, coursefile,
+                             needsync, downloadsignal, datesignal, chunk_size)
+
+    def download_file(self, course, path, coursefile, needsync, downloadsignal,
+                      datesignal, chunk_size):
+        result = self.get_file(coursefile.url)
+        complete_basename = result.headers['Content-Disposition'] \
+            .split("; ")[1].split("=")[1].strip('"')
+        complete_name = os.path.join(path, complete_basename)
+        os.makedirs(path, exist_ok=True)
+        with open(complete_name, 'wb') as f:
+            logger.info('writing into {}'.format(complete_name))
+            for chunk in result.iter_content(chunk_size):
+                if chunk:
+                    f.write(chunk)
+                    course.downloaded_size += len(chunk)
+                    logger.debug('chunk size: {}'.format(len(chunk)))
+                    downloadsignal.emit(course=course)
+            coursefile.local_creation_time = datetime.now(self.gmt1)
+            # we emit another signal here so that we can save to f
+            # the updated local creation time
+            datesignal.emit(data=(course, coursefile, path))
