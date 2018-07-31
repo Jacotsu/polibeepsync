@@ -16,10 +16,19 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import requests
-from appdirs import user_config_dir, user_data_dir
 import os
 import pickle
 import sys
+import re
+import logging
+import json
+from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
+    DownloadThread
+from polibeepsync.cmdlineparser import create_parser
+from polibeepsync.ui_resizable import Ui_Form
+from polibeepsync import filesettings
+from appdirs import user_config_dir, user_data_dir
+
 
 pysideVersion = '0.0.0'
 try:
@@ -27,32 +36,24 @@ try:
                                QModelIndex, Qt, Slot, QTimer, QLocale)
     from PySide.QtGui import (QApplication, QWidget, QTextCursor,
                               QMenu, QAction, QFileDialog,
-                              QVBoxLayout, QLabel, QSystemTrayIcon,
-                              qApp, QDialog, QCursor)
+                              QLabel, QSystemTrayIcon,
+                              qApp, QCursor)
     import PySide
     pysideVersion = PySide.__version__
 
 except ImportError:
 
     from PySide2.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
-                               QModelIndex, Qt, Slot, QTimer, QLocale)
-    from PySide2.QtGui import (QTextCursor, QCursor
-                           )
-    from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog,
-                                   QVBoxLayout,QLabel, QSystemTrayIcon,
-                                   qApp, QDialog, QApplication)
+                                QModelIndex, Qt, Slot, QTimer, QLocale)
+    from PySide2.QtGui import (QTextCursor, QCursor)
+    from PySide2.QtWidgets import (QWidget, QMainWindow, QMenu, QAction,
+                                   QFileDialog, QLabel,
+                                   QSystemTrayIcon, qApp,
+                                   QApplication)
 
     import PySide2
     pysideVersion = PySide2.__version__
 
-from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
-    DownloadThread
-from polibeepsync.cmdlineparser import create_parser
-from polibeepsync.ui_resizable import Ui_Form
-from polibeepsync import filesettings
-import re
-import logging
-import json
 
 
 # load options from cmdline
@@ -277,7 +278,7 @@ class CoursesListModel(QAbstractTableModel):
                 return "Download %"
 
 
-class MainWindow(QWidget, Ui_Form):
+class MainWindow(Ui_Form):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.appname = "poliBeePsync"
@@ -321,37 +322,37 @@ class MainWindow(QWidget, Ui_Form):
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
         self.downloadthread.data_signal.connect(self.update_file_localtime)
 
-        self.userCode.setText(str(self.user.username))
-        self.userCode.textEdited.connect(self.setusercode)
-        self.password.setText(self.user.password)
-        self.password.textEdited.connect(self.setpassword)
-        self.trylogin.clicked.connect(self.testlogin)
+        self._window.userCode.setText(str(self.user.username))
+        self._window.userCode.textEdited.connect(self.setusercode)
+        self._window.password.setText(self.user.password)
+        self._window.password.textEdited.connect(self.setpassword)
+        self._window.trylogin.clicked.connect(self.testlogin)
 
-        self.courses_model = CoursesListModel(self.user.available_courses)
-        self.coursesView.setModel(self.courses_model)
+        self._window.courses_model = CoursesListModel(self.user.available_courses)
+        self._window.coursesView.setModel(self._window.courses_model)
         self._resizeview()
-        self.refreshCourses.clicked.connect(self.refreshcourses)
+        self._window.refreshCourses.clicked.connect(self.refreshcourses)
 
-        self.courses_model.dataChanged.connect(self.dumpUser)
-        self.syncNow.clicked.connect(self.syncfiles)
+        self._window.courses_model.dataChanged.connect(self.dumpUser)
+        self._window.syncNow.clicked.connect(self.syncfiles)
 
         if self.settings['SyncNewCourses'] == str(True):
-            self.sync_new = Qt.Checked
+            self._window.sync_new = Qt.Checked
         else:
-            self.sync_new = Qt.Unchecked
+            self._window.sync_new = Qt.Unchecked
 
-        self.rootfolder.setText(self.settings['RootFolder'])
-        self.rootfolder.textChanged.connect(self.rootfolderslot)
+        self._window.rootfolder.setText(self.settings['RootFolder'])
+        self._window.rootfolder.textChanged.connect(self.rootfolderslot)
 
-        self.addSyncNewCourses.setCheckState(self.sync_new)
-        self.addSyncNewCourses.stateChanged.connect(self.syncnewslot)
+        self._window.addSyncNewCourses.setCheckState(self._window.sync_new)
+        self._window.addSyncNewCourses.stateChanged.connect(self.syncnewslot)
 
-        self.timerMinutes.setValue(int(self.settings['UpdateEvery']))
-        self.timerMinutes.valueChanged.connect(self.updateminuteslot)
+        self._window.timerMinutes.setValue(int(self.settings['UpdateEvery']))
+        self._window.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
-        self.changeRootFolder.clicked.connect(self.chooserootdir)
-        self.version_label.setText("Current version: {}.".format(__version__))
-        self.check_version.clicked.connect(self.checknewversion)
+        self._window.changeRootFolder.clicked.connect(self.chooserootdir)
+        self._window.version_label.setText("Current version: {}.".format(__version__))
+        self._window.check_version.clicked.connect(self.checknewversion)
 
         self.trayIconMenu = QMenu()
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
@@ -359,21 +360,21 @@ class MainWindow(QWidget, Ui_Form):
         self.createTray()
 
     def _resizeview(self, **kwargs):
-        self.coursesView.setColumnWidth(3, 160)
-        self.coursesView.resizeColumnToContents(1)
-        self.coursesView.setColumnWidth(0, 320)
+        self._window.coursesView.setColumnWidth(3, 160)
+        self._window.coursesView.resizeColumnToContents(1)
+        self._window.coursesView.setColumnWidth(0, 320)
 
     def inittextincourses(self):
-        self.statusbar.showMessage('Started syncing.')
+        self._window.statusbar.showMessage('Started syncing.')
 
     def checknewversion(self):
         rawdata = requests.get('https://pypi.python.org/pypi/poliBeePsync/json')
         latest = json.loads(rawdata.text)['info']['version']
-        self.version_label.setTextFormat(Qt.RichText)
-        self.version_label.setOpenExternalLinks(True)
-        self.version_label.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
-        self.version_label.setScaledContents(True)
-        self.version_label.setWordWrap(True)
+        self._window.version_label.setTextFormat(Qt.RichText)
+        self._window.version_label.setOpenExternalLinks(True)
+        self._window.version_label.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        self._window.version_label.setScaledContents(True)
+        self._window.version_label.setWordWrap(True)
         if latest != __version__:
             newtext = """<p>Current version: {}.<br>
 Latest version: {}. </p>
@@ -382,7 +383,7 @@ Latest version: {}. </p>
 """.format(__version__, latest)
         else:
             newtext = "Current version: {} up-to-date.".format(__version__)
-        self.version_label.setText(newtext)
+        self._window.version_label.setText(newtext)
 
     def _update_time(self, folder, file, path_list):
         logger.debug('inside ', folder.name)
@@ -417,9 +418,9 @@ Latest version: {}. </p>
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
             updating.downloaded_size = course.downloaded_size
-            row = self.courses_model.courses.index(updating)
-            where = self.courses_model.index(row, 3)
-            self.courses_model.dataChanged.emit(where, where)
+            row = self._window.courses_model.courses.index(updating)
+            where = self._window.courses_model.index(row, 3)
+            self._window.courses_model.dataChanged.emit(where, where)
             self.dumpUser()
 
     def setinizialsizes(self, course, **kwargs):
@@ -427,9 +428,9 @@ Latest version: {}. </p>
             updating = self.user.available_courses[course.name]
             updating.downloaded_size = course.downloaded_size
             updating.total_file_size = course.total_file_size
-            row = self.courses_model.courses.index(updating)
-            where = self.courses_model.index(row, 3)
-            self.courses_model.dataChanged.emit(where, where)
+            row = self._window.courses_model.courses.index(updating)
+            where = self._window.courses_model.index(row, 3)
+            self._window.courses_model.dataChanged.emit(where, where)
             self.dumpUser()
 
     def syncnewcourses(self, newlist):
@@ -474,7 +475,7 @@ Latest version: {}. </p>
                                   " for the first time.")
 
     def loginstatus(self, status):
-        self.statusbar.showMessage(status)
+        self._window.statusbar.showMessage(status)
 
     # @Slot(int)
     # def notifynew(self, state):
@@ -512,7 +513,7 @@ Latest version: {}. </p>
         if newroot != "" and str(newroot) != currentdir:
             self.settings['RootFolder'] = str(newroot)
             filesettings.settingsToFile(self.settings, self.settings_path)
-            self.rootfolder.setText(newroot)
+            self._window.rootfolder.setText(newroot)
             # we delete the already present downloadthread and recreate it
             # because otherwise it uses the old download folder. I don't know
             # if there's a cleaner approach
@@ -525,7 +526,7 @@ Latest version: {}. </p>
             self.downloadthread.signal_error.sig.connect(self.myStream_message)
 
     def setusercode(self):
-        newcode = self.userCode.text()
+        newcode = self._window.userCode.text()
         self.user.username = newcode
         try:
             self.dumpUser()
@@ -540,7 +541,7 @@ Latest version: {}. </p>
                          'instance to disk.', exc_info=True)
 
     def setpassword(self):
-        newpass = self.password.text()
+        newpass = self._window.password.text()
         self.user.password = newpass
         try:
             self.dumpUser()
@@ -556,16 +557,16 @@ Latest version: {}. </p>
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.start()
-            self.statusbar.showMessage("Logging in, please wait.")
+            self._window.statusbar.showMessage("Logging in, please wait.")
 
     def addtocoursesview(self, addlist):
         for elem in addlist:
-            self.courses_model.insertRows(0, 1, elem)
+            self._window.courses_model.insertRows(0, 1, elem)
 
     def rmfromcoursesview(self, removelist):
         for elem in removelist:
-            index = self.courses_model.courses.index(elem)
-            self.courses_model.removeRows(index, 1)
+            index = self._window.courses_model.courses.index(elem)
+            self._window.courses_model.removeRows(index, 1)
 
     def dumpUser(self):
         # we don't use the message...
@@ -574,7 +575,7 @@ Latest version: {}. </p>
             pickle.dump(self.user, f)
 
     def refreshcourses(self):
-        self.statusbar.showMessage('Searching for online updates...this may take a'
+        self._window.statusbar.showMessage('Searching for online updates...this may take a'
                              ' while.')
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
@@ -599,8 +600,8 @@ Latest version: {}. </p>
 
     @Slot(str)
     def myStream_message(self, message):
-        self.status.moveCursor(QTextCursor.End)
-        self.status.insertPlainText(message + "\n\n")
+        self._window.status.moveCursor(QTextCursor.End)
+        self._window.status.insertPlainText(message + "\n\n")
 
     def createTray(self):
         restoreAction = QAction("&Restore", self, triggered=self.showNormal)
@@ -619,16 +620,16 @@ Latest version: {}. </p>
             self.trayIconMenu.popup(QCursor.pos())
 
     def closeEvent(self, event):
-        self.hide()
+        self._window.hide()
         event.ignore()
 
     def about_text(self):
-        self.label_3 = QLabel()
-        self.label_3.setTextFormat(Qt.RichText)
-        self.label_3.setOpenExternalLinks(True)
-        self.label_3.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
-        self.label_3.setScaledContents(True)
-        self.label_3.setWordWrap(True)
+        self._window.label_3 = QLabel()
+        self._window.label_3.setTextFormat(Qt.RichText)
+        self._window.label_3.setOpenExternalLinks(True)
+        self._window.label_3.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        self._window.label_3.setScaledContents(True)
+        self._window.label_3.setWordWrap(True)
         text = """
 <html>
 <head/>
@@ -648,10 +649,10 @@ released under GNU GPLv3+.</p>
 """
 
         if pysideVersion == '1.2.2':
-            self.label_3.setText(QApplication.translate("Form", text, None,
+            self._window.label_3.setText(QApplication.translate("Form", text, None,
                                                         QApplication.UnicodeUTF8))
         else:
-            self.label_3.setText(QApplication.translate("Form", text, None))
+            self._window.label_3.setText(QApplication.translate("Form", text, None))
 
 
 def main():

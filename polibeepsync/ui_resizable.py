@@ -18,7 +18,7 @@ except ImportError:
     from PySide2.QtGui import (   QIcon, )
 
     from PySide2.QtWidgets import (QApplication,QVBoxLayout, QTabWidget,QTableView,QStyledItemDelegate, QStyleOptionButton,
-                              QStyle,
+                              QStyle, QMainWindow,
                               QWidget, QHBoxLayout, QStyleOptionProgressBar,
                               QGridLayout, QLabel, QLineEdit, QSpacerItem,
                               QSizePolicy, QPushButton,
@@ -144,27 +144,29 @@ class CheckBoxDelegate(QStyledItemDelegate):
         return QRect(check_box_point, check_box_rect.size())
 
 
-class Ui_Form(object):
+class Ui_Form(QMainWindow):
     def setupUi(self, Form):
         path = f"{os.path.dirname(__file__)}/new_gui.ui"
         ui_file = QFile(path)
         ui_file.open(QFile.ReadOnly)
 
         loader = QUiLoader()
-        self.__window = loader.load(ui_file)
-        # This will merge the windows attributes to the local instance
-        for key, att in self.__window.__dict__.items():
-            setattr(self, key, att)
+        self._window = loader.load(ui_file)
 
         # Need to fix this courses list view
-        self.coursesView = CoursesListView(self.courses_tab)
-        self.coursesView.setObjectName("coursesView")
+        self._window.coursesView = CoursesListView(self._window.courses_tab)
+        self._window.courses_layout.addWidget(self._window.coursesView)
+        self._window.coursesView.setObjectName("coursesView")
+        self._window.coursesView2.deleteLater()
 
         self.icon = QIcon(":/icons/uglytheme/48x48/polibeepsync.png")
 
-        self.retranslateUi(self.__window)
-        self.tabWidget.setCurrentIndex(0)
-        QMetaObject.connectSlotsByName(self.__window)
+        self.retranslateUi(self._window)
+        self._window.tabWidget.setCurrentIndex(0)
+        QMetaObject.connectSlotsByName(self._window)
+
+    def show(self):
+        self._window.show()
 
     def retranslateUi(self, Form):
         if pysideVersion == '1.2.2':
@@ -213,38 +215,38 @@ class Ui_Form(object):
                                                              None,
                                                              QApplication.UnicodeUTF8))
         else:
-            self.label_2.setText(QApplication.translate("Form", "Password", None))
-            self.label.setText(QApplication.translate("Form", "User code", None))
-            self.trylogin.setText(
+            self._window.label_2.setText(QApplication.translate("Form", "Password", None))
+            self._window.label.setText(QApplication.translate("Form", "User code", None))
+            self._window.trylogin.setText(
                 QApplication.translate("Form", "Try logging in", None))
-            self.check_version.setText(
+            self._window.check_version.setText(
                 QApplication.translate("Form", "Check for new version", None))
-            self.statusbar.showMessage(
+            self._window.statusbar.showMessage(
                 QApplication.translate("Form", "Login successful", None))
-            self.label_4.setText(
+            self._window.label_4.setText(
                 QApplication.translate("Form", "Root folder", None))
-            self.changeRootFolder.setText(
+            self._window.changeRootFolder.setText(
                 QApplication.translate("Form", "Change", None))
-            self.label_5.setText(QApplication.translate("Form", "Sync every", None))
-            self.label_6.setText(QApplication.translate("Form", "minutes", None))
-            self.syncNow.setText(QApplication.translate("Form", "Sync now", None))
-            self.addSyncNewCourses.setText(QApplication.translate("Form",
+            self._window.label_5.setText(QApplication.translate("Form", "Sync every", None))
+            self._window.label_6.setText(QApplication.translate("Form", "minutes", None))
+            self._window.syncNow.setText(QApplication.translate("Form", "Sync now", None))
+            self._window.addSyncNewCourses.setText(QApplication.translate("Form",
                                                                   "Automatically add and sync new available courses",
                                                                   None))
-            self.tabWidget.setTabText(self.tabWidget.indexOf(self.settings_tab),
+            self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.settings_tab),
                                       QApplication.translate("Form",
                                                              "Settings",
                                                              None))
-            self.refreshCourses.setText(
+            self._window.refreshCourses.setText(
                 QApplication.translate("Form", "Refresh list", None))
-            self.tabWidget.setTabText(self.tabWidget.indexOf(self.courses_tab),
+            self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.courses_tab),
                                       QApplication.translate("Form", "Courses",
                                                              None))
-            self.about.setText(QApplication.translate("Form", "About", None))
-            self.tabWidget.setTabText(self.tabWidget.indexOf(self.status_tab),
+            self._window.about.setText(QApplication.translate("Form", "About", None))
+            self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.status_tab),
                                       QApplication.translate("Form", "Status",
                                                              None))
-            self.tabWidget.setTabText(self.tabWidget.indexOf(self.plugins_tab),
+            self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.plugins_tab),
                                       QApplication.translate("Form", "Plugins",
                                                              None))
 

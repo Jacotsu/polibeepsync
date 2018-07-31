@@ -352,7 +352,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <layout class="QVBoxLayout" name="courses_layout">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <property name="topMargin">

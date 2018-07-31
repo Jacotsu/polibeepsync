@@ -355,12 +355,12 @@ def total_size(listoffiles):
 
 def folder_total_size(parentfolder, sizes):
     for f in parentfolder.files:
-        print('il f ', f.name, ' è grosso ', f.size)
-        print('prima di aggiungere, size è ', sizes)
+        logger.debug('il f ', f.name, ' è grosso ', f.size)
+        logger.debug('prima di aggiungere, size è ', sizes)
         sizes.append(f.size)
-        print('dopo operazione, size è ', sizes)
+        logger.debug('dopo operazione, size è ', sizes)
     for folder in parentfolder.folders:
-        print('sto controllando la dimensione della sottocartella ',
+        logger.debug('sto controllando la dimensione della sottocartella ',
               folder.name)
         folder_total_size(folder, sizes)
         # viene passata sempre la stessa dimensione della cartella più in alto
