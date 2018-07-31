@@ -38,8 +38,10 @@ except ImportError:
                                QModelIndex, Qt, Slot, QTimer, QLocale)
     from PySide2.QtGui import (QTextCursor, QCursor
                            )
-    from PySide2.QtWidgets import (QWidget,QMenu,QAction,QFileDialog,QVBoxLayout,QLabel, QSystemTrayIcon,
-                          qApp, QDialog, QApplication)
+    from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog,
+                                   QVBoxLayout,QLabel, QSystemTrayIcon,
+                                   qApp, QDialog, QApplication)
+
     import PySide2
     pysideVersion = PySide2.__version__
 
@@ -315,7 +317,7 @@ class MainWindow(QWidget, Ui_Form):
                                              self.settings['RootFolder'])
         self.downloadthread.download_signal.connect(
             self.update_course_download)
-        #self.downloadthread.download_signal.connect(self._resizeview)
+        self.downloadthread.download_signal.connect(self._resizeview)
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
         self.downloadthread.data_signal.connect(self.update_file_localtime)
 
@@ -332,8 +334,6 @@ class MainWindow(QWidget, Ui_Form):
 
         self.courses_model.dataChanged.connect(self.dumpUser)
         self.syncNow.clicked.connect(self.syncfiles)
-        #self.pushButton.clicked.connect(self.syncfiles)
-        #self.pushButton.clicked.connect(self.inittextincourses)
 
         if self.settings['SyncNewCourses'] == str(True):
             self.sync_new = Qt.Checked
@@ -350,8 +350,8 @@ class MainWindow(QWidget, Ui_Form):
         self.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self.changeRootFolder.clicked.connect(self.chooserootdir)
-        #self.version_label.setText("Current version: {}.".format(__version__))
-        #self.pushButton_2.clicked.connect(self.checknewversion)
+        self.version_label.setText("Current version: {}.".format(__version__))
+        self.check_version.clicked.connect(self.checknewversion)
 
         self.trayIconMenu = QMenu()
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
@@ -364,7 +364,7 @@ class MainWindow(QWidget, Ui_Form):
         self.coursesView.setColumnWidth(0, 320)
 
     def inittextincourses(self):
-        self.statusLabel.setText('Started syncing.')
+        self.statusbar.showMessage('Started syncing.')
 
     def checknewversion(self):
         rawdata = requests.get('https://pypi.python.org/pypi/poliBeePsync/json')
@@ -385,15 +385,15 @@ Latest version: {}. </p>
         self.version_label.setText(newtext)
 
     def _update_time(self, folder, file, path_list):
-        print('inside ', folder.name)
-        print('path_list: ', path_list)
+        logger.debug('inside ', folder.name)
+        logger.debug('path_list: ', path_list)
         while len(path_list) > 0:
             namegoto = path_list.pop(0)
-            print('namegoto: ', namegoto)
+            logger.debug('namegoto: ', namegoto)
             # perché a volte è vuoto?
             if namegoto != "":
                 fakefolder = Folder(namegoto, 'fake')
-                print('contained folders: ', folder.folders)
+                logger.debug('contained folders: ', folder.folders)
                 ind = folder.folders.index(fakefolder)
                 goto = folder.folders[ind]
                 self._update_time(goto, file, path_list)
@@ -474,7 +474,7 @@ Latest version: {}. </p>
                                   " for the first time.")
 
     def loginstatus(self, status):
-        self.login_attempt.setText(status)
+        self.statusbar.showMessage(status)
 
     # @Slot(int)
     # def notifynew(self, state):
@@ -556,8 +556,7 @@ Latest version: {}. </p>
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.start()
-            self.login_attempt.setStyleSheet("color: rgba(0, 0, 0, 255);")
-            self.login_attempt.setText("Logging in, please wait.")
+            self.statusbar.showMessage("Logging in, please wait.")
 
     def addtocoursesview(self, addlist):
         for elem in addlist:
@@ -575,7 +574,7 @@ Latest version: {}. </p>
             pickle.dump(self.user, f)
 
     def refreshcourses(self):
-        self.statusLabel.setText('Searching for online updates...this may take a'
+        self.statusbar.showMessage('Searching for online updates...this may take a'
                              ' while.')
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
@@ -661,6 +660,7 @@ def main():
     frame = MainWindow()
     # args is defined at the top of this module
     if not args.hidden:
+        # Need to fix showing wrong window
         frame.show()
     sys.exit(app.exec_())
 

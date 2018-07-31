@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 pysideVersion = '0.0.0'
 try:
     from PySide.QtGui import (QTableView, QStyledItemDelegate, QStyleOptionButton,
@@ -22,9 +24,12 @@ except ImportError:
                               QSizePolicy, QPushButton,
                               QSpinBox, QCheckBox, QTextEdit, QDialogButtonBox)
     from PySide2.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
-                               QMetaObject)
+                               QMetaObject, QFile)
+
+    from PySide2.QtUiTools import QUiLoader
     import PySide2
     pysideVersion = PySide2.__version__
+
 
 
 class CoursesListView(QTableView):
@@ -141,167 +146,27 @@ class CheckBoxDelegate(QStyledItemDelegate):
 
 class Ui_Form(object):
     def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(598, 450)
-        self.icon = QIcon(":/icons/uglytheme/48x48/polibeepsync.png")
-        Form.setWindowIcon(self.icon)
-        Form.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
-        self.verticalLayout = QVBoxLayout(Form)
-        self.verticalLayout.setObjectName("verticalLayout")
+        path = f"{os.path.dirname(__file__)}/new_gui.ui"
+        ui_file = QFile(path)
+        ui_file.open(QFile.ReadOnly)
 
-        self.tabWidget = QTabWidget(Form)
-        self.tabWidget.setObjectName("tabWidget")
+        loader = QUiLoader()
+        self.__window = loader.load(ui_file)
+        # This will merge the windows attributes to the local instance
+        for key, att in self.__window.__dict__.items():
+            setattr(self, key, att)
 
-        # Tab General Settings
-        self.tab = QWidget()
-        self.tab.setObjectName("tab")
-        self.horizontalLayout = QHBoxLayout(self.tab)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.verticalLayout_2 = QVBoxLayout()
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.gridLayout = QGridLayout()
-        self.gridLayout.setObjectName("gridLayout")
-        self.label_2 = QLabel(self.tab)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 3, 0, 1, 1)
-        self.label = QLabel(self.tab)
-        self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
-        self.password = QLineEdit(self.tab)
-        self.password.setMaximumSize(QSize(139, 16777215))
-        self.password.setEchoMode(QLineEdit.Password)
-        self.password.setObjectName("password")
-        self.gridLayout.addWidget(self.password, 3, 1, 1, 1)
-        self.userCode = QLineEdit(self.tab)
-        self.userCode.setMaximumSize(QSize(139, 16777215))
-        self.userCode.setText("")
-        self.userCode.setObjectName("userCode")
-        self.gridLayout.addWidget(self.userCode, 1, 1, 1, 1)
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding,
-                                 QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem, 1, 2, 1, 1)
-        self.verticalLayout_2.addLayout(self.gridLayout)
-        self.trylogin = QPushButton(self.tab)
-        self.trylogin.setMaximumSize(QSize(154, 16777215))
-        self.trylogin.setObjectName("trylogin")
-        self.verticalLayout_2.addWidget(self.trylogin)
-        self.login_attempt = QLabel(self.tab)
-        self.login_attempt.setText("Logging in, please wait.")
-        self.login_attempt.setStyleSheet("color: rgba(0, 0, 0, 0);")
-        self.login_attempt.setObjectName("login_attempt")
-        self.verticalLayout_2.addWidget(self.login_attempt)
-        spacerItem1 = QSpacerItem(20, 40, QSizePolicy.Minimum,
-                                  QSizePolicy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem1)
-        self.horizontalLayout_3 = QHBoxLayout()
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.label_4 = QLabel(self.tab)
-        self.label_4.setObjectName("label_4")
-        self.horizontalLayout_3.addWidget(self.label_4)
-        self.rootfolder = QLineEdit(self.tab)
-        self.rootfolder.setMinimumSize(QSize(335, 0))
-        self.rootfolder.setMaximumSize(QSize(335, 16777215))
-        self.rootfolder.setInputMask("")
-        self.rootfolder.setReadOnly(True)
-        self.rootfolder.setObjectName("rootfolder")
-        self.horizontalLayout_3.addWidget(self.rootfolder)
-        self.changeRootFolder = QPushButton(self.tab)
-        self.changeRootFolder.setObjectName("changeRootFolder")
-        self.horizontalLayout_3.addWidget(self.changeRootFolder)
-        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding,
-                                  QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem2)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
-        self.horizontalLayout_5 = QHBoxLayout()
-        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.label_5 = QLabel(self.tab)
-        self.label_5.setObjectName("label_5")
-        self.horizontalLayout_5.addWidget(self.label_5)
-        self.timerMinutes = QSpinBox(self.tab)
-        self.timerMinutes.setObjectName("timerMinutes")
-        self.horizontalLayout_5.addWidget(self.timerMinutes)
-        self.label_6 = QLabel(self.tab)
-        self.label_6.setObjectName("label_6")
-        self.horizontalLayout_5.addWidget(self.label_6)
-        self.syncNow = QPushButton(self.tab)
-        self.syncNow.setObjectName("syncNow")
-        self.horizontalLayout_5.addWidget(self.syncNow)
-        spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Expanding,
-                                  QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem3)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_5)
-        self.addSyncNewCourses = QCheckBox(self.tab)
-        self.addSyncNewCourses.setObjectName("addSyncNewCourses")
-        self.verticalLayout_2.addWidget(self.addSyncNewCourses)
-        self.horizontalLayout.addLayout(self.verticalLayout_2)
-        self.tabWidget.addTab(self.tab, "")
-
-        # Tab Courses
-        self.tab_2 = QWidget()
-        self.tab_2.setObjectName("tab_2")
-        self.horizontalLayout_2 = QHBoxLayout(self.tab_2)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.verticalLayout_3 = QVBoxLayout()
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.horizontalLayout_6 = QHBoxLayout()
-        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        self.refreshCourses = QPushButton(self.tab_2)
-        self.refreshCourses.setObjectName("refreshCourses")
-        self.horizontalLayout_6.addWidget(self.refreshCourses)
-        spacerItem4 = QSpacerItem(40, 20, QSizePolicy.Expanding,
-                                  QSizePolicy.Minimum)
-        self.horizontalLayout_6.addItem(spacerItem4)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_6)
-        self.coursesView = CoursesListView(self.tab_2)
+        # Need to fix this courses list view
+        self.coursesView = CoursesListView(self.courses_tab)
         self.coursesView.setObjectName("coursesView")
-        self.verticalLayout_3.addWidget(self.coursesView)
-        self.horizontalLayout_2.addLayout(self.verticalLayout_3)
-        self.tabWidget.addTab(self.tab_2, "")
 
-        # Tab Status
-        self.tab_3 = QWidget()
-        self.tab_3.setObjectName("tab_3")
-        self.horizontalLayout_7 = QHBoxLayout(self.tab_3)
-        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.verticalLayout_4 = QVBoxLayout()
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.horizontalLayout_8 = QHBoxLayout()
-        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-        self.about = QPushButton(self.tab_3)
-        self.about.setObjectName("about")
-        self.horizontalLayout_8.addWidget(self.about)
-        spacerItem5 = QSpacerItem(40, 20, QSizePolicy.Expanding,
-                                  QSizePolicy.Minimum)
-        self.horizontalLayout_8.addItem(spacerItem5)
-        self.verticalLayout_4.addLayout(self.horizontalLayout_8)
-        self.status = QTextEdit(self.tab_3)
-        self.status.setTextInteractionFlags(
-            Qt.TextSelectableByKeyboard | Qt.TextSelectableByMouse)
-        self.status.setObjectName("status")
-        self.verticalLayout_4.addWidget(self.status)
-        self.horizontalLayout_7.addLayout(self.verticalLayout_4)
-        self.tabWidget.addTab(self.tab_3, "")
+        self.icon = QIcon(":/icons/uglytheme/48x48/polibeepsync.png")
 
-        self.tab_4 = QWidget()
-        self.tab_4.setObjectName("tab_4")
-        self.verticalLayout.addWidget(self.tabWidget)
-
-        self.okButton = QDialogButtonBox(Form)
-        self.okButton.setStandardButtons(QDialogButtonBox.Ok)
-        self.okButton.setObjectName("okButton")
-        self.okButton.clicked.connect(self.hide)
-        self.verticalLayout.addWidget(self.okButton)
-
-        self.statusLabel = QLabel(Form)
-        self.statusLabel.setObjectName("statusLabel")
-        self.verticalLayout.addWidget(self.statusLabel)
-
-        self.retranslateUi(Form)
+        self.retranslateUi(self.__window)
         self.tabWidget.setCurrentIndex(0)
-        QMetaObject.connectSlotsByName(Form)
+        QMetaObject.connectSlotsByName(self.__window)
 
     def retranslateUi(self, Form):
-        Form.setWindowTitle("poliBeePsync")
         if pysideVersion == '1.2.2':
             self.label_2.setText(QApplication.translate("Form", "Password", None,
                                                         QApplication.UnicodeUTF8))
@@ -310,7 +175,7 @@ class Ui_Form(object):
             self.trylogin.setText(
                 QApplication.translate("Form", "Try login credentials", None,
                                        QApplication.UnicodeUTF8))
-            self.login_attempt.setText(
+            self.statusbar.showMessage(
                 QApplication.translate("Form", "Login successful", None,
                                        QApplication.UnicodeUTF8))
             self.label_4.setText(
@@ -351,8 +216,10 @@ class Ui_Form(object):
             self.label_2.setText(QApplication.translate("Form", "Password", None))
             self.label.setText(QApplication.translate("Form", "User code", None))
             self.trylogin.setText(
-                QApplication.translate("Form", "Try login credentials", None))
-            self.login_attempt.setText(
+                QApplication.translate("Form", "Try logging in", None))
+            self.check_version.setText(
+                QApplication.translate("Form", "Check for new version", None))
+            self.statusbar.showMessage(
                 QApplication.translate("Form", "Login successful", None))
             self.label_4.setText(
                 QApplication.translate("Form", "Root folder", None))
@@ -364,19 +231,23 @@ class Ui_Form(object):
             self.addSyncNewCourses.setText(QApplication.translate("Form",
                                                                   "Automatically add and sync new available courses",
                                                                   None))
-            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab),
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.settings_tab),
                                       QApplication.translate("Form",
-                                                             "General settings",
+                                                             "Settings",
                                                              None))
             self.refreshCourses.setText(
                 QApplication.translate("Form", "Refresh list", None))
-            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2),
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.courses_tab),
                                       QApplication.translate("Form", "Courses",
                                                              None))
             self.about.setText(QApplication.translate("Form", "About", None))
-            self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3),
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.status_tab),
                                       QApplication.translate("Form", "Status",
                                                              None))
+            self.tabWidget.setTabText(self.tabWidget.indexOf(self.plugins_tab),
+                                      QApplication.translate("Form", "Plugins",
+                                                             None))
+
 
 
 from polibeepsync import icone_rc
