@@ -260,13 +260,13 @@ QScrollBar:vertical {
 }
 
 QScrollBar::handle:horizontal {
-    background: #546E7A;					/* Slider color */
+    background: #AFBDC4;					/* Slider color */
     min-width: 16px;
 	border-radius: 5px;
 }
 
 QScrollBar::handle:vertical {
-    background: #546E7A;					/* Slider color */
+    background: #AFBDC4;					/* Slider color */
     min-height: 16px;
 	border-radius: 5px;
 }
@@ -485,27 +485,14 @@ QStatusBar {
 	color: #546E7A;
 }
 
-QTableView {
+QProgressBar {
 	color: #546E7A;
 }
 
-QTableView::item:hover {
-	color: #AFBDC4;
-	background: transparent;
-}
-
-QTableView::item:selected {
-	color: #80CBC4;
-	background: transparent;
-}
-
-CE_ProgressBar {
-	color: #546E7A;
-}
-
-CE_ProgressBar::chunk:horizontal {
+QProgressBar::chunk:horizontal {
 	background: #80CBC4;
 }
+
 </string>
   </property>
   <property name="documentMode">
@@ -552,7 +539,7 @@ CE_ProgressBar::chunk:horizontal {
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -610,7 +597,7 @@ CE_ProgressBar::chunk:horizontal {
            </widget>
           </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,10">
             <property name="topMargin">
              <number>0</number>
             </property>
@@ -623,11 +610,11 @@ CE_ProgressBar::chunk:horizontal {
                <enum>Qt::Horizontal</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Preferred</enum>
+               <enum>QSizePolicy::MinimumExpanding</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>500</width>
+                <width>400</width>
                 <height>20</height>
                </size>
               </property>
@@ -636,7 +623,7 @@ CE_ProgressBar::chunk:horizontal {
            </layout>
           </item>
           <item row="3" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="5,5">
             <property name="topMargin">
              <number>0</number>
             </property>
@@ -658,9 +645,12 @@ CE_ProgressBar::chunk:horizontal {
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::MinimumExpanding</enum>
+              </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>40</width>
+                <width>200</width>
                 <height>20</height>
                </size>
               </property>

@@ -13,7 +13,7 @@
 - [ ] Add plugin system which allows to download material from non beep
       teachers' website
 
-- [ ] Improve look and feel
+- [X] Improve look and feel
 
 - [X] Implement multithreaded download
 

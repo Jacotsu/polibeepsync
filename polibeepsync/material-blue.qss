@@ -224,13 +224,13 @@ QScrollBar:vertical {
 }
 
 QScrollBar::handle:horizontal {
-    background: #546E7A;					/* Slider color */
+    background: #AFBDC4;					/* Slider color */
     min-width: 16px;
 	border-radius: 5px;
 }
 
 QScrollBar::handle:vertical {
-    background: #546E7A;					/* Slider color */
+    background: #AFBDC4;					/* Slider color */
     min-height: 16px;
 	border-radius: 5px;
 }
@@ -449,24 +449,16 @@ QStatusBar {
 	color: #546E7A;
 }
 
-QTableView {
-	color: #546E7A;
-}
-
-QTableView::item:hover {
-	color: #AFBDC4;
-	background: transparent;
-}
-
-QTableView::item:selected {
-	color: #80CBC4;
-	background: transparent;
-}
-
 QProgressBar {
 	color: #546E7A;
 }
 
 QProgressBar::chunk:horizontal {
 	background: #80CBC4;
+}
+
+QTableView::item:hover {
+	border: 1px solid transparent;
+	border-bottom: 1px solid #546E7A;
+	color: #546E7A;
 }

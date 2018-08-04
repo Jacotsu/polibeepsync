@@ -29,32 +29,11 @@ from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
 from appdirs import user_config_dir, user_data_dir
 
-
-pysideVersion = '0.0.0'
-try:
-    from PySide.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
-                               QModelIndex, Qt, Slot, QTimer, QLocale)
-    from PySide.QtGui import (QApplication, QWidget, QTextCursor,
-                              QMenu, QAction, QFileDialog,
-                              QLabel, QSystemTrayIcon,
-                              qApp, QCursor)
-    import PySide
-    pysideVersion = PySide.__version__
-
-except ImportError:
-
-    from PySide2.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
-                                QModelIndex, Qt, Slot, QTimer, QLocale)
-    from PySide2.QtGui import (QTextCursor, QCursor)
-    from PySide2.QtWidgets import (QWidget, QMainWindow, QMenu, QAction,
-                                   QFileDialog, QLabel,
-                                   QSystemTrayIcon, qApp,
-                                   QApplication)
-
-    import PySide2
-    pysideVersion = PySide2.__version__
-
-
+from PySide2.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
+                            QModelIndex, Qt, Slot, QTimer, QLocale)
+from PySide2.QtGui import (QTextCursor, QCursor)
+from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog, QLabel,
+                               QSystemTrayIcon, qApp, QApplication)
 
 # load options from cmdline
 parser = create_parser()
@@ -648,11 +627,8 @@ released under GNU GPLv3+.</p>
 </html>
 """
 
-        if pysideVersion == '1.2.2':
-            self._window.label_3.setText(QApplication.translate("Form", text, None,
-                                                        QApplication.UnicodeUTF8))
-        else:
-            self._window.label_3.setText(QApplication.translate("Form", text, None))
+        self._window.label_3.setText(QApplication.translate("Form", text,
+                                                            None))
 
 
 def main():
