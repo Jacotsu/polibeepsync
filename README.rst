@@ -1,9 +1,9 @@
 .. image:: https://api.travis-ci.org/Jacotsu/polibeepsync.svg?branch=master
   :alt: Build status
 
-.. image:: https://badge.waffle.io/davethecipo/polibeepsync.png?label=ready&title=Ready
- :target: https://waffle.io/davethecipo/polibeepsync
- :alt: 'Stories in Ready'
+.. image:: https://pypip.in/license/poliBeePsync/badge.svg
+    :target: https://pypi.python.org/pypi/poliBeePsync/
+    :alt: License
 
 .. image:: https://pypip.in/download/poliBeePsync/badge.svg?period=day
     :target: https://pypi.python.org/pypi/poliBeePsync/
@@ -41,9 +41,6 @@
     :target: https://pypi.python.org/pypi/poliBeePsync/
     :alt: Egg Status
 
-.. image:: https://pypip.in/license/poliBeePsync/badge.svg
-    :target: https://pypi.python.org/pypi/poliBeePsync/
-    :alt: License
 
 
 
@@ -59,6 +56,19 @@ This code is in the beta stage. Documentation is under construction
 
 Changelog
 =========
+
+0.3.2 (2018-08-04)
+------------------
+New
+~~~
+- Multithread download [DCDRJ]
+- Material design theme implemented [DCDRJ]
+
+Fix
+~~~
+- Increased download code robustness [GV]
+- Redesigned interface in qt designer for increased modularity [DCDRJ]
+- Regenerated documentation [DCDRJ]
 
 0.3.1 (2018-07-25)
 ------------------
