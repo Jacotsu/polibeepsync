@@ -15,10 +15,10 @@ try:
     import PySide
     pysideVersion = PySide.__version__
 except ImportError:
-    from PySide2.QtGui import (   QIcon, )
+    from PySide2.QtGui import (   QIcon)
 
     from PySide2.QtWidgets import (QApplication,QVBoxLayout, QTabWidget,QTableView,QStyledItemDelegate, QStyleOptionButton,
-                              QStyle, QMainWindow,
+                              QStyle, QMainWindow, QHeaderView, QProgressBar,
                               QWidget, QHBoxLayout, QStyleOptionProgressBar,
                               QGridLayout, QLabel, QLineEdit, QSpacerItem,
                               QSizePolicy, QPushButton,
@@ -31,10 +31,13 @@ except ImportError:
     pysideVersion = PySide2.__version__
 
 
-
 class CoursesListView(QTableView):
     def __init__(self, parent=None):
         QTableView.__init__(self, parent)
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setStretchLastSection(True)
+
         self.progbar = ProgressBarDelegate(self)
         self.setItemDelegateForColumn(1, CheckBoxDelegate(self))
         self.setItemDelegateForColumn(3, self.progbar)
@@ -48,10 +51,10 @@ class ProgressBarDelegate(QStyledItemDelegate):
         progressBar = None
         if pysideVersion == '1.2.2':
             progressBar = QStyleOptionProgressBarV2()
-            progressBar.state = QStyle.State_Enabled
         else:
             progressBar = QStyleOptionProgressBar()
-            progressBar.state = QStyle.State_Enabled
+
+        progressBar.state = QStyle.State_Enabled
         progressBar.direction = QApplication.layoutDirection()
         progressBar.fontMetrics = QApplication.fontMetrics()
         progressBar.rect = option.rect
@@ -59,16 +62,18 @@ class ProgressBarDelegate(QStyledItemDelegate):
         progressBar.maximum = 100
         progressBar.textAlignment = Qt.AlignCenter
         progressBar.textVisible = True
+
         dw = index.data()[0]
         tot = index.data()[1]
         if tot != 0:
             progressBar.progress = round(dw/tot*100, 2)
         else:
             progressBar.progress = 0
-        progressBar.text = "{} MB of {} MB".format(round(dw/(
+        progressBar.text = "{}/{} MB".format(round(dw/(
             1024*1024), 2), round(tot/(1024*1024), 2))
+
         QApplication.style().drawControl(QStyle.CE_ProgressBar, progressBar,
-                                     painter)
+                                         painter)
 
 
 class CheckBoxDelegate(QStyledItemDelegate):
