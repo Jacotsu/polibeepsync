@@ -1,6 +1,19 @@
 Changelog
 =========
 
+0.3.2 (2018-08-04)
+------------------
+New
+~~~
+- Multithread download [DCDRJ]
+- Material design theme implemented [DCDRJ]
+
+Fix
+~~~
+- Increased download code robustness [GV]
+- Redesigned interface in qt designer for increased modularity [DCDRJ]
+- Regenerated documentation [DCDRJ]
+
 0.3.1 (2018-07-25)
 ------------------
 New
