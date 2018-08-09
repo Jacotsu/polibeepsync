@@ -70,5 +70,5 @@ setup(
             'polibeepsync-gui=polibeepsync.qtgui:main'
         ]
     },
-    namespace_packages=['polibeepsync', 'polibeepsync.plugins']
+    namespace_packages=['polibeepsync.plugins']
 )
