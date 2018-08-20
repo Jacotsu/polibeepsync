@@ -48,6 +48,7 @@ setup(
         "pyparsing",
         "signalslot"
     ],
+    python_requires='>=3.6',
     packages = ['polibeepsync'],
     description = "Sync files from https://beep.metid.polimi.it "
                  "(for students of Politecnico di Milano)",
