@@ -35,28 +35,33 @@ class ProgressBarDelegate(QStyledItemDelegate):
         QStyledItemDelegate.__init__(self, parent)
 
     def paint(self, painter, option, index):
-        progressBar = QStyleOptionProgressBar()
+        progressBar = QProgressBar()
+        style = """QProgressBar { color: #546E7A; }
+        QProgressBar::chunk { background: #80CBC4;
+        }"""
 
-        progressBar.state = QStyle.State_Enabled
-        progressBar.direction = QApplication.layoutDirection()
-        progressBar.fontMetrics = QApplication.fontMetrics()
-        progressBar.rect = option.rect
-        progressBar.minimum = 0
-        progressBar.maximum = 100
-        progressBar.textAlignment = Qt.AlignCenter
-        progressBar.textVisible = True
+        progressBar.setAlignment(Qt.AlignCenter)
+        progressBar.setTextVisible(True)
+
+        progressBar.resize(option.rect.size())
+        progressBar.setMinimum(0)
+        progressBar.setMaximum(100)
+
+        progressBar.setStyleSheet(style)
 
         dw = index.data()[0]
         tot = index.data()[1]
         if tot != 0:
-            progressBar.progress = round(dw/tot*100, 2)
+            progressBar.setValue(round(dw/tot*100, 2))
         else:
-            progressBar.progress = 0
-        progressBar.text = "{}/{} MB".format(round(dw/(
-            1024*1024), 2), round(tot/(1024*1024), 2))
+            progressBar.setValue(0)
+        progressBar.setFormat("{}/{} MB".format(round(dw/(
+            1024*1024), 2), round(tot/(1024*1024), 2)))
 
-        QApplication.style().drawControl(QStyle.CE_ProgressBar, progressBar,
-                                         painter)
+        painter.save()
+        painter.translate(option.rect.topLeft())
+        progressBar.render(painter, QPoint(0, 0))
+        painter.restore()
 
 
 class CheckBoxDelegate(QStyledItemDelegate):
@@ -73,24 +78,53 @@ class CheckBoxDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         checked = bool(index.data())
-        check_box_style_option = QStyleOptionButton()
+        checkbox = QCheckBox()
 
         if (index.flags() & Qt.ItemIsEditable) > 0:
-            check_box_style_option.state |= QStyle.State_Enabled
+            checkbox.setEnabled(True)
         else:
-            check_box_style_option.state |= QStyle.State_ReadOnly
+            checkbox.setEnabled(False)
 
         if checked:
-            check_box_style_option.state |= QStyle.State_On
+            checkbox.setCheckState(Qt.Checked)
         else:
-            check_box_style_option.state |= QStyle.State_Off
+            checkbox.setCheckState(Qt.Unchecked)
 
-        check_box_style_option.rect = self.getCheckBoxRect(option)
+        checkbox.rect = self.getCheckBoxRect(option)
 
-        check_box_style_option.state |= QStyle.State_Enabled
+        #checkbox.setCheckState(QStyle.State_Enabled)
 
-        QApplication.style().drawControl(QStyle.CE_CheckBox,
-                                         check_box_style_option, painter)
+        style = '''QCheckBox, QRadioButton {
+                color: #546E7A;
+            }
+
+            QCheckBox::indicator::unchecked  {
+                background-color: #FFFFFF;
+                border: 1px solid #536D79;
+            }
+
+            QCheckBox::indicator::checked, QTreeView::indicator::checked {
+                background-color: qradialgradient(cx:0.5, cy:0.5, fx:0.25, fy:0.15, radius:0.3, stop:0 #80CBC4, stop:1 #FFFFFF);
+                border: 1px solid #536D79;
+            }
+
+
+            QCheckBox::indicator:disabled, QRadioButton::indicator:disabled, QTreeView::indicator:disabled {
+                background-color: #444444;			/* Not sure what this looks like */
+            }
+
+            QCheckBox::indicator::checked:disabled, QRadioButton::indicator::checked:disabled, QTreeView::indicator::checked:disabled {  
+                background-color: qradialgradient(cx:0.5, cy:0.5, fx:0.25, fy:0.15, radius:0.3, stop:0 #BBBBBB, stop:1 #444444); /* Not sure what this looks like */
+            }
+
+            '''
+        checkbox.setStyleSheet(style)
+
+        painter.save()
+        painter.translate(option.rect.topLeft())
+        checkbox.render(painter, QPoint(0, 0))
+        painter.restore()
+
 
     def editorEvent(self, event, model, option, index):
         if not (index.flags() & Qt.ItemIsEditable) > 0:
