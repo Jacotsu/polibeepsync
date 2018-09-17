@@ -54,20 +54,20 @@ Bug Tracker
 ------------
 
 In order to file a bug report, you should
-`open a issue <https://github.com/davethecipo/polibeepsync/issues>`_
+`open a issue <https://github.com/jacotsu/polibeepsync/issues>`_
 on github.
 
 Source code
 ------------
 
 
-Source code is available on `<https://github.com/davethecipo/polibeepsync>`_.
+Source code is available on `<https://github.com/jacotsu/polibeepsync>`_.
 I recommend using a virtualenv in order to develop; the command used to create
 one may be different from the one I show below. The following instructions are
 for Linux.
 ::
 
-    git clone https://github.com/davethecipo/polibeepsync.git
+    git clone https://github.com/jacotsu/polibeepsync.git
     cd polibeepsync
     python -m venv .venv
     source .venv/bin/activate

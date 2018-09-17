@@ -29,7 +29,7 @@ Once it has finished, you can start the application with the command
 ``polibeepsync-gui``.
 
 I recommend adding a custom menu entry to the application menu of your
-Desktop Environment. As an icon, you can use `this one <https://raw.githubusercontent.com/davethecipo/polibeepsync/master/icons/uglytheme/48x48/polibeepsync.png>`_.
+Desktop Environment. As an icon, you can use `this one <https://raw.githubusercontent.com/jacotsu/polibeepsync/master/icons/uglytheme/48x48/polibeepsync.png>`_.
 
 Installation inside a virtual environment
 ------------------------------------------
@@ -38,7 +38,7 @@ Installation inside a virtual environment
     Open a terminal and type
     ::
       sudo pip3 install virtualenv
-      virtualenv-3.4 polibeepsync-venv
+      virtualenv polibeepsync-venv
       source polibeepsync-venv/bin/activate
 
     You can choose the name of folder, I chose ``polibeepsync-venv``.
@@ -62,7 +62,7 @@ shell script with the following content
     polibeepsync-gui &
 
 I recommend adding a custom menu entry to the application menu of your
-Desktop Environment. As an icon, you can use `this one <https://raw.githubusercontent.com/davethecipo/polibeepsync/master/icons/uglytheme/48x48/polibeepsync.png>`_.
+Desktop Environment. As an icon, you can use `this one <https://raw.githubusercontent.com/jacotsu/polibeepsync/master/icons/uglytheme/48x48/polibeepsync.png>`_.
 In this case, you would create an entry for the shell script.
 
 

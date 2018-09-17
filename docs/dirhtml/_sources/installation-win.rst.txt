@@ -1,7 +1,7 @@
 Installation (Windows)
 =======================
 
-Install `python 3.4 <https://www.python.org/>`_, making sure to enable the
+Install `python 3.7 <https://www.python.org/>`_, making sure to enable the
 option "Add python.exe to Path".
 
 .. image:: addtopath.png
@@ -17,7 +17,7 @@ look where it has been installed.
 
 .. image:: whereisinstalled.png
 
-In the image, you can see that it has been installed to ``C:\Python34\Scripts``.
+In the image, you can see that it has been installed to ``C:\Python37\Scripts``.
 Browse to that folder, right click on ``polibeepsync-gui.exe`` and
 choose ``create shortcut``.
 
@@ -26,7 +26,7 @@ choose ``create shortcut``.
 Now you can copy the shortcut wherever you want and use it to start the
 program.
 
-You may want to add a `nicer icon <https://raw.githubusercontent.com/davethecipo/polibeepsync/master/icons/uglytheme/48x48/polibeepsync.ico>`_
+You may want to add a `nicer icon <https://raw.githubusercontent.com/jacotsu/polibeepsync/master/icons/uglytheme/48x48/polibeepsync.ico>`_
 to the shortcut, by right-clicking on the shortcut, choosing ``Properties``
 and then clicking on ``Choose icon``.
 
