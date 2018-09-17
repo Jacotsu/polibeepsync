@@ -22,7 +22,8 @@ Direct installation
 ----------------------
 In a terminal issue the command
 ::
-    sudo pip3 install poliBeePsync
+    git clone https://github.com/Jacotsu/polibeepsync.git
+    pip3 install --user ./poliBeePsync
 
 Once it has finished, you can start the application with the command
 ``polibeepsync-gui``.

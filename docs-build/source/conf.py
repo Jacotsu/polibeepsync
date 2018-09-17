@@ -176,10 +176,10 @@ html_static_path = ['_static']
 # If true, links to the reST sources are added to the pages.
 #html_show_sourcelink = True
 
-# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
+# If true, "Created using Sphinx" is shown in the HTML barter. Default is True.
 #html_show_sphinx = True
 
-# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
+# If true, "(C) Copyright ..." is shown in the HTML barter. Default is True.
 #html_show_copyright = True
 
 # If true, an OpenSearch description file will be output, and all pages will
@@ -266,8 +266,8 @@ texinfo_documents = [
 # If false, no module index is generated.
 #texinfo_domain_indices = True
 
-# How to display URL addresses: 'footnote', 'no', or 'inline'.
-#texinfo_show_urls = 'footnote'
+# How to display URL addresses: 'bartnote', 'no', or 'inline'.
+#texinfo_show_urls = 'bartnote'
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
@@ -336,7 +336,7 @@ epub_exclude_files = ['search.html']
 # Scale large images.
 #epub_max_image_width = 0
 
-# How to display URL addresses: 'footnote', 'no', or 'inline'.
+# How to display URL addresses: 'bartnote', 'no', or 'inline'.
 #epub_show_urls = 'inline'
 
 # If false, no index is generated.
