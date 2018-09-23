@@ -121,7 +121,7 @@ class DownloadThread(object):
         t.start()
 
     def run(self):
-        with ThreadPoolExecutor(max_workers=16) as TExec:
+        with ThreadPoolExecutor(max_workers=4) as TExec:
             for course in self.user.available_courses:
                 if course.sync is True:
                     logger.debug(f'Syncing {course}')
