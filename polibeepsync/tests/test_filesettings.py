@@ -37,7 +37,7 @@ def test_allvaluesvalidpresent(default_settings_file, default_settings_dict):
     assert sets == default_settings_dict
 
 
-def test_notallvaluesarepresent(tmpdir):
+def test_notallvaluesarepresent(tmpdir, default_settings_dict):
     """Not all values are present; all are valid, file is accessible"""
     conf = RawConfigParser()
     conf.optionxform = lambda option: option
@@ -48,7 +48,7 @@ def test_notallvaluesarepresent(tmpdir):
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
         conf.write(setsfile)
-    sets = settingsFromFile(str(f), default_settings_dict())
+    sets = settingsFromFile(str(f), default_settings_dict)
     merge = {
         'UpdateEvery': '50',
         'RootFolder': 'custom',
@@ -57,7 +57,7 @@ def test_notallvaluesarepresent(tmpdir):
     assert sets == merge
 
 
-def test_allpresent_someinvalid(tmpdir):
+def test_allpresent_someinvalid(tmpdir, default_settings_dict):
     """File accessible, all values present, some not valid"""
     conf = RawConfigParser()
     conf.optionxform = lambda option: option
@@ -68,7 +68,7 @@ def test_allpresent_someinvalid(tmpdir):
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
         conf.write(setsfile)
-    sets = settingsFromFile(str(f), default_settings_dict())
+    sets = settingsFromFile(str(f), default_settings_dict)
     nice = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
@@ -77,7 +77,7 @@ def test_allpresent_someinvalid(tmpdir):
     assert sets == nice
 
 
-def test_somepresent_allinvalid(tmpdir):
+def test_somepresent_allinvalid(tmpdir, default_settings_dict):
     """Not all values present, all are invalid, file accessible"""
     conf = RawConfigParser()
     conf.optionxform = lambda option: option
@@ -88,7 +88,7 @@ def test_somepresent_allinvalid(tmpdir):
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
         conf.write(setsfile)
-    sets = settingsFromFile(str(f), default_settings_dict())
+    sets = settingsFromFile(str(f), default_settings_dict)
     nice = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
@@ -97,25 +97,25 @@ def test_somepresent_allinvalid(tmpdir):
     assert sets == nice
 
 
-def test_missingsection(tmpdir):
+def test_missingsection(tmpdir, default_settings_dict):
     f = tmpdir.mkdir('fold').join('sets.ini')
     text = """UpdateEvery = 60\nRootFOlder = root\n
 \nSyncNewCourses = True"""
     with open(str(f), 'w') as setsfile:
         setsfile.write(text)
-    sets = settingsFromFile(str(f), default_settings_dict())
-    assert sets == default_settings_dict()
+    sets = settingsFromFile(str(f), default_settings_dict)
+    assert sets == default_settings_dict
 
 
-def test_missingfolder():
-    sets = settingsFromFile('/i/dont/exist/sets.ini', default_settings_dict())
-    assert sets == default_settings_dict()
+def test_missingfolder(default_settings_dict):
+    sets = settingsFromFile('/i/dont/exist/sets.ini', default_settings_dict)
+    assert sets == default_settings_dict
 
 
-def test_missingfile(tmpdir):
+def test_missingfile(tmpdir, default_settings_dict):
     f = tmpdir.mkdir('fold')
-    sets = settingsFromFile(str(f)+"nofile.ini", default_settings_dict())
-    assert sets == default_settings_dict()
+    sets = settingsFromFile(str(f)+"nofile.ini", default_settings_dict)
+    assert sets == default_settings_dict
 
 
 def test_savefileexists(tmpdir, default_settings_dict):
