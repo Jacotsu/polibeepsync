@@ -30,7 +30,7 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Natural Language :: English",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.6"
+    "Programming Language :: Python :: 3.7"
 ]
 
 setup(
@@ -48,7 +48,7 @@ setup(
         "pyparsing",
         "signalslot"
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     packages = ['polibeepsync'],
     description = "Sync files from https://beep.metid.polimi.it "
                  "(for students of Politecnico di Milano)",
