@@ -1,5 +1,5 @@
-# coding=UTF-8
-__copyright__ = "Copyright 2014 Davide Olianas (ubuntupk@gmail.com)."
+__copyright__ = """Copyright 2018 Davide Olianas (ubuntupk@gmail.com), Di
+Campli Raffaele."""
 
 __license__ = """This f is part of poliBeePsync.
 poliBeePsync is free software: you can redistribute it and/or modify
@@ -18,19 +18,20 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, tzinfo
+from functools import partial
 import requests
 import os
 import logging
 import pdb
 import re
-from concurrent.futures import ThreadPoolExecutor
+from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
+        Slot
 from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
     Literal, ParseException
-from threading import Thread
 from signalslot import Signal as sSignal
 
 
-logger = logging.getLogger("polibeepsync.common")
+commonlogger = logging.getLogger("polibeepsync.common")
 
 
 # --- Custom Exceptions --- #
@@ -42,90 +43,108 @@ class InvalidLoginError(Exception):
 
 
 # --- Custom Threads --- #
-class LoginThread(Thread):
-    def __init__(self, user):
-        Thread.__init__(self)
-        self.name = 'loginthread'
+class QThreadPoolContexted(QThreadPool):
+    def __init__(self, max_threads=4, parent=None):
+        super(QThreadPoolContexted, self).__init__(parent)
+        self.setMaxThreadCount(max_threads)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.waitForDone()
+
+
+class RefreshCoursesThread(QThread):
+    def __init__(self, user, parent=None):
+        super(RefreshCoursesThread, self).__init__(parent)
+        self.exiting = False
+        self.dumpuser = MySignal()
+        self.newcourses = CoursesSignal()
+        self.removable = CoursesSignal()
         self.user = user
-        self.login_status = sSignal(args=['message'])
 
     def run(self):
-        try:
-            self.user.logout()
-            self.user.login()
-            if self.user.logged is True:
-                self.login_status.emit(message='Successful login.')
-                logger.info('Successful login.')
-        except InvalidLoginError:
-            self.user.logout()
-            self.login_status.emit(message='Login failed.')
-            logger.error("Login failed.", exc_info=True)
-        except requests.ConnectionError:
-            self.user.logout()
-            self.login_status.emit(message='I can\'t connect to the'
-                                           ' server. Is the Internet'
-                                           ' connection working?')
-            logger.error('Connection error.', exc_info=True)
-        except requests.Timeout:
-            self.user.logout()
-            self.login_status.emit(message="The timeout time has been"
-                                           " reached. Is the Internet"
-                                           " connection working?")
-            logger.error("Timeout error.", exc_info=True)
+        while not self.exiting:
+            most_recent = self.user.get_online_courses()
+            last = self.user.available_courses
+            new = most_recent - last
+            removable = last - most_recent
+            if len(removable) > 0:
+                commonlogger.info('The following courses have'
+                                  ' been removed because they '
+                                  'aren\'t available online: {}'
+                                  .format(removable))
+            if len(new) > 0:
+                for course in new:
+                    course.save_folder_name = course.simplify_name(course.name)
+                    commonlogger.info('A new course '
+                                      'was found: {}'.format(course))
+            if len(new) == 0:
+                commonlogger.info('No new courses found.')
+            self.user.sync_available_courses(most_recent)
+            commonlogger.debug('User object changed')
+            self.newcourses.sig.emit(new)
+            self.removable.sig.emit(removable)
+            self.exiting = True
 
 
-class SyncThread(Thread):
-    def __init__(self, user):
-        Thread.__init__(self)
-        self.name = 'syncthread'
+class LoginThread(QThread):
+    def __init__(self, user, parent=None):
+        super(LoginThread, self).__init__(parent)
+        self.exiting = False
+        self.signal_ok = MySignal()
+        self.signal_error = MySignal()
         self.user = user
-        self.signal = sSignal(args=['message'])
-        self.new = sSignal(args=['course'])
-        self.old = sSignal(args=['course'])
 
     def run(self):
-        most_recent = self.user.get_online_courses()
-        last = self.user.available_courses
-        new = most_recent - last
-        removable = last - most_recent
-        if len(removable) > 0:
-            self.signal.emit(message='The following courses have'
-                                     ' been removed because they '
-                                     'aren\'t available online: {}'
-                             .format(removable))
-            for course in removable:
-                self.old.emit(course=course)
-        if len(new) > 0:
-            for course in new:
-                course.save_folder_name = course.simplify_name(course.name)
-                self.signal.emit(message='A new course '
-                                         'was found: {}'.format(course))
-                self.new.emit(course=course)
-        if len(new) == 0:
-            self.signal.emit(message='No new courses found.')
-            logger.info('No new courses found.')
-        self.user.sync_available_courses(most_recent)
-        logger.info('User object changed')
+        commonlogger.info('Logging in.')
+        while not self.exiting:
+            try:
+                self.user.logout()
+                self.user.login()
+                if self.user.logged is True:
+                    commonlogger.info('Successful login.')
+                    self.signal_ok.sig.emit('Successful login')
+                    self.exiting = True
+            except (InvalidLoginError, requests.exceptions.MissingSchema):
+                self.user.logout()
+                self.exiting = True
+                commonlogger.error("Login failed.", exc_info=True)
+                self.signal_error.sig.emit('Login failed')
+            except requests.ConnectionError:
+                self.user.logout()
+                self.exiting = True
+                commonlogger.error('Connection error.', exc_info=True)
+                self.signal_error.sig.emit('Connection error')
+            except requests.Timeout:
+                self.user.logout()
+                self.exiting = True
+                commonlogger.error("Timeout error.", exc_info=True)
+                self.signal_error.sig.emit('Timeout error')
 
 
-class DownloadThread(object):
-    def __init__(self, user, topdir):
+class DownloadThread(QThread):
+    def __init__(self, user, topdir, parent=None):
+        super(DownloadThread, self).__init__(parent)
         self.user = user
         self.topdir = topdir
+        self.start_download_s = MySignal()
+        self.start_download_s.sig.connect(self._work)
         self.download_signal = sSignal(args=['course'])
         self.initial_sizes = sSignal(args=['course'])
         self.data_signal = sSignal(args=['data'])
 
-    def start(self):
-        t = Thread(target=self.run)
-        t.start()
-
     def run(self):
-        with ThreadPoolExecutor(max_workers=4) as TExec:
+        self.start_download_s.sig.emit('')
+
+    @Slot()
+    def _work(self):
+        with QThreadPoolContexted(parent=self) as TExec:
             for course in self.user.available_courses:
                 if course.sync is True:
-                    logger.debug(f'Syncing {course}')
-                    TExec.submit(self.sync_course, course)
+                    commonlogger.debug(f'Syncing {course}')
+                    TExec.start(func_runnable(self, self.sync_course, course))
 
     def sync_course(self, course):
         try:
@@ -141,12 +160,12 @@ class DownloadThread(object):
                                     syncthese)
 
             syncsize = total_size(needsync)
-            logger.info('****SYNCSIZE: ', syncsize)
+            commonlogger.info(f'****SYNCSIZE: {sizeof_fmt(syncsize)}')
             alreadysynced = course.total_file_size - syncsize
-            logger.info('****ALREADYSYNCED ', alreadysynced)
+            commonlogger.info(f'****ALREADYSYNCED {sizeof_fmt(alreadysynced)}')
             course.downloaded_size = alreadysynced
-            logger.info('****DOWNLOADED SIZE setting to ',
-                  course.downloaded_size)
+            commonlogger.info('****DOWNLOADED SIZE setting to '
+                              f'{sizeof_fmt(course.downloaded_size)}')
             self.initial_sizes.emit(course=course)
 
             self.user.save_files(course, needsync,
@@ -154,24 +173,16 @@ class DownloadThread(object):
                                  self.data_signal)
             # adesso ogni f di syncthese ha la data di download
             # aggiornata, ma deve essere scritto su f
-            logger.info("Synced files for {}".format(course.name))
+            commonlogger.info(f'Synced files for {course.name}')
         except InvalidLoginError:
             self.user.logout()
-            logger.info("Login failed.", exc_info=True)
+            commonlogger.info('Login failed.', exc_info=True)
         except requests.ConnectionError:
             self.user.logout()
-            # self.signal_error.sig.emit('I can\'t connect to'
-            # ' the server. Is the'
-            # ' Internet connection'
-            # ' working?')
-            logger.error('Connection error.', exc_info=True)
+            commonlogger.error('Connection error.', exc_info=True)
         except requests.Timeout:
             self.user.logout()
-            # self.signal_error.sig.emit("The timeout time has"
-            # " been reached. Is the"
-            # " Internet connection"
-            # " working?")
-            logger.error("Timeout error.", exc_info=True)
+            commonlogger.error("Timeout error.", exc_info=True)
 
 
 # --- "Core" classes here --- #
@@ -256,9 +267,8 @@ class Courses(GenericSet):
 
 class Course(GenericSet):
     def __init__(self, name, documents_url, sync=False):
-        logger.debug('Creating course with name={},'
-                     ' documents_url={}, sync={}'
-                     .format(name, documents_url, sync))
+        commonlogger.debug(f'Creating course with name={name},'
+                           f' documents_url={documents_url}, sync={sync}')
         super(Course, self).__init__()
         self.name = name
         self.documents_url = documents_url
@@ -282,8 +292,8 @@ class Course(GenericSet):
             grammar = year.suppress() + Literal("-").suppress() + middle
             simple = " ".join(grammar.parseString(name))
         except ParseException:
-            logger.error('Failed to simplify course name {}'.format(name),
-                         exc_info=True)
+            commonlogger.error(f'Failed to simplify course name {name}',
+                               exc_info=True)
         return simple.title()
 
     def __hash__(self):
@@ -307,7 +317,7 @@ class Course(GenericSet):
 
 class CourseFile(object):
     def __init__(self, name, url, last_online_edit_time):
-        gmt1 = GMT1()
+        # gmt1 = GMT1()
         self.name = name
         self.url = url
         self.last_online_edit_time = last_online_edit_time
@@ -347,21 +357,21 @@ class Folder(object):
 def total_size(listoffiles):
     total = 0
     for f, path in listoffiles:
-        logger.debug('Size of {}: {} bytes'.format(f.name, f.size))
+        commonlogger.debug(f'Size of {f.name}: {f.size} bytes')
         total += f.size
-    logger.debug('Total size: {}'.format(total))
+    commonlogger.debug('Total size: {}'.format(total))
     return total
 
 
 def folder_total_size(parentfolder, sizes):
     for f in parentfolder.files:
-        logger.debug('il f ', f.name, ' è grosso ', f.size)
-        logger.debug('prima di aggiungere, size è ', sizes)
+        commonlogger.debug(f'il f {f.name}, è grosso {f.size}')
+        commonlogger.debug(f'prima di aggiungere, size è {sizes}')
         sizes.append(f.size)
-        logger.debug('dopo operazione, size è ', sizes)
+        commonlogger.debug(f'dopo operazione, size è {sizes}')
     for folder in parentfolder.folders:
-        logger.debug('sto controllando la dimensione della sottocartella ',
-              folder.name)
+        commonlogger.debug('sto controllando la dimensione della sottocartella'
+                           f' {folder.name}')
         folder_total_size(folder, sizes)
         # viene passata sempre la stessa dimensione della cartella più in alto
     return sizes
@@ -401,9 +411,9 @@ def need_syncing(folder, parent_folder, syncthese):
     path is the absolute path of the folder in which the f should be
     downloaded
     """
-    logger.info(f'calling with folder={folder.name}, parent '
-                'folder={foparent_folder}, lunghezza syncthese ='
-                '{len(syncthese)}')
+    commonlogger.debug(f'calling with folder={folder.name}, parent '
+                       f'folder={parent_folder}, lunghezza syncthese ='
+                       f'{len(syncthese)}')
     # basenames contains the names of files without extension (this is used
     # later because the website sometimes doesn't show the f extension)
     basenames = []
@@ -415,17 +425,17 @@ def need_syncing(folder, parent_folder, syncthese):
         # print(f.local_creation_time, f.last_online_edit_time)
         simplename = os.path.join(parent_folder, f.name)
         if f.local_creation_time is None:
-            logger.debug('data None')
+            commonlogger.debug('data None')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
-            logger.debug('creazione < online')
+            commonlogger.debug('creazione < online')
             syncthese.append((f, parent_folder))
         elif not os.path.exists(simplename) and f.name not in basenames:
-            logger.debug('scommetto che penso che esistono quelli senza '
-                         'estensione')
-            logger.debug('f.name = ', f.name)
-            logger.debug('altrimenti')
-            logger.debug('non esiste e allora aggiungo')
+            commonlogger.debug('scommetto che penso che esistono quelli senza '
+                               'estensione')
+            commonlogger.debug(f'f.name = {f.name}')
+            commonlogger.debug('altrimenti')
+            commonlogger.debug('non esiste e allora aggiungo')
             syncthese.append((f, parent_folder))
     for f in folder.folders:
         new_parent = os.path.join(parent_folder, f.name)
@@ -471,10 +481,10 @@ class User(object):
             instance
         """
         response = self.session.get(url, timeout=5, verify=True)
-        soup = BeautifulSoup(response.text)
+        soup = BeautifulSoup(response.text, "lxml")
         login_tag = soup.find('input', attrs={'id': 'login'})
         if login_tag is not None:
-            logger.info("The session has expired. Logging-in again...")
+            commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
             response = self.session.get(url, timeout=5, verify=True)
@@ -497,7 +507,7 @@ class User(object):
         response = self.session.get(url, timeout=5, verify=True, stream=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
-            logger.info("The session has expired. Logging-in again...")
+            commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
             response = self.session.get(url, timeout=5, verify=True,
@@ -507,7 +517,7 @@ class User(object):
     def _login_first_step(self):
         default_lang_page = self.session.get(self.loginurl, timeout=5,
                                              verify=True)
-        lang_soup = BeautifulSoup(default_lang_page.text)
+        lang_soup = BeautifulSoup(default_lang_page.text, 'lxml')
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' +
@@ -528,17 +538,17 @@ aunicalogin/controller/IdentificazioneUnica.do?\
         return login_response
 
     def _do_shibboleth(self, first_response):
-        hidden_fields = BeautifulSoup(first_response.text).find_all(
+        hidden_fields = BeautifulSoup(first_response.text, 'lxml').find_all(
             'input', attrs={'type': 'hidden'})
         # The SAML response wants '+' replaced by %2B
         relay_state = hidden_fields[0].attrs['value']
         saml_response = hidden_fields[1].attrs['value'].replace('+',
                                                                 '%2B')
-        final_request_data = "RelayState=%s&SAMLResponse=%s" % \
+        final_request_data = 'RelayState=%s&SAMLResponse=%s' % \
                              (relay_state, saml_response)
         final_headers = {
-            'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER",
+            'Cookie': 'GUEST_LANGUAGE_ID=en_GB; \
+COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER',
             'Content-Type': 'application/x-www-form-urlencoded',
         }
         self.session.post(
@@ -571,7 +581,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         """
         # switch to english version if we're on the italian site
         first_response = self._login_first_step()
-        first_soup = BeautifulSoup(first_response.text)
+        first_soup = BeautifulSoup(first_response.text, "lxml")
         form = first_soup.find_all('form')[0]
         url = form['action']
         payload = {}
@@ -589,7 +599,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                                             data=payload,
                                             headers=login_headers)
 
-        login_soup = BeautifulSoup(second_response.text)
+        login_soup = BeautifulSoup(second_response.text, "lxml")
         try:
             parenttag = login_soup.find_all('table')[3]
             parenttag.find('td',
@@ -628,7 +638,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             ]
         link = link + 'documenti-e-media?' + "&".join(weird_parameters)
         course = Course(name, link)
-        logger.debug('Course found: {}'.format(course.name))
+        commonlogger.debug(f'Course found: {course.name}')
         return course
 
     def _courses_scraper(self, text):
@@ -638,7 +648,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         the course (not stripped of squared brackets) and firstlink is the
         link to be followed in order to get the real course url.
         """
-        courses_soup = BeautifulSoup(text)
+        courses_soup = BeautifulSoup(text, "lxml")
         raw_courses = courses_soup.find_all('tr',
                                             attrs={'class': 'results-row'})
         # the first tag is not a course
@@ -669,7 +679,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         Returns:
             online_courses (:class:`Courses`): a :class:`Courses` container of
             all courses available online."""
-        logger.info('Looking for new courses.')
+        commonlogger.info('Looking for new courses.')
         coursespage = self.get_page(self.courses_url)
         temp_courses = self._courses_scraper(coursespage.text)
         courses = Courses()
@@ -701,21 +711,21 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         # the "if not in" check is not really needed, since the append
         # function doesn't allow duplicates.
         for elem in master_courses:
-            logger.debug('Comparing course {} with the local copy'
-                         'of courses'.format(elem.name))
+            commonlogger.debug(f'Comparing course {elem.name} with the local '
+                               'copy of courses')
             if elem not in self.available_courses:
-                logger.debug("It's not present in the local copy;"
-                             " adding it")
+                commonlogger.debug("It's not present in the local copy;"
+                                   " adding it")
                 self.available_courses.append(elem)
         # now do the opposite: if a course has been deleted,
         # do the same with the local copy
         for elem in self.available_courses:
-            logger.debug("Comparing course {} from the local data "
-                         "to the new list.".format(elem.name))
+            commonlogger.debug(f'Comparing course {elem.name} from the local '
+                               'data to the new list.')
             if elem not in master_courses:
-                logger.debug("It's not present in the new list, "
-                             "therefore we remove it from the local"
-                             " data")
+                commonlogger.debug("It's not present in the new list, "
+                                   "therefore we remove it from the local"
+                                   " data")
                 self.available_courses.remove(elem)
 
     def update_course_files(self, course):
@@ -724,19 +734,20 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         synclocalwithonline(course.documents, online)
         sizes = []
         course.total_file_size = sum(folder_total_size(course.documents,
-                                                        sizes))
-        logger.info('****DIMENSIONE TOTALE: ', course.total_file_size)
+                                                       sizes))
+        human_total_size = sizeof_fmt(course.total_file_size)
+        commonlogger.info(f'****DIMENSIONE TOTALE: {human_total_size}')
 
     def find_files_and_folders(self, link, thisfoldername):
         response = self.get_page(link)
-        soup = BeautifulSoup(response.text)
+        soup = BeautifulSoup(response.text, "lxml")
         tags = soup.find_all('tr', attrs={'class': 'document-display-style'})
 
         folder = Folder(thisfoldername, response.url)
 
         for v in tags:
-            logger.debug("Tags from which we extract the list of files:"
-                         " {}".format(v))
+            commonlogger.debug("Tags from which we extract the list of files:"
+                               " {}".format(v))
             name_span = v.find('span', attrs={'class': 'taglib-text'})
             name = name_span.text
             rawdate = v.find('td', attrs={'class': 'col-5'}).text
@@ -753,7 +764,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             if '--' not in last_column:
                 download_page_link = name_span.parent['href']
                 response = self.get_page(download_page_link)
-                download_page = BeautifulSoup(response.text)
+                download_page = BeautifulSoup(response.text, "lxml")
 
                 try:
                     down_div = download_page.find_all('span',
@@ -768,7 +779,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 down_link = down_div.find_all('a')[0]['href']
                 regex = re.search('(?<=\\()(.*?)(?=\\))', down_span.text)
                 size = regex.group(0)
-                size = re.sub('[^0-9\\.,]','', size)
+                size = re.sub('[^0-9\\.,]', '', size)
                 size = int(float(size.strip().replace(".", "").
                                  replace(",", ".")) * 1024)
                 complete_file = CourseFile(name, down_link, complete_date)
@@ -783,10 +794,12 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
 
     def save_files(self, course, needsync, downloadsignal, datesignal,
                    chunk_size=512 * 1024):
-        with ThreadPoolExecutor(max_workers=4) as TExec:
+        with QThreadPoolContexted() as TExec:
             for coursefile, path in needsync:
-                TExec.submit(self.download_file, course, path, coursefile,
-                             needsync, downloadsignal, datesignal, chunk_size)
+                TExec.start(func_runnable(self, self.download_file, course,
+                                          path, coursefile, needsync,
+                                          downloadsignal, datesignal,
+                                          chunk_size))
 
     def download_file(self, course, path, coursefile, needsync, downloadsignal,
                       datesignal, chunk_size):
@@ -796,14 +809,67 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         complete_name = os.path.join(path, complete_basename)
         os.makedirs(path, exist_ok=True)
         with open(complete_name, 'wb') as f:
-            logger.info('writing into {}'.format(complete_name))
+            commonlogger.info('writing into {}'.format(complete_name))
             for chunk in result.iter_content(chunk_size):
                 if chunk:
                     f.write(chunk)
                     course.downloaded_size += len(chunk)
-                    logger.debug('chunk size: {}'.format(len(chunk)))
+                    commonlogger.debug('chunk size: {}'.format(len(chunk)))
                     downloadsignal.emit(course=course)
             coursefile.local_creation_time = datetime.now(self.gmt1)
             # we emit another signal here so that we can save to f
             # the updated local creation time
             datesignal.emit(data=(course, coursefile, path))
+
+
+# --- Utils ---#
+class func_runnable(QRunnable):
+    def __init__(self, parent, function, *args, **kwargs):
+        super(func_runnable, self).__init__(parent)
+        self.run = partial(function, *args, **kwargs)
+
+
+def read(*names, **kwargs):
+    with open(
+            os.path.join(os.path.dirname(__file__), *names),
+            encoding=kwargs.get("encoding", "utf8")
+    ) as fp:
+        return fp.read()
+
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
+
+class MySignal(QObject):
+    sig = Signal(str)
+
+
+class CoursesSignal(QObject):
+    sig = Signal(list)
+
+
+class DownloadChunkSignal(QObject):
+    sig = Signal(Course, int)
+
+
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
+
+class SignalLoggingHandler(logging.Handler):
+    def __init__(self, signal):
+        super(SignalLoggingHandler, self).__init__()
+
+        def sig_emit(record):
+            signal.sig.emit(record.msg)
+        self.emit = sig_emit

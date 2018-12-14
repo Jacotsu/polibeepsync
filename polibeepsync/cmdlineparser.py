@@ -10,6 +10,10 @@ def create_parser():
                              " in the system tray")
     parser.add_argument('--debug', action='store', choices=debug_levels,
                         help="Show debug information.")
+    parser.add_argument('-s', '--use_theme',
+                        action='store_true', default=False,
+                        help="Choose Qt theme over gtk")
+
     return parser
 
 

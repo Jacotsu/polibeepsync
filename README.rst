@@ -57,6 +57,22 @@ This code is in the beta stage. Documentation is under construction
 Changelog
 =========
 
+0.3.3
+-----------------
+New
+~~~
+- Set 'info' as default logging level [DCDRJ]
+- Logging is now less cluttered [DCDRJ]
+- Download size are now shown in human readable format during logging [DCDRJ]
+- Terminal logging and console now are synced [DCDRJ]
+
+Fix
+~~~
+- Code cleanup [DCDRJ]
+- Improved QT integration [DCDRJ]
+- Reduced number of connection threads, now beep shouldn't drop connections [DCDRJ]
+
+
 0.3.2 (2018-08-04)
 ------------------
 New

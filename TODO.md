@@ -1,6 +1,6 @@
 ## To Do
 
-- [ ] Add dynamic connection management to bypass beep's anti dos system
+- [X] Add dynamic connection management to bypass beep's anti dos system
 
 - [ ] Fix bug that crashes the app when incorrect credentials are used
 

@@ -1,4 +1,5 @@
-__copyright__ = "Copyright 2014 Davide Olianas (ubuntupk@gmail.com)."
+__copyright__ = """Copyright 2018 Davide Olianas (ubuntupk@gmail.com), Di
+Campli Raffaele."""
 
 __license__ = """This file is part of poliBeePsync.
 poliBeePsync is free software: you can redistribute it and/or modify
@@ -19,11 +20,11 @@ import requests
 import os
 import pickle
 import sys
-import re
 import logging
 import json
 from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
-    DownloadThread
+    DownloadThread, LoginThread, find_version, MySignal, CoursesSignal, \
+    DownloadChunkSignal, RefreshCoursesThread, SignalLoggingHandler
 from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
@@ -33,149 +34,13 @@ from PySide2.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
                             QModelIndex, Qt, Slot, QTimer, QLocale)
 from PySide2.QtGui import (QTextCursor, QCursor)
 from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog, QLabel,
-                               QSystemTrayIcon, qApp, QApplication)
-
-# load options from cmdline
-parser = create_parser()
-args = parser.parse_args()
-
-# set debug levels
-LEVELS = {
-    'notset': logging.NOTSET,
-    'debug': logging.DEBUG,
-    'info': logging.INFO,
-    'warning': logging.WARNING,
-    'error': logging.ERROR,
-    'critical': logging.CRITICAL,
-}
-
-level_name = 'notset'
-if args.debug:
-    level_name = args.debug
-level = LEVELS.get(level_name, logging.NOTSET)
-
-logger = logging.getLogger("polibeepsync.qtgui")
-logger.setLevel(level)
-# now get the logger used in the common module and set its level to what
-# we get from sys.argv
-commonlogger = logging.getLogger("polibeepsync.common")
-commonlogger.setLevel(level)
-
-formatter = logging.Formatter('[%(levelname)s] %(name)s %(message)s')
-
-handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(formatter)
-handler.setLevel(logging.DEBUG)
-
-logger.addHandler(handler)
-commonlogger.addHandler(handler)
-
-
-def read(*names, **kwargs):
-    with open(
-            os.path.join(os.path.dirname(__file__), *names),
-            encoding=kwargs.get("encoding", "utf8")
-    ) as fp:
-        return fp.read()
-
-
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+                               QSystemTrayIcon, qApp, QApplication,
+                               QProxyStyle)
 
 
 __version__ = find_version("__init__.py")
-
-
-class MySignal(QObject):
-    sig = Signal(str)
-
-
-class CoursesSignal(QObject):
-    sig = Signal(list)
-
-
-class DownloadChunkSignal(QObject):
-    sig = Signal(Course, int)
-
-
-class LoginThread(QThread):
-    def __init__(self, user, parent=None):
-        QThread.__init__(self, parent)
-        self.exiting = False
-        self.signal_ok = MySignal()
-        self.signal_error = MySignal()
-        self.user = user
-
-    def run(self):
-        logger.info('Logging in.')
-        while not self.exiting:
-            try:
-                self.user.logout()
-                self.user.login()
-                if self.user.logged is True:
-                    self.signal_ok.sig.emit('Successful login.')
-                    logger.info('Successful login.')
-                    self.exiting = True
-            except (InvalidLoginError, requests.exceptions.MissingSchema):
-                self.user.logout()
-                self.exiting = True
-                self.signal_error.sig.emit('Login failed.')
-                logger.error("Login failed.", exc_info=True)
-            except requests.ConnectionError:
-                self.user.logout()
-                self.exiting = True
-                self.signal_error.sig.emit('I can\'t connect to the'
-                                           ' server. Is the Internet'
-                                           ' connection working?')
-                logger.error('Connection error.', exc_info=True)
-            except requests.Timeout:
-                self.user.logout()
-                self.exiting = True
-                self.signal_error.sig.emit("The timeout time has been"
-                                           " reached. Is the Internet"
-                                           " connection working?")
-                logger.error("Timeout error.", exc_info=True)
-
-
-class RefreshCoursesThread(QThread):
-    def __init__(self, user, parent=None):
-        QThread.__init__(self, parent)
-        self.exiting = False
-        self.refreshed = MySignal()
-        self.dumpuser = MySignal()
-        self.newcourses = CoursesSignal()
-        self.removable = CoursesSignal()
-        self.user = user
-
-    def run(self):
-        while not self.exiting:
-            most_recent = self.user.get_online_courses()
-            last = self.user.available_courses
-            new = most_recent - last
-            removable = last - most_recent
-            if len(removable) > 0:
-                self.refreshed.sig.emit('The following courses have'
-                                        ' been removed because they '
-                                        'aren\'t available online: {}'
-                                        .format(removable))
-            if len(new) > 0:
-                for course in new:
-                    course.save_folder_name = course.simplify_name(course.name)
-                    self.refreshed.sig.emit('A new course '
-                                            'was found: {}'.format(course))
-            if len(new) == 0:
-                self.refreshed.sig.emit('No new courses found.')
-                logger.info('No new courses found.')
-            self.user.sync_available_courses(most_recent)
-            logger.info('User object changed')
-            self.newcourses.sig.emit(new)
-            self.removable.sig.emit(removable)
-            self.exiting = True
+logger = logging.getLogger("polibeepsync.qtgui")
+commonlogger = logging.getLogger("polibeepsync.common")
 
 
 class CoursesListModel(QAbstractTableModel):
@@ -266,6 +131,12 @@ class MainWindow(Ui_Form):
         self.setupUi(self)
         self.w = QWidget()
 
+        self.logging_signal = MySignal()
+        self.logging_signal.sig.connect(self.myStream_message)
+        logging_console_hdl = SignalLoggingHandler(self.logging_signal)
+        logger.addHandler(logging_console_hdl)
+        commonlogger.addHandler(logging_console_hdl)
+
         self.about_text()
         self.timer = QTimer(self)
 
@@ -280,21 +151,19 @@ class MainWindow(Ui_Form):
         self.timer.timeout.connect(self.syncfiles)
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
 
-        self.loginthread = LoginThread(self.user)
-        self.loginthread.signal_error.sig.connect(self.myStream_message)
+        self.loginthread = LoginThread(self.user, self)
         self.loginthread.signal_error.sig.connect(self.loginstatus)
-        self.loginthread.signal_ok.sig.connect(self.myStream_message)
         self.loginthread.signal_ok.sig.connect(self.loginstatus)
 
-        self.refreshcoursesthread = RefreshCoursesThread(self.user)
+        self.refreshcoursesthread = RefreshCoursesThread(self.user, self)
         self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
         self.refreshcoursesthread.newcourses.sig.connect(self.addtocoursesview)
         self.refreshcoursesthread.newcourses.sig.connect(self.syncnewcourses)
-        self.refreshcoursesthread.refreshed.sig.connect(self.myStream_message)
         self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
 
         self.downloadthread = DownloadThread(self.user,
-                                             self.settings['RootFolder'])
+                                             self.settings['RootFolder'],
+                                             self)
         self.downloadthread.download_signal.connect(
             self.update_course_download)
         self.downloadthread.download_signal.connect(self._resizeview)
@@ -338,6 +207,7 @@ class MainWindow(Ui_Form):
         self.trayIcon.activated.connect(self._activate_traymenu)
         self.createTray()
 
+    @Slot()
     def _resizeview(self, **kwargs):
         self._window.coursesView.setColumnWidth(3, 160)
         self._window.coursesView.resizeColumnToContents(1)
@@ -365,15 +235,15 @@ Latest version: {}. </p>
         self._window.version_label.setText(newtext)
 
     def _update_time(self, folder, file, path_list):
-        logger.debug('inside ', folder.name)
-        logger.debug('path_list: ', path_list)
+        logger.debug(f'inside {folder.name}')
+        logger.debug(f'path_list: {path_list}')
         while len(path_list) > 0:
             namegoto = path_list.pop(0)
-            logger.debug('namegoto: ', namegoto)
+            logger.debug(f'namegoto: {namegoto}')
             # perché a volte è vuoto?
             if namegoto != "":
                 fakefolder = Folder(namegoto, 'fake')
-                logger.debug('contained folders: ', folder.folders)
+                logger.debug(f'contained folders:  {folder.folders}')
                 ind = folder.folders.index(fakefolder)
                 goto = folder.folders[ind]
                 self._update_time(goto, file, path_list)
@@ -383,6 +253,7 @@ Latest version: {}. </p>
             thisfile.local_creation_time = file.local_creation_time
             self.dumpUser()
 
+    @Slot(tuple)
     def update_file_localtime(self, data, **kwargs):
         course, coursefile, path = data
         rootpath = os.path.join(self.settings['RootFolder'],
@@ -392,8 +263,9 @@ Latest version: {}. </p>
         path_list = partial.split(os.path.sep)
         self._update_time(course.documents, coursefile, path_list)
 
+    @Slot(Course)
     def update_course_download(self, course, **kwargs):
-        logger.info('download size updated')
+        logger.debug('download size updated')
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
             updating.downloaded_size = course.downloaded_size
@@ -402,6 +274,7 @@ Latest version: {}. </p>
             self._window.courses_model.dataChanged.emit(where, where)
             self.dumpUser()
 
+    @Slot(Course)
     def setinizialsizes(self, course, **kwargs):
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
@@ -412,6 +285,7 @@ Latest version: {}. </p>
             self._window.courses_model.dataChanged.emit(where, where)
             self.dumpUser()
 
+    @Slot(list)
     def syncnewcourses(self, newlist):
         if self.settings['SyncNewCourses'] == 'True':
             for elem in newlist:
@@ -425,9 +299,9 @@ Latest version: {}. </p>
             except OSError:
                 logger.critical('OSError while calling os.makedirs.',
                                 exc_info=True)
-                self.myStream_message("I couldn't create {}.\nStart"
-                                      " poliBeePsync with --debug "
-                                      "error to get more details.")
+                logger.critical(f"I couldn't create {path}.\nStart"
+                                " poliBeePsync with --debug "
+                                "error to get more details.")
         self.settings_path = os.path.join(user_config_dir(self.appname),
                                           self.settings_fname)
         defaults = {
@@ -443,16 +317,17 @@ Latest version: {}. </p>
             with open(os.path.join(user_data_dir(self.appname),
                                    self.data_fname), 'rb') as f:
                 self.user = pickle.load(f)
-                self.myStream_message("Data has been loaded successfully.")
+                logger.info("Data has been loaded successfully.")
 
         except FileNotFoundError:
             logger.error('Settings file not found.', exc_info=True)
             self.user = User('', '')
-            self.myStream_message("I couldn't find data in the"
-                                  " predefined directory. Ignore this"
-                                  "message if you're using poliBeePsync"
-                                  " for the first time.")
+            logger.error("I couldn't find data in the"
+                         " predefined directory. Ignore this"
+                         "message if you're using poliBeePsync"
+                         " for the first time.")
 
+    @Slot(str)
     def loginstatus(self, status):
         self._window.statusbar.showMessage(status)
 
@@ -483,6 +358,7 @@ Latest version: {}. </p>
         self.settings['RootFolder'] = path
         filesettings.settingsToFile(self.settings, self.settings_path)
 
+    @Slot()
     def chooserootdir(self):
         currentdir = self.settings['RootFolder']
         flags = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
@@ -498,61 +374,65 @@ Latest version: {}. </p>
             # if there's a cleaner approach
             del self.downloadthread
             self.downloadthread = DownloadThread(self.user,
-                                                 self.settings['RootFolder'])
+                                                 self.settings['RootFolder'],
+                                                 self)
             self.downloadthread.dumpuser.sig.connect(self.dumpUser)
-            self.downloadthread.course_finished.sig.connect(
-                self.myStream_message)
-            self.downloadthread.signal_error.sig.connect(self.myStream_message)
 
+    @Slot()
     def setusercode(self):
         newcode = self._window.userCode.text()
         self.user.username = newcode
         try:
             self.dumpUser()
             if len(newcode) == 8:
-                self.myStream_message("User code changed to {}."
-                                      .format(newcode))
+                logger.info(f'User code changed to {newcode}.')
         except OSError:
-            self.myStream_message("I couldn't save data to disk. Run"
-                                  " poliBeePsync with option --debug"
-                                  " error to get more details.")
+            logger.critical("I couldn't save data to disk. Run"
+                            " poliBeePsync with option --debug"
+                            " error to get more details.")
             logger.error('OSError raised while trying to write the User'
                          'instance to disk.', exc_info=True)
 
+    @Slot()
     def setpassword(self):
         newpass = self._window.password.text()
         self.user.password = newpass
         try:
             self.dumpUser()
-            self.myStream_message("Password changed.")
+            logger.info("Password changed.")
         except OSError:
-            self.myStream_message("I couldn't save data to disk. Run"
+            logger.critical("I couldn't save data to disk. Run"
                                   " poliBeePsync with option --debug"
                                   " error to get more details.")
             logger.error('OSError raised while trying to write the User'
                          'instance to disk.', exc_info=True)
 
+    @Slot()
     def testlogin(self):
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.start()
             self._window.statusbar.showMessage("Logging in, please wait.")
 
+    @Slot(list)
     def addtocoursesview(self, addlist):
         for elem in addlist:
             self._window.courses_model.insertRows(0, 1, elem)
 
+    @Slot(list)
     def rmfromcoursesview(self, removelist):
         for elem in removelist:
             index = self._window.courses_model.courses.index(elem)
             self._window.courses_model.removeRows(index, 1)
 
+    @Slot()
     def dumpUser(self):
         # we don't use the message...
         with open(os.path.join(user_data_dir(self.appname),
                                self.data_fname), 'wb') as f:
             pickle.dump(self.user, f)
 
+    @Slot()
     def refreshcourses(self):
         self._window.statusbar.showMessage('Searching for online updates...this may take a'
                              ' while.')
@@ -572,6 +452,7 @@ Latest version: {}. </p>
         self.refreshcoursesthread.finished.connect(self.do_syncfiles)
         self.refreshcourses()
 
+    @Slot()
     def do_syncfiles(self):
         self.refreshcoursesthread.finished.disconnect(self.do_syncfiles)
         self.inittextincourses()
@@ -580,7 +461,7 @@ Latest version: {}. </p>
     @Slot(str)
     def myStream_message(self, message):
         self._window.status.moveCursor(QTextCursor.End)
-        self._window.status.insertPlainText(message + "\n\n")
+        self._window.status.insertPlainText(message + "\n")
 
     def createTray(self):
         restoreAction = QAction("&Restore", self, triggered=self.showNormal)
@@ -590,7 +471,7 @@ Latest version: {}. </p>
         self.trayIcon.setContextMenu(self.trayIconMenu)
         self.trayIcon.show()
 
-
+    @Slot(str)
     def _activate_traymenu(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
             self.showNormal()
@@ -632,6 +513,39 @@ released under GNU GPLv3+.</p>
 
 
 def main():
+    # load options from cmdline
+    parser = create_parser()
+    args = parser.parse_args()
+
+    # set debug levels
+    LEVELS = {
+        'notset': logging.NOTSET,
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        'critical': logging.CRITICAL,
+    }
+
+    level_name = 'info'
+    if args.debug:
+        level_name = args.debug
+    level = LEVELS.get(level_name, logging.INFO)
+
+    # now get the logger used in the common module and set its level to what
+    # we get from sys.argv
+    commonlogger.setLevel(level)
+    logger.setLevel(level)
+
+    formatter = logging.Formatter('[%(levelname)s] %(name)s %(message)s')
+
+    handler = logging.StreamHandler(stream=sys.stdout)
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.DEBUG)
+
+    logger.addHandler(handler)
+    commonlogger.addHandler(handler)
+
     app = QApplication(sys.argv)
 
     frame = MainWindow()
@@ -639,6 +553,7 @@ def main():
     if not args.hidden:
         # Need to fix showing wrong window
         frame.show()
+
     sys.exit(app.exec_())
 
 
