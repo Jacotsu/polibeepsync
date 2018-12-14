@@ -44,15 +44,17 @@ class InvalidLoginError(Exception):
 
 # --- Custom Threads --- #
 class QThreadPoolContexted(QThreadPool):
-    def __init__(self, max_threads=4, parent=None):
+    def __init__(self, max_threads=4, wait=True, parent=None):
         super(QThreadPoolContexted, self).__init__(parent)
+        self.wait = wait
         self.setMaxThreadCount(max_threads)
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
-        self.waitForDone()
+        if self.wait:
+            self.waitForDone()
 
 
 class RefreshCoursesThread(QThread):
@@ -140,7 +142,7 @@ class DownloadThread(QThread):
 
     @Slot()
     def _work(self):
-        with QThreadPoolContexted(parent=self) as TExec:
+        with QThreadPoolContexted(wait=False, parent=self) as TExec:
             for course in self.user.available_courses:
                 if course.sync is True:
                     commonlogger.debug(f'Syncing {course}')
@@ -794,7 +796,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
 
     def save_files(self, course, needsync, downloadsignal, datesignal,
                    chunk_size=512 * 1024):
-        with QThreadPoolContexted() as TExec:
+        with QThreadPoolContexted(wait=False) as TExec:
             for coursefile, path in needsync:
                 TExec.start(func_runnable(self, self.download_file, course,
                                           path, coursefile, needsync,

@@ -166,7 +166,6 @@ class MainWindow(Ui_Form):
                                              self)
         self.downloadthread.download_signal.connect(
             self.update_course_download)
-        self.downloadthread.download_signal.connect(self._resizeview)
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
         self.downloadthread.data_signal.connect(self.update_file_localtime)
 
