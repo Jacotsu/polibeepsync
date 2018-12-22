@@ -22,8 +22,7 @@ Direct installation
 ----------------------
 In a terminal issue the command
 ::
-    git clone https://github.com/Jacotsu/polibeepsync.git
-    pip3 install --user ./poliBeePsync
+    pip3 install --user poliBeePsync
 
 Once it has finished, you can start the application with the command
 ``polibeepsync-gui``.
@@ -72,7 +71,7 @@ Upgrade
 If you installed poliBeePsync directly, open a terminal, write the following
 code and press ``Enter``
 ::
-    pip install --upgrade poliBeePsync
+    pip3 install --upgrade poliBeePsync
 
 If you used a virtual environment, before issuing the command, remember to
 activate the virtual environment
@@ -85,7 +84,7 @@ How to remove
 
 Uninstall poliBeePsync by writing this code in a terminal
 ::
-    pip uninstall poliBeePsync requests appdirs beautifulsoup4 PySide
+    pip3 uninstall poliBeePsync requests appdirs beautifulsoup4 PySide
 
 ...and then pressing ``Enter`` to execute the command. When it asks for
 confirmation, type ``y`` and press ``Enter`` again (it will ask multiple times,

@@ -8,7 +8,7 @@ option "Add python.exe to Path".
 
 Open the program ``cmd.exe``, then write
 ::
-    pip install poliBeePsync
+    pip3 install poliBeePsync
 
 .. image:: pipinstall.png
 
@@ -51,7 +51,7 @@ Upgrade
 
 Open the program ``cmd.exe``, Write the following and press ``Enter``
 ::
-    pip install --upgrade poliBeePsync
+    pip3 install --upgrade poliBeePsync
 
 
 How to remove
@@ -59,7 +59,7 @@ How to remove
 
 Open ``cmd.exe``
 ::
-    pip uninstall poliBeePsync requests appdirs beautifulsoup4 PySide
+    pip3 uninstall poliBeePsync requests appdirs beautifulsoup4 PySide
 
 ...and then press ``Enter`` to execute the command. When it asks for
 confirmation, type ``y`` and press ``Enter`` again (it will ask multiple times,

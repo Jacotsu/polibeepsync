@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>polibeepsync.common &mdash; PoliBeePsync 0.1 documentation</title>
+  <title>polibeepsync.common &mdash; PoliBeePsync 0.3.3 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1
+                0.3.3
               </div>
             
           
@@ -143,8 +143,8 @@
            <div itemprop="articleBody">
             
   <h1>Source code for polibeepsync.common</h1><div class="highlight"><pre>
-<span></span><span class="c1"># coding=UTF-8</span>
-<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;Copyright 2014 Davide Olianas (ubuntupk@gmail.com).&quot;</span>
+<span></span><span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Copyright 2018 Davide Olianas (ubuntupk@gmail.com), Di</span>
+<span class="s2">Campli Raffaele.&quot;&quot;&quot;</span>
 
 <span class="n">__license__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;This f is part of poliBeePsync.</span>
 <span class="s2">poliBeePsync is free software: you can redistribute it and/or modify</span>
@@ -163,19 +163,20 @@
 
 <span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">tzinfo</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">pdb</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="k">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span> <span class="nn">PySide2.QtCore</span> <span class="k">import</span> <span class="n">QThread</span><span class="p">,</span> <span class="n">QObject</span><span class="p">,</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">QRunnable</span><span class="p">,</span> <span class="n">QThreadPool</span><span class="p">,</span>\
+        <span class="n">Slot</span>
 <span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">Word</span><span class="p">,</span> <span class="n">alphanums</span><span class="p">,</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">nums</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">OneOrMore</span><span class="p">,</span> \
     <span class="n">Literal</span><span class="p">,</span> <span class="n">ParseException</span>
-<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
 <span class="kn">from</span> <span class="nn">signalslot</span> <span class="k">import</span> <span class="n">Signal</span> <span class="k">as</span> <span class="n">sSignal</span>
 
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;polibeepsync.common&quot;</span><span class="p">)</span>
+<span class="n">commonlogger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;polibeepsync.common&quot;</span><span class="p">)</span>
 
 
 <span class="c1"># --- Custom Exceptions --- #</span>
@@ -187,90 +188,110 @@
 
 
 <span class="c1"># --- Custom Threads --- #</span>
-<div class="viewcode-block" id="LoginThread"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.LoginThread">[docs]</a><span class="k">class</span> <span class="nc">LoginThread</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
-        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;loginthread&#39;</span>
+<div class="viewcode-block" id="QThreadPoolContexted"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.QThreadPoolContexted">[docs]</a><span class="k">class</span> <span class="nc">QThreadPoolContexted</span><span class="p">(</span><span class="n">QThreadPool</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">QThreadPoolContexted</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait</span> <span class="o">=</span> <span class="n">wait</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMaxThreadCount</span><span class="p">(</span><span class="n">max_threads</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">waitForDone</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RefreshCoursesThread"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.RefreshCoursesThread">[docs]</a><span class="k">class</span> <span class="nc">RefreshCoursesThread</span><span class="p">(</span><span class="n">QThread</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RefreshCoursesThread</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dumpuser</span> <span class="o">=</span> <span class="n">MySignal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">newcourses</span> <span class="o">=</span> <span class="n">CoursesSignal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">removable</span> <span class="o">=</span> <span class="n">CoursesSignal</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">login_status</span> <span class="o">=</span> <span class="n">sSignal</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="RefreshCoursesThread.run"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.RefreshCoursesThread.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span><span class="p">:</span>
+            <span class="n">most_recent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_online_courses</span><span class="p">()</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">available_courses</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">most_recent</span> <span class="o">-</span> <span class="n">last</span>
+            <span class="n">removable</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">most_recent</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">removable</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The following courses have&#39;</span>
+                                  <span class="s1">&#39; been removed because they &#39;</span>
+                                  <span class="s1">&#39;aren</span><span class="se">\&#39;</span><span class="s1">t available online: </span><span class="si">{}</span><span class="s1">&#39;</span>
+                                  <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">removable</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">course</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
+                    <span class="n">course</span><span class="o">.</span><span class="n">save_folder_name</span> <span class="o">=</span> <span class="n">course</span><span class="o">.</span><span class="n">simplify_name</span><span class="p">(</span><span class="n">course</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;A new course &#39;</span>
+                                      <span class="s1">&#39;was found: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">course</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No new courses found.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">sync_available_courses</span><span class="p">(</span><span class="n">most_recent</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;User object changed&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">newcourses</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">removable</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">removable</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span> <span class="o">=</span> <span class="kc">True</span></div></div>
+
+
+<div class="viewcode-block" id="LoginThread"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.LoginThread">[docs]</a><span class="k">class</span> <span class="nc">LoginThread</span><span class="p">(</span><span class="n">QThread</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LoginThread</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signal_ok</span> <span class="o">=</span> <span class="n">MySignal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signal_error</span> <span class="o">=</span> <span class="n">MySignal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
 
 <div class="viewcode-block" id="LoginThread.run"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.LoginThread.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logged</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">login_status</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Successful login.&#39;</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Successful login.&#39;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">InvalidLoginError</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">login_status</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Login failed.&#39;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Login failed.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">login_status</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;I can</span><span class="se">\&#39;</span><span class="s1">t connect to the&#39;</span>
-                                           <span class="s1">&#39; server. Is the Internet&#39;</span>
-                                           <span class="s1">&#39; connection working?&#39;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Connection error.&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">login_status</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s2">&quot;The timeout time has been&quot;</span>
-                                           <span class="s2">&quot; reached. Is the Internet&quot;</span>
-                                           <span class="s2">&quot; connection working?&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Timeout error.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Logging in.&#39;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logged</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Successful login.&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">signal_ok</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s1">&#39;Successful login&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">InvalidLoginError</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">MissingSchema</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">commonlogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Login failed.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">signal_error</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s1">&#39;Login failed&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">commonlogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Connection error.&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">signal_error</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s1">&#39;Connection error&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exiting</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">commonlogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Timeout error.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">signal_error</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s1">&#39;Timeout error&#39;</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="SyncThread"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.SyncThread">[docs]</a><span class="k">class</span> <span class="nc">SyncThread</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
-        <span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;syncthread&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">signal</span> <span class="o">=</span> <span class="n">sSignal</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">new</span> <span class="o">=</span> <span class="n">sSignal</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;course&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">old</span> <span class="o">=</span> <span class="n">sSignal</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;course&#39;</span><span class="p">])</span>
-
-<div class="viewcode-block" id="SyncThread.run"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.SyncThread.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">most_recent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_online_courses</span><span class="p">()</span>
-        <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">available_courses</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="n">most_recent</span> <span class="o">-</span> <span class="n">last</span>
-        <span class="n">removable</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">most_recent</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">removable</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;The following courses have&#39;</span>
-                                     <span class="s1">&#39; been removed because they &#39;</span>
-                                     <span class="s1">&#39;aren</span><span class="se">\&#39;</span><span class="s1">t available online: </span><span class="si">{}</span><span class="s1">&#39;</span>
-                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">removable</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">course</span> <span class="ow">in</span> <span class="n">removable</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">old</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">course</span><span class="o">=</span><span class="n">course</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">course</span> <span class="ow">in</span> <span class="n">new</span><span class="p">:</span>
-                <span class="n">course</span><span class="o">.</span><span class="n">save_folder_name</span> <span class="o">=</span> <span class="n">course</span><span class="o">.</span><span class="n">simplify_name</span><span class="p">(</span><span class="n">course</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;A new course &#39;</span>
-                                         <span class="s1">&#39;was found: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">course</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">course</span><span class="o">=</span><span class="n">course</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;No new courses found.&#39;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No new courses found.&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">sync_available_courses</span><span class="p">(</span><span class="n">most_recent</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;User object changed&#39;</span><span class="p">)</span></div></div>
-
-
-<div class="viewcode-block" id="DownloadThread"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.DownloadThread">[docs]</a><span class="k">class</span> <span class="nc">DownloadThread</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">topdir</span><span class="p">):</span>
+<div class="viewcode-block" id="DownloadThread"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.DownloadThread">[docs]</a><span class="k">class</span> <span class="nc">DownloadThread</span><span class="p">(</span><span class="n">QThread</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">topdir</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DownloadThread</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">topdir</span> <span class="o">=</span> <span class="n">topdir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_download_s</span> <span class="o">=</span> <span class="n">MySignal</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_download_s</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_work</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">download_signal</span> <span class="o">=</span> <span class="n">sSignal</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;course&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_sizes</span> <span class="o">=</span> <span class="n">sSignal</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;course&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_signal</span> <span class="o">=</span> <span class="n">sSignal</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
 
-<div class="viewcode-block" id="DownloadThread.start"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.DownloadThread.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">)</span>
-        <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
-
 <div class="viewcode-block" id="DownloadThread.run"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.DownloadThread.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span> <span class="k">as</span> <span class="n">TExec</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_download_s</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_work</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">QThreadPoolContexted</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span> <span class="k">as</span> <span class="n">TExec</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">course</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">available_courses</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">course</span><span class="o">.</span><span class="n">sync</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Syncing </span><span class="si">{course}</span><span class="s1">&#39;</span><span class="p">)</span>
-                    <span class="n">TExec</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sync_course</span><span class="p">,</span> <span class="n">course</span><span class="p">)</span></div>
+                    <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Syncing </span><span class="si">{course}</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="n">TExec</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">func_runnable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sync_course</span><span class="p">,</span> <span class="n">course</span><span class="p">))</span>
 
 <div class="viewcode-block" id="DownloadThread.sync_course"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.DownloadThread.sync_course">[docs]</a>    <span class="k">def</span> <span class="nf">sync_course</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -286,12 +307,12 @@
                                     <span class="n">syncthese</span><span class="p">)</span>
 
             <span class="n">syncsize</span> <span class="o">=</span> <span class="n">total_size</span><span class="p">(</span><span class="n">needsync</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;****SYNCSIZE: &#39;</span><span class="p">,</span> <span class="n">syncsize</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;****SYNCSIZE: {sizeof_fmt(syncsize)}&#39;</span><span class="p">)</span>
             <span class="n">alreadysynced</span> <span class="o">=</span> <span class="n">course</span><span class="o">.</span><span class="n">total_file_size</span> <span class="o">-</span> <span class="n">syncsize</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;****ALREADYSYNCED &#39;</span><span class="p">,</span> <span class="n">alreadysynced</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;****ALREADYSYNCED {sizeof_fmt(alreadysynced)}&#39;</span><span class="p">)</span>
             <span class="n">course</span><span class="o">.</span><span class="n">downloaded_size</span> <span class="o">=</span> <span class="n">alreadysynced</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;****DOWNLOADED SIZE setting to &#39;</span><span class="p">,</span>
-                  <span class="n">course</span><span class="o">.</span><span class="n">downloaded_size</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;****DOWNLOADED SIZE setting to &#39;</span>
+                              <span class="n">f</span><span class="s1">&#39;{sizeof_fmt(course.downloaded_size)}&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">initial_sizes</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">course</span><span class="o">=</span><span class="n">course</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">save_files</span><span class="p">(</span><span class="n">course</span><span class="p">,</span> <span class="n">needsync</span><span class="p">,</span>
@@ -299,24 +320,16 @@
                                  <span class="bp">self</span><span class="o">.</span><span class="n">data_signal</span><span class="p">)</span>
             <span class="c1"># adesso ogni f di syncthese ha la data di download</span>
             <span class="c1"># aggiornata, ma deve essere scritto su f</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Synced files for </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">course</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Synced files for </span><span class="si">{course.name}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">InvalidLoginError</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Login failed.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Login failed.&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
-            <span class="c1"># self.signal_error.sig.emit(&#39;I can\&#39;t connect to&#39;</span>
-            <span class="c1"># &#39; the server. Is the&#39;</span>
-            <span class="c1"># &#39; Internet connection&#39;</span>
-            <span class="c1"># &#39; working?&#39;)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Connection error.&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Connection error.&#39;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
-            <span class="c1"># self.signal_error.sig.emit(&quot;The timeout time has&quot;</span>
-            <span class="c1"># &quot; been reached. Is the&quot;</span>
-            <span class="c1"># &quot; Internet connection&quot;</span>
-            <span class="c1"># &quot; working?&quot;)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Timeout error.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Timeout error.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
 
 
 <span class="c1"># --- &quot;Core&quot; classes here --- #</span>
@@ -401,9 +414,8 @@
 
 <div class="viewcode-block" id="Course"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.Course">[docs]</a><span class="k">class</span> <span class="nc">Course</span><span class="p">(</span><span class="n">GenericSet</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">documents_url</span><span class="p">,</span> <span class="n">sync</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Creating course with name=</span><span class="si">{}</span><span class="s1">,&#39;</span>
-                     <span class="s1">&#39; documents_url=</span><span class="si">{}</span><span class="s1">, sync=</span><span class="si">{}</span><span class="s1">&#39;</span>
-                     <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">documents_url</span><span class="p">,</span> <span class="n">sync</span><span class="p">))</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Creating course with name=</span><span class="si">{name}</span><span class="s1">,&#39;</span>
+                           <span class="n">f</span><span class="s1">&#39; documents_url=</span><span class="si">{documents_url}</span><span class="s1">, sync=</span><span class="si">{sync}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Course</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">documents_url</span> <span class="o">=</span> <span class="n">documents_url</span>
@@ -427,8 +439,8 @@
             <span class="n">grammar</span> <span class="o">=</span> <span class="n">year</span><span class="o">.</span><span class="n">suppress</span><span class="p">()</span> <span class="o">+</span> <span class="n">Literal</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">suppress</span><span class="p">()</span> <span class="o">+</span> <span class="n">middle</span>
             <span class="n">simple</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">grammar</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="k">except</span> <span class="n">ParseException</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Failed to simplify course name </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
-                         <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Failed to simplify course name </span><span class="si">{name}</span><span class="s1">&#39;</span><span class="p">,</span>
+                               <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">simple</span><span class="o">.</span><span class="n">title</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -452,7 +464,7 @@
 
 <div class="viewcode-block" id="CourseFile"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.CourseFile">[docs]</a><span class="k">class</span> <span class="nc">CourseFile</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">last_online_edit_time</span><span class="p">):</span>
-        <span class="n">gmt1</span> <span class="o">=</span> <span class="n">GMT1</span><span class="p">()</span>
+        <span class="c1"># gmt1 = GMT1()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_online_edit_time</span> <span class="o">=</span> <span class="n">last_online_edit_time</span>
@@ -492,21 +504,21 @@
 <div class="viewcode-block" id="total_size"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.total_size">[docs]</a><span class="k">def</span> <span class="nf">total_size</span><span class="p">(</span><span class="n">listoffiles</span><span class="p">):</span>
     <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">listoffiles</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Size of </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1"> bytes&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Size of </span><span class="si">{f.name}</span><span class="s1">: </span><span class="si">{f.size}</span><span class="s1"> bytes&#39;</span><span class="p">)</span>
         <span class="n">total</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">size</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Total size: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total</span><span class="p">))</span>
+    <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Total size: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">total</span></div>
 
 
 <div class="viewcode-block" id="folder_total_size"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.folder_total_size">[docs]</a><span class="k">def</span> <span class="nf">folder_total_size</span><span class="p">(</span><span class="n">parentfolder</span><span class="p">,</span> <span class="n">sizes</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">parentfolder</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;il f &#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39; è grosso &#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;prima di aggiungere, size è &#39;</span><span class="p">,</span> <span class="n">sizes</span><span class="p">)</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;il f </span><span class="si">{f.name}</span><span class="s1">, è grosso </span><span class="si">{f.size}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;prima di aggiungere, size è </span><span class="si">{sizes}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;dopo operazione, size è &#39;</span><span class="p">,</span> <span class="n">sizes</span><span class="p">)</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;dopo operazione, size è </span><span class="si">{sizes}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="n">parentfolder</span><span class="o">.</span><span class="n">folders</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;sto controllando la dimensione della sottocartella &#39;</span><span class="p">,</span>
-              <span class="n">folder</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;sto controllando la dimensione della sottocartella&#39;</span>
+                           <span class="n">f</span><span class="s1">&#39; </span><span class="si">{folder.name}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">folder_total_size</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">sizes</span><span class="p">)</span>
         <span class="c1"># viene passata sempre la stessa dimensione della cartella più in alto</span>
     <span class="k">return</span> <span class="n">sizes</span></div>
@@ -546,9 +558,9 @@
 <span class="sd">    path is the absolute path of the folder in which the f should be</span>
 <span class="sd">    downloaded</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;calling with folder=</span><span class="si">{folder.name}</span><span class="s1">, parent &#39;</span>
-                <span class="s1">&#39;folder=</span><span class="si">{foparent_folder}</span><span class="s1">, lunghezza syncthese =&#39;</span>
-                <span class="s1">&#39;{len(syncthese)}&#39;</span><span class="p">)</span>
+    <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;calling with folder=</span><span class="si">{folder.name}</span><span class="s1">, parent &#39;</span>
+                       <span class="n">f</span><span class="s1">&#39;folder=</span><span class="si">{parent_folder}</span><span class="s1">, lunghezza syncthese =&#39;</span>
+                       <span class="n">f</span><span class="s1">&#39;{len(syncthese)}&#39;</span><span class="p">)</span>
     <span class="c1"># basenames contains the names of files without extension (this is used</span>
     <span class="c1"># later because the website sometimes doesn&#39;t show the f extension)</span>
     <span class="n">basenames</span> <span class="o">=</span> <span class="p">[]</span>
@@ -560,17 +572,17 @@
         <span class="c1"># print(f.local_creation_time, f.last_online_edit_time)</span>
         <span class="n">simplename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">local_creation_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;data None&#39;</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;data None&#39;</span><span class="p">)</span>
             <span class="n">syncthese</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">parent_folder</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">f</span><span class="o">.</span><span class="n">local_creation_time</span> <span class="o">&lt;</span> <span class="n">f</span><span class="o">.</span><span class="n">last_online_edit_time</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;creazione &lt; online&#39;</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;creazione &lt; online&#39;</span><span class="p">)</span>
             <span class="n">syncthese</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">parent_folder</span><span class="p">))</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">simplename</span><span class="p">)</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">basenames</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;scommetto che penso che esistono quelli senza &#39;</span>
-                         <span class="s1">&#39;estensione&#39;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;f.name = &#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;altrimenti&#39;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;non esiste e allora aggiungo&#39;</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;scommetto che penso che esistono quelli senza &#39;</span>
+                               <span class="s1">&#39;estensione&#39;</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;f.name = </span><span class="si">{f.name}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;altrimenti&#39;</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;non esiste e allora aggiungo&#39;</span><span class="p">)</span>
             <span class="n">syncthese</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">parent_folder</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">folder</span><span class="o">.</span><span class="n">folders</span><span class="p">:</span>
         <span class="n">new_parent</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -616,10 +628,10 @@
 <span class="sd">            instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
         <span class="n">login_tag</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;login&#39;</span><span class="p">})</span>
         <span class="k">if</span> <span class="n">login_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The session has expired. Logging-in again...&quot;</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The session has expired. Logging-in again...&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -642,7 +654,7 @@
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">history</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># it means that we&#39;ve been redirected to the login page</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The session has expired. Logging-in again...&quot;</span><span class="p">)</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The session has expired. Logging-in again...&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -652,7 +664,7 @@
     <span class="k">def</span> <span class="nf">_login_first_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">default_lang_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loginurl</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
                                              <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">lang_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">default_lang_page</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">lang_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">default_lang_page</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;lxml&#39;</span><span class="p">)</span>
         <span class="n">lang_tag</span> <span class="o">=</span> <span class="n">lang_soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;English&#39;</span><span class="p">})</span>
         <span class="k">if</span> <span class="n">lang_tag</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://aunicalogin.polimi.it&#39;</span> <span class="o">+</span>
@@ -673,17 +685,17 @@
         <span class="k">return</span> <span class="n">login_response</span>
 
     <span class="k">def</span> <span class="nf">_do_shibboleth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_response</span><span class="p">):</span>
-        <span class="n">hidden_fields</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">first_response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span>
+        <span class="n">hidden_fields</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">first_response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;lxml&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span>
             <span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;hidden&#39;</span><span class="p">})</span>
         <span class="c1"># The SAML response wants &#39;+&#39; replaced by %2B</span>
         <span class="n">relay_state</span> <span class="o">=</span> <span class="n">hidden_fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
         <span class="n">saml_response</span> <span class="o">=</span> <span class="n">hidden_fields</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
                                                                 <span class="s1">&#39;%2B&#39;</span><span class="p">)</span>
-        <span class="n">final_request_data</span> <span class="o">=</span> <span class="s2">&quot;RelayState=</span><span class="si">%s</span><span class="s2">&amp;SAMLResponse=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> \
+        <span class="n">final_request_data</span> <span class="o">=</span> <span class="s1">&#39;RelayState=</span><span class="si">%s</span><span class="s1">&amp;SAMLResponse=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> \
                              <span class="p">(</span><span class="n">relay_state</span><span class="p">,</span> <span class="n">saml_response</span><span class="p">)</span>
         <span class="n">final_headers</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;Cookie&#39;</span><span class="p">:</span> <span class="s2">&quot;GUEST_LANGUAGE_ID=en_GB; </span><span class="se">\</span>
-<span class="s2">COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;Cookie&#39;</span><span class="p">:</span> <span class="s1">&#39;GUEST_LANGUAGE_ID=en_GB; </span><span class="se">\</span>
+<span class="s1">COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER&#39;</span><span class="p">,</span>
             <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/x-www-form-urlencoded&#39;</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
@@ -716,7 +728,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># switch to english version if we&#39;re on the italian site</span>
         <span class="n">first_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_login_first_step</span><span class="p">()</span>
-        <span class="n">first_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">first_response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">first_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">first_response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
         <span class="n">form</span> <span class="o">=</span> <span class="n">first_soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;form&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">url</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
         <span class="n">payload</span> <span class="o">=</span> <span class="p">{}</span>
@@ -734,7 +746,7 @@
                                             <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
                                             <span class="n">headers</span><span class="o">=</span><span class="n">login_headers</span><span class="p">)</span>
 
-        <span class="n">login_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">second_response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">login_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">second_response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">parenttag</span> <span class="o">=</span> <span class="n">login_soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;table&#39;</span><span class="p">)[</span><span class="mi">3</span><span class="p">]</span>
             <span class="n">parenttag</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;td&#39;</span><span class="p">,</span>
@@ -773,7 +785,7 @@
             <span class="p">]</span>
         <span class="n">link</span> <span class="o">=</span> <span class="n">link</span> <span class="o">+</span> <span class="s1">&#39;documenti-e-media?&#39;</span> <span class="o">+</span> <span class="s2">&quot;&amp;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">weird_parameters</span><span class="p">)</span>
         <span class="n">course</span> <span class="o">=</span> <span class="n">Course</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">link</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Course found: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">course</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Course found: </span><span class="si">{course.name}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">course</span>
 
     <span class="k">def</span> <span class="nf">_courses_scraper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
@@ -783,7 +795,7 @@
 <span class="sd">        the course (not stripped of squared brackets) and firstlink is the</span>
 <span class="sd">        link to be followed in order to get the real course url.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">courses_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">courses_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
         <span class="n">raw_courses</span> <span class="o">=</span> <span class="n">courses_soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;tr&#39;</span><span class="p">,</span>
                                             <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;results-row&#39;</span><span class="p">})</span>
         <span class="c1"># the first tag is not a course</span>
@@ -814,7 +826,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            online_courses (:class:`Courses`): a :class:`Courses` container of</span>
 <span class="sd">            all courses available online.&quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Looking for new courses.&#39;</span><span class="p">)</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Looking for new courses.&#39;</span><span class="p">)</span>
         <span class="n">coursespage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">courses_url</span><span class="p">)</span>
         <span class="n">temp_courses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_courses_scraper</span><span class="p">(</span><span class="n">coursespage</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
         <span class="n">courses</span> <span class="o">=</span> <span class="n">Courses</span><span class="p">()</span>
@@ -846,21 +858,21 @@
         <span class="c1"># the &quot;if not in&quot; check is not really needed, since the append</span>
         <span class="c1"># function doesn&#39;t allow duplicates.</span>
         <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">master_courses</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Comparing course </span><span class="si">{}</span><span class="s1"> with the local copy&#39;</span>
-                         <span class="s1">&#39;of courses&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Comparing course </span><span class="si">{elem.name}</span><span class="s1"> with the local &#39;</span>
+                               <span class="s1">&#39;copy of courses&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">elem</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_courses</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;It&#39;s not present in the local copy;&quot;</span>
-                             <span class="s2">&quot; adding it&quot;</span><span class="p">)</span>
+                <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;It&#39;s not present in the local copy;&quot;</span>
+                                   <span class="s2">&quot; adding it&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">available_courses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
         <span class="c1"># now do the opposite: if a course has been deleted,</span>
         <span class="c1"># do the same with the local copy</span>
         <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_courses</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Comparing course </span><span class="si">{}</span><span class="s2"> from the local data &quot;</span>
-                         <span class="s2">&quot;to the new list.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Comparing course </span><span class="si">{elem.name}</span><span class="s1"> from the local &#39;</span>
+                               <span class="s1">&#39;data to the new list.&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">elem</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">master_courses</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;It&#39;s not present in the new list, &quot;</span>
-                             <span class="s2">&quot;therefore we remove it from the local&quot;</span>
-                             <span class="s2">&quot; data&quot;</span><span class="p">)</span>
+                <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;It&#39;s not present in the new list, &quot;</span>
+                                   <span class="s2">&quot;therefore we remove it from the local&quot;</span>
+                                   <span class="s2">&quot; data&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">available_courses</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="User.update_course_files"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.User.update_course_files">[docs]</a>    <span class="k">def</span> <span class="nf">update_course_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">):</span>
@@ -869,19 +881,20 @@
         <span class="n">synclocalwithonline</span><span class="p">(</span><span class="n">course</span><span class="o">.</span><span class="n">documents</span><span class="p">,</span> <span class="n">online</span><span class="p">)</span>
         <span class="n">sizes</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">course</span><span class="o">.</span><span class="n">total_file_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">folder_total_size</span><span class="p">(</span><span class="n">course</span><span class="o">.</span><span class="n">documents</span><span class="p">,</span>
-                                                        <span class="n">sizes</span><span class="p">))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;****DIMENSIONE TOTALE: &#39;</span><span class="p">,</span> <span class="n">course</span><span class="o">.</span><span class="n">total_file_size</span><span class="p">)</span></div>
+                                                       <span class="n">sizes</span><span class="p">))</span>
+        <span class="n">human_total_size</span> <span class="o">=</span> <span class="n">sizeof_fmt</span><span class="p">(</span><span class="n">course</span><span class="o">.</span><span class="n">total_file_size</span><span class="p">)</span>
+        <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;****DIMENSIONE TOTALE: </span><span class="si">{human_total_size}</span><span class="s1">&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="User.find_files_and_folders"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.User.find_files_and_folders">[docs]</a>    <span class="k">def</span> <span class="nf">find_files_and_folders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">link</span><span class="p">,</span> <span class="n">thisfoldername</span><span class="p">):</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
-        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
         <span class="n">tags</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;tr&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;document-display-style&#39;</span><span class="p">})</span>
 
         <span class="n">folder</span> <span class="o">=</span> <span class="n">Folder</span><span class="p">(</span><span class="n">thisfoldername</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Tags from which we extract the list of files:&quot;</span>
-                         <span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Tags from which we extract the list of files:&quot;</span>
+                               <span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
             <span class="n">name_span</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;taglib-text&#39;</span><span class="p">})</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">name_span</span><span class="o">.</span><span class="n">text</span>
             <span class="n">rawdate</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;td&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;col-5&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">text</span>
@@ -898,7 +911,7 @@
             <span class="k">if</span> <span class="s1">&#39;--&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">last_column</span><span class="p">:</span>
                 <span class="n">download_page_link</span> <span class="o">=</span> <span class="n">name_span</span><span class="o">.</span><span class="n">parent</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="n">download_page_link</span><span class="p">)</span>
-                <span class="n">download_page</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="n">download_page</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
 
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">down_div</span> <span class="o">=</span> <span class="n">download_page</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">,</span>
@@ -913,7 +926,7 @@
                 <span class="n">down_link</span> <span class="o">=</span> <span class="n">down_div</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
                 <span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;(?&lt;=</span><span class="se">\\</span><span class="s1">()(.*?)(?=</span><span class="se">\\</span><span class="s1">))&#39;</span><span class="p">,</span> <span class="n">down_span</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
                 <span class="n">size</span> <span class="o">=</span> <span class="n">regex</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                <span class="n">size</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[^0-9</span><span class="se">\\</span><span class="s1">.,]&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[^0-9</span><span class="se">\\</span><span class="s1">.,]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
                 <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">size</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span>
                                  <span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
                 <span class="n">complete_file</span> <span class="o">=</span> <span class="n">CourseFile</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">down_link</span><span class="p">,</span> <span class="n">complete_date</span><span class="p">)</span>
@@ -928,10 +941,12 @@
 
 <div class="viewcode-block" id="User.save_files"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.User.save_files">[docs]</a>    <span class="k">def</span> <span class="nf">save_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">,</span> <span class="n">needsync</span><span class="p">,</span> <span class="n">downloadsignal</span><span class="p">,</span> <span class="n">datesignal</span><span class="p">,</span>
                    <span class="n">chunk_size</span><span class="o">=</span><span class="mi">512</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">):</span>
-        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="k">as</span> <span class="n">TExec</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">QThreadPoolContexted</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">TExec</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">coursefile</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">needsync</span><span class="p">:</span>
-                <span class="n">TExec</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">download_file</span><span class="p">,</span> <span class="n">course</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">coursefile</span><span class="p">,</span>
-                             <span class="n">needsync</span><span class="p">,</span> <span class="n">downloadsignal</span><span class="p">,</span> <span class="n">datesignal</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">)</span></div>
+                <span class="n">TExec</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">func_runnable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">download_file</span><span class="p">,</span> <span class="n">course</span><span class="p">,</span>
+                                          <span class="n">path</span><span class="p">,</span> <span class="n">coursefile</span><span class="p">,</span> <span class="n">needsync</span><span class="p">,</span>
+                                          <span class="n">downloadsignal</span><span class="p">,</span> <span class="n">datesignal</span><span class="p">,</span>
+                                          <span class="n">chunk_size</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="User.download_file"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.User.download_file">[docs]</a>    <span class="k">def</span> <span class="nf">download_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">course</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">coursefile</span><span class="p">,</span> <span class="n">needsync</span><span class="p">,</span> <span class="n">downloadsignal</span><span class="p">,</span>
                       <span class="n">datesignal</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">):</span>
@@ -941,17 +956,70 @@
         <span class="n">complete_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">complete_basename</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">complete_name</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;writing into </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">complete_name</span><span class="p">))</span>
+            <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;writing into </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">complete_name</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">chunk_size</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">chunk</span><span class="p">:</span>
                     <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
                     <span class="n">course</span><span class="o">.</span><span class="n">downloaded_size</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;chunk size: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)))</span>
+                    <span class="n">commonlogger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;chunk size: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)))</span>
                     <span class="n">downloadsignal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">course</span><span class="o">=</span><span class="n">course</span><span class="p">)</span>
             <span class="n">coursefile</span><span class="o">.</span><span class="n">local_creation_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gmt1</span><span class="p">)</span>
             <span class="c1"># we emit another signal here so that we can save to f</span>
             <span class="c1"># the updated local creation time</span>
             <span class="n">datesignal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">(</span><span class="n">course</span><span class="p">,</span> <span class="n">coursefile</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span></div></div>
+
+
+<span class="c1"># --- Utils ---#</span>
+<div class="viewcode-block" id="func_runnable"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.func_runnable">[docs]</a><span class="k">class</span> <span class="nc">func_runnable</span><span class="p">(</span><span class="n">QRunnable</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">func_runnable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="o">*</span><span class="n">names</span><span class="p">),</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;encoding&quot;</span><span class="p">,</span> <span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="find_version"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.find_version">[docs]</a><span class="k">def</span> <span class="nf">find_version</span><span class="p">(</span><span class="o">*</span><span class="n">file_paths</span><span class="p">):</span>
+    <span class="n">version_file</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="o">*</span><span class="n">file_paths</span><span class="p">)</span>
+    <span class="n">version_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^__version__ = [&#39;</span><span class="se">\&quot;</span><span class="s2">]([^&#39;</span><span class="se">\&quot;</span><span class="s2">]*)[&#39;</span><span class="se">\&quot;</span><span class="s2">]&quot;</span><span class="p">,</span>
+                              <span class="n">version_file</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">version_match</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">version_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unable to find version string.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MySignal"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.MySignal">[docs]</a><span class="k">class</span> <span class="nc">MySignal</span><span class="p">(</span><span class="n">QObject</span><span class="p">):</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CoursesSignal"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.CoursesSignal">[docs]</a><span class="k">class</span> <span class="nc">CoursesSignal</span><span class="p">(</span><span class="n">QObject</span><span class="p">):</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DownloadChunkSignal"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.DownloadChunkSignal">[docs]</a><span class="k">class</span> <span class="nc">DownloadChunkSignal</span><span class="p">(</span><span class="n">QObject</span><span class="p">):</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="n">Course</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="sizeof_fmt"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.sizeof_fmt">[docs]</a><span class="k">def</span> <span class="nf">sizeof_fmt</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;Ki&#39;</span><span class="p">,</span> <span class="s1">&#39;Mi&#39;</span><span class="p">,</span> <span class="s1">&#39;Gi&#39;</span><span class="p">,</span> <span class="s1">&#39;Ti&#39;</span><span class="p">,</span> <span class="s1">&#39;Pi&#39;</span><span class="p">,</span> <span class="s1">&#39;Ei&#39;</span><span class="p">,</span> <span class="s1">&#39;Zi&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1024.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%3.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">/=</span> <span class="mf">1024.0</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="s1">&#39;Yi&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SignalLoggingHandler"><a class="viewcode-back" href="../../../polibeepsync/#polibeepsync.common.SignalLoggingHandler">[docs]</a><span class="k">class</span> <span class="nc">SignalLoggingHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SignalLoggingHandler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">sig_emit</span><span class="p">(</span><span class="n">record</span><span class="p">):</span>
+            <span class="n">signal</span><span class="o">.</span><span class="n">sig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit</span> <span class="o">=</span> <span class="n">sig_emit</span></div>
 </pre></div>
 
            </div>
@@ -964,7 +1032,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2014, Davide Olianas.
+        &copy; Copyright 2018, Davide Olianas, Raffaele Di Campli.
 
     </p>
   </div>
@@ -986,7 +1054,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1',
+            VERSION:'0.3.3',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'',
