@@ -133,6 +133,7 @@ class DownloadThread(QThread):
         self.topdir = topdir
         self.start_download_s = MySignal()
         self.start_download_s.sig.connect(self._work)
+        self.dumpuser = MySignal()
         self.download_signal = sSignal(args=['course'])
         self.initial_sizes = sSignal(args=['course'])
         self.date_signal = sSignal(args=['data'])
@@ -174,6 +175,7 @@ class DownloadThread(QThread):
             # adesso ogni f di syncthese ha la data di download
             # aggiornata, ma deve essere scritto su f
             commonlogger.info(f'Synced files for {course.name}')
+            self.dumpuser.sig.emit('')
         except InvalidLoginError:
             self.user.logout()
             commonlogger.info('Login failed.', exc_info=True)
@@ -440,7 +442,6 @@ def synclocalwithonline(local, online):
             local.files.append(f)
         else:
             ind = local.files.index(f)
-            local.files[ind] = f
             local.files[ind]._file_dict["modifiedDate"] = \
                 f._file_dict["modifiedDate"]
     oldfiles = [f for f in local.files if f not in online.files]
@@ -758,12 +759,12 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                                    params=query_params_files).json()
 
         for elem in subfolders_dict:
-            commonlogger.debug(f'Added {elem} to {folder}')
+            commonlogger.debug(f'Added {elem} to \n{folder}')
             subfolder = self.find_files_and_folders(elem)
             folder.folders.append(subfolder)
 
         for elem in files_dict:
-            commonlogger.debug(f'Added {elem} to {folder}')
+            commonlogger.debug(f'Added {elem} to \n{folder}')
             course_file = CourseFile(elem)
             folder.files.append(course_file)
 
@@ -850,3 +851,11 @@ class SignalLoggingHandler(logging.Handler):
         def sig_emit(record):
             signal.sig.emit(record.msg)
         self.emit = sig_emit
+
+#import pickle
+#lel = None
+#with open('/home/jacotsu/.local/share/poliBeePsync/pbs.data', 'rb') as kek:
+#    lel = pickle.load(kek)
+#
+#course = lel.available_courses['[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO DULIO ]']
+#lel.update_course_files(course)
