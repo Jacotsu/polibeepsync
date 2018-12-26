@@ -179,8 +179,18 @@
 <span id="polibeepsync-common-module"></span><h2>polibeepsync.common module<a class="headerlink" href="#module-polibeepsync.common" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="polibeepsync.common.Course">
-<em class="property">class </em><code class="descclassname">polibeepsync.common.</code><code class="descname">Course</code><span class="sig-paren">(</span><em>name</em>, <em>documents_url</em>, <em>sync=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#Course"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Course" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">polibeepsync.common.</code><code class="descname">Course</code><span class="sig-paren">(</span><em>course_dict</em>, <em>sync=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#Course"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Course" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#polibeepsync.common.GenericSet" title="polibeepsync.common.GenericSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">polibeepsync.common.GenericSet</span></code></a></p>
+<dl class="attribute">
+<dt id="polibeepsync.common.Course.documents_url">
+<code class="descname">documents_url</code><a class="headerlink" href="#polibeepsync.common.Course.documents_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.Course.name">
+<code class="descname">name</code><a class="headerlink" href="#polibeepsync.common.Course.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="polibeepsync.common.Course.simplify_name">
 <code class="descname">simplify_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#Course.simplify_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Course.simplify_name" title="Permalink to this definition">¶</a></dt>
@@ -190,8 +200,43 @@
 
 <dl class="class">
 <dt id="polibeepsync.common.CourseFile">
-<em class="property">class </em><code class="descclassname">polibeepsync.common.</code><code class="descname">CourseFile</code><span class="sig-paren">(</span><em>name</em>, <em>url</em>, <em>last_online_edit_time</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#CourseFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.CourseFile" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">polibeepsync.common.</code><code class="descname">CourseFile</code><span class="sig-paren">(</span><em>file_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#CourseFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.CourseFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="polibeepsync.common.CourseFile.extension">
+<code class="descname">extension</code><a class="headerlink" href="#polibeepsync.common.CourseFile.extension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.CourseFile.id">
+<code class="descname">id</code><a class="headerlink" href="#polibeepsync.common.CourseFile.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.CourseFile.last_online_edit_time">
+<code class="descname">last_online_edit_time</code><a class="headerlink" href="#polibeepsync.common.CourseFile.last_online_edit_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.CourseFile.name">
+<code class="descname">name</code><a class="headerlink" href="#polibeepsync.common.CourseFile.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.CourseFile.size">
+<code class="descname">size</code><a class="headerlink" href="#polibeepsync.common.CourseFile.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.CourseFile.url">
+<code class="descname">url</code><a class="headerlink" href="#polibeepsync.common.CourseFile.url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.CourseFile.version">
+<code class="descname">version</code><a class="headerlink" href="#polibeepsync.common.CourseFile.version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -255,8 +300,23 @@
 
 <dl class="class">
 <dt id="polibeepsync.common.Folder">
-<em class="property">class </em><code class="descclassname">polibeepsync.common.</code><code class="descname">Folder</code><span class="sig-paren">(</span><em>name</em>, <em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#Folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Folder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">polibeepsync.common.</code><code class="descname">Folder</code><span class="sig-paren">(</span><em>folder_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#Folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="polibeepsync.common.Folder.group_id">
+<code class="descname">group_id</code><a class="headerlink" href="#polibeepsync.common.Folder.group_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.Folder.id">
+<code class="descname">id</code><a class="headerlink" href="#polibeepsync.common.Folder.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.Folder.name">
+<code class="descname">name</code><a class="headerlink" href="#polibeepsync.common.Folder.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -382,12 +442,12 @@
 
 <dl class="method">
 <dt id="polibeepsync.common.User.find_files_and_folders">
-<code class="descname">find_files_and_folders</code><span class="sig-paren">(</span><em>link</em>, <em>thisfoldername</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#User.find_files_and_folders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.find_files_and_folders" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_files_and_folders</code><span class="sig-paren">(</span><em>folder_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#User.find_files_and_folders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.find_files_and_folders" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="polibeepsync.common.User.get_file">
-<code class="descname">get_file</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#User.get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_file" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_file</code><span class="sig-paren">(</span><em>url</em>, <em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#User.get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use this method to get a f.</p>
 <p>It will check if the session is expired, and re-login if necessary.
 The f bytes can be accessed with the <code class="xref py py-attr docutils literal notranslate"><span class="pre">content</span></code> attribute</p>
@@ -409,6 +469,16 @@ The f bytes can be accessed with the <code class="xref py py-attr docutils liter
 </table>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="polibeepsync.common.User.get_files_url">
+<code class="descname">get_files_url</code><em class="property"> = 'https://beep.metid.polimi.it/api/secure/jsonws/dlapp/get-file-entries'</em><a class="headerlink" href="#polibeepsync.common.User.get_files_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="polibeepsync.common.User.get_folders_url">
+<code class="descname">get_folders_url</code><em class="property"> = 'https://beep.metid.polimi.it/api/secure/jsonws/dlapp/get-folders'</em><a class="headerlink" href="#polibeepsync.common.User.get_folders_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="polibeepsync.common.User.get_online_courses">
 <code class="descname">get_online_courses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#User.get_online_courses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_online_courses" title="Permalink to this definition">¶</a></dt>
@@ -428,7 +498,7 @@ all courses available online.</td>
 
 <dl class="method">
 <dt id="polibeepsync.common.User.get_page">
-<code class="descname">get_page</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#User.get_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_page" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_page</code><span class="sig-paren">(</span><em>url</em>, <em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#User.get_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_page" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use this method to get a webpage.</p>
 <p>It will check if the session is expired, and relogin if necessary.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -460,7 +530,7 @@ If it fails, <code class="xref py py-attr docutils literal notranslate"><span cl
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#polibeepsync.common.InvalidLoginError" title="polibeepsync.common.InvalidLoginError"><code class="xref py py-exc docutils literal notranslate"><span class="pre">InvalidLoginError</span></code></a> – when the login fails</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#polibeepsync.common.InvalidLoginError" title="polibeepsync.common.InvalidLoginError"><strong>InvalidLoginError</strong></a> – when the login fails</td>
 </tr>
 </tbody>
 </table>
@@ -514,6 +584,11 @@ removed from self.available_courses.</p>
 <code class="descname">update_course_files</code><span class="sig-paren">(</span><em>course</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#User.update_course_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.update_course_files" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="polibeepsync.common.User.user_courses_url">
+<code class="descname">user_courses_url</code><em class="property"> = 'https://beep.metid.polimi.it/api/secure/jsonws/group/get-user-sites'</em><a class="headerlink" href="#polibeepsync.common.User.user_courses_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -534,7 +609,7 @@ removed from self.available_courses.</p>
 
 <dl class="function">
 <dt id="polibeepsync.common.need_syncing">
-<code class="descclassname">polibeepsync.common.</code><code class="descname">need_syncing</code><span class="sig-paren">(</span><em>folder</em>, <em>parent_folder</em>, <em>syncthese</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#need_syncing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.need_syncing" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">polibeepsync.common.</code><code class="descname">need_syncing</code><span class="sig-paren">(</span><em>folder</em>, <em>parent_folder</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/polibeepsync/common/#need_syncing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.need_syncing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a flat list with files to download</p>
 <p>Each element is a tuple like this
 (f, path)</p>
