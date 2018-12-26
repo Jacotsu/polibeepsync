@@ -164,10 +164,11 @@ class MainWindow(Ui_Form):
         self.downloadthread = DownloadThread(self.user,
                                              self.settings['RootFolder'],
                                              self)
+
         self.downloadthread.download_signal.connect(
             self.update_course_download)
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
-        self.downloadthread.data_signal.connect(self.update_file_localtime)
+        self.downloadthread.date_signal.connect(self.update_file_localtime)
 
         self._window.userCode.setText(str(self.user.username))
         self._window.userCode.textEdited.connect(self.setusercode)
@@ -226,8 +227,9 @@ class MainWindow(Ui_Form):
         if latest != __version__:
             newtext = """<p>Current version: {}.<br>
 Latest version: {}. </p>
-<p>Visit <a href='http://www.davideolianas.com/polibeepsync/index.html#how-to\
--install-upgrade-remove'>here</a> to find out how to upgrade.
+<p>Visit <a
+href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
+        #how-to-install-upgrade-remove'>here</a> to find out how to upgrade.
 """.format(__version__, latest)
         else:
             newtext = "Current version: {} up-to-date.".format(__version__)
@@ -235,22 +237,19 @@ Latest version: {}. </p>
 
     def _update_time(self, folder, file, path_list):
         logger.debug(f'inside {folder.name}')
-        logger.debug(f'path_list: {path_list}')
-        while len(path_list) > 0:
-            namegoto = path_list.pop(0)
-            logger.debug(f'namegoto: {namegoto}')
-            # perché a volte è vuoto?
-            if namegoto != "":
-                fakefolder = Folder(namegoto, 'fake')
-                logger.debug(f'contained folders:  {folder.folders}')
-                ind = folder.folders.index(fakefolder)
-                goto = folder.folders[ind]
-                self._update_time(goto, file, path_list)
+        for path in path_list:
+            logger.debug(f'namegoto: {path}')
+            folder_dict = {'name': path}
+            fakefolder = Folder(folder_dict)
+            logger.debug(f'contained folders:  {folder.folders}')
+            ind = folder.folders.index(fakefolder)
+            goto = folder.folders[ind]
+            self._update_time(goto, file, path_list)
+
         if file in folder.files:
             ind = folder.files.index(file)
             thisfile = folder.files[ind]
             thisfile.local_creation_time = file.local_creation_time
-            self.dumpUser()
 
     @Slot(tuple)
     def update_file_localtime(self, data, **kwargs):
@@ -259,19 +258,17 @@ Latest version: {}. </p>
                                 course.save_folder_name)
         if path.startswith(rootpath):
             partial = path[len(rootpath):]
-        path_list = partial.split(os.path.sep)
+        path_list = filter(None, partial.split(os.path.sep))
         self._update_time(course.documents, coursefile, path_list)
 
     @Slot(Course)
     def update_course_download(self, course, **kwargs):
-        logger.debug('download size updated')
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
             updating.downloaded_size = course.downloaded_size
             row = self._window.courses_model.courses.index(updating)
             where = self._window.courses_model.index(row, 3)
             self._window.courses_model.dataChanged.emit(where, where)
-            self.dumpUser()
 
     @Slot(Course)
     def setinizialsizes(self, course, **kwargs):
@@ -317,9 +314,12 @@ Latest version: {}. </p>
                                    self.data_fname), 'rb') as f:
                 self.user = pickle.load(f)
                 logger.info("Data has been loaded successfully.")
+        except (EOFError, pickle.PickleError):
+            logger.error('Settings corrupted', exc_info=True)
+            self.user = User('', '')
 
         except FileNotFoundError:
-            logger.error('Settings file not found.', exc_info=True)
+            logger.error('Settings file not found.')
             self.user = User('', '')
             logger.error("I couldn't find data in the"
                          " predefined directory. Ignore this"
@@ -375,7 +375,7 @@ Latest version: {}. </p>
             self.downloadthread = DownloadThread(self.user,
                                                  self.settings['RootFolder'],
                                                  self)
-            self.downloadthread.dumpuser.sig.connect(self.dumpUser)
+            self.dumpUser()
 
     @Slot()
     def setusercode(self):

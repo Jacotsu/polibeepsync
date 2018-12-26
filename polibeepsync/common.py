@@ -22,7 +22,6 @@ from functools import partial
 import requests
 import os
 import logging
-import pdb
 import re
 from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
@@ -89,6 +88,7 @@ class RefreshCoursesThread(QThread):
             self.newcourses.sig.emit(new)
             self.removable.sig.emit(removable)
             self.exiting = True
+        self.dumpuser.sig.emit('')
 
 
 class LoginThread(QThread):
@@ -135,7 +135,7 @@ class DownloadThread(QThread):
         self.start_download_s.sig.connect(self._work)
         self.download_signal = sSignal(args=['course'])
         self.initial_sizes = sSignal(args=['course'])
-        self.data_signal = sSignal(args=['data'])
+        self.date_signal = sSignal(args=['data'])
 
     def run(self):
         self.start_download_s.sig.emit('')
@@ -154,12 +154,10 @@ class DownloadThread(QThread):
             outdir = os.path.join(self.topdir, subdir)
             os.makedirs(outdir, exist_ok=True)
             self.user.update_course_files(course)
-            syncthese = []
             savedhere = os.path.join(self.topdir,
                                      course.save_folder_name)
             needsync = need_syncing(course.documents,
-                                    savedhere,
-                                    syncthese)
+                                    savedhere)
 
             syncsize = total_size(needsync)
             commonlogger.info(f'****SYNCSIZE: {sizeof_fmt(syncsize)}')
@@ -172,7 +170,7 @@ class DownloadThread(QThread):
 
             self.user.save_files(course, needsync,
                                  self.download_signal,
-                                 self.data_signal)
+                                 self.date_signal)
             # adesso ogni f di syncthese ha la data di download
             # aggiornata, ma deve essere scritto su f
             commonlogger.info(f'Synced files for {course.name}')
@@ -207,7 +205,7 @@ class GMT1(tzinfo):
         return "GMT +1"
 
 
-class GenericSet(object):
+class GenericSet():
     def __init__(self):
         self.elements = []
 
@@ -268,17 +266,27 @@ class Courses(GenericSet):
 
 
 class Course(GenericSet):
-    def __init__(self, name, documents_url, sync=False):
-        commonlogger.debug(f'Creating course with name={name},'
-                           f' documents_url={documents_url}, sync={sync}')
+    def __init__(self, course_dict, sync=False):
+        commonlogger.debug(f'Creating course with name={course_dict["name"]},'
+                           f' documents_url={course_dict["friendlyURL"]}, '
+                           f'sync={sync}')
         super(Course, self).__init__()
-        self.name = name
-        self.documents_url = documents_url
+        self._course_dict = course_dict
+
         self.sync = sync
-        self.documents = Folder('root', self.documents_url)
+        self.documents = Folder({'name': 'root'})
         self.save_folder_name = ""
         self.total_file_size = 0  # in bytes
         self.downloaded_size = 0  # in bytes
+
+    @property
+    def documents_url(self):
+        return 'https://beep.metid.polimi.it/web/' \
+            f'{self._course_dict["friendlyURL"]}/documenti-e-media'
+
+    @property
+    def name(self):
+        return self._course_dict['name']
 
     def simplify_name(self, name):
         simple = name
@@ -299,10 +307,11 @@ class Course(GenericSet):
         return simple.title()
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(f"{self._course_dict['classPK']}"
+                    f"{self._course_dict['name']}")
 
     def __repr__(self):
-        return 'Course {}'.format(self.name)
+        return 'Course {}'.format(self._course_dict['name'])
 
     def __contains__(self, key):
         if key.name in self._elements_names():
@@ -311,23 +320,56 @@ class Course(GenericSet):
             return False
 
     def __eq__(self, other):
-        if self.name == other.name:
+        if self._course_dict['classPK'] == other._course_dict['classPK']:
             return True
         else:
             return False
 
 
-class CourseFile(object):
-    def __init__(self, name, url, last_online_edit_time):
-        # gmt1 = GMT1()
-        self.name = name
-        self.url = url
-        self.last_online_edit_time = last_online_edit_time
+class CourseFile():
+    def __init__(self, file_dict):
+        self._file_dict = file_dict
         self.local_creation_time = None
-        self.size = 0  # in bytes
+        self.gmt1 = GMT1()
+
+    @property
+    def extension(self):
+        return self._file_dict['extension']
+
+    @property
+    def version(self):
+        return self._file_dict['version']
+
+    @property
+    def id(self):
+        return self._file_dict['fileEntryId']
+
+    @property
+    def name(self):
+        return self._file_dict["title"]
+
+    @property
+    def url(self):
+        return 'https://beep.metid.polimi.it/documents/' \
+                f'{self._file_dict["groupId"]}/{self._file_dict["uuid"]}'
+
+    @property
+    def last_online_edit_time(self):
+        # Beep's timestamp is an epoch with millisecond resolution
+        return datetime.fromtimestamp(self._file_dict["modifiedDate"]/1000,
+                                      self.gmt1)
+
+    @property
+    def size(self):
+        # in bytes
+        return self._file_dict["size"]
+
+    @size.setter
+    def size(self, val):
+        self._file_dict["size"] = val
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self._file_dict["title"])
 
     def __repr__(self):
         return self.name
@@ -339,15 +381,29 @@ class CourseFile(object):
             return False
 
 
-class Folder(object):
-    def __init__(self, name, url):
-        self.name = name
-        self.url = url
+class Folder():
+    def __init__(self, folder_dict):
+        self._folder_dict = folder_dict
+        if 'folderId' not in folder_dict:
+            # Folder not existant on BeeP
+            self._folder_dict['folderId'] = -1
         self.files = []
         self.folders = []
 
+    @property
+    def name(self):
+        return self._folder_dict['name']
+
+    @property
+    def id(self):
+        return self._folder_dict['folderId']
+
+    @property
+    def group_id(self):
+        return self._folder_dict['groupId']
+
     def __repr__(self):
-        return self.name + " folder"
+        return f'{self.name} folder'
 
     def __eq__(self, other):
         if self.name == other.name:
@@ -367,10 +423,8 @@ def total_size(listoffiles):
 
 def folder_total_size(parentfolder, sizes):
     for f in parentfolder.files:
-        commonlogger.debug(f'il f {f.name}, è grosso {f.size}')
-        commonlogger.debug(f'prima di aggiungere, size è {sizes}')
+        commonlogger.debug(f'il {f.name}, pesa {f.size}')
         sizes.append(f.size)
-        commonlogger.debug(f'dopo operazione, size è {sizes}')
     for folder in parentfolder.folders:
         commonlogger.debug('sto controllando la dimensione della sottocartella'
                            f' {folder.name}')
@@ -386,7 +440,9 @@ def synclocalwithonline(local, online):
             local.files.append(f)
         else:
             ind = local.files.index(f)
-            local.files[ind].last_online_edit_time = f.last_online_edit_time
+            local.files[ind] = f
+            local.files[ind]._file_dict["modifiedDate"] = \
+                f._file_dict["modifiedDate"]
     oldfiles = [f for f in local.files if f not in online.files]
     cleanfiles = [f for f in local.files if f not in oldfiles]
     local.files = cleanfiles
@@ -402,7 +458,7 @@ def synclocalwithonline(local, online):
     return local
 
 
-def need_syncing(folder, parent_folder, syncthese):
+def need_syncing(folder, parent_folder):
     """Return a flat list with files to download
 
     Each element is a tuple like this
@@ -413,9 +469,9 @@ def need_syncing(folder, parent_folder, syncthese):
     path is the absolute path of the folder in which the f should be
     downloaded
     """
+    syncthese = []
     commonlogger.debug(f'calling with folder={folder.name}, parent '
-                       f'folder={parent_folder}, lunghezza syncthese ='
-                       f'{len(syncthese)}')
+                       f'folder={parent_folder}')
     # basenames contains the names of files without extension (this is used
     # later because the website sometimes doesn't show the f extension)
     basenames = []
@@ -423,30 +479,35 @@ def need_syncing(folder, parent_folder, syncthese):
         basenames = [os.path.splitext(os.path.basename(f))[0]
                      for f in os.listdir(parent_folder)
                      if os.path.isfile(os.path.join(parent_folder, f))]
+    logging.debug(basenames)
     for f in folder.files:
-        # print(f.local_creation_time, f.last_online_edit_time)
         simplename = os.path.join(parent_folder, f.name)
+        logging.debug(f)
         if f.local_creation_time is None:
-            commonlogger.debug('data None')
+            commonlogger.debug(f'Nessun tempo di creazione locale: {f}')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
-            commonlogger.debug('creazione < online')
+            commonlogger.info('File locale non aggiornato: {f} '
+                              f'{f.local_creation_time} '
+                              f'{f.last_online_edit_time}')
             syncthese.append((f, parent_folder))
         elif not os.path.exists(simplename) and f.name not in basenames:
-            commonlogger.debug('scommetto che penso che esistono quelli senza '
-                               'estensione')
-            commonlogger.debug(f'f.name = {f.name}')
-            commonlogger.debug('altrimenti')
-            commonlogger.debug('non esiste e allora aggiungo')
+            # Manages extensionless files
             syncthese.append((f, parent_folder))
     for f in folder.folders:
         new_parent = os.path.join(parent_folder, f.name)
-        need_syncing(f, new_parent, syncthese)
+        syncthese += need_syncing(f, new_parent)
     return syncthese
 
 
 class User(object):
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
+    user_courses_url = 'https://beep.metid.polimi.it/api/secure/jsonws/'\
+        'group/get-user-sites'
+    get_folders_url = 'https://beep.metid.polimi.it/api/secure/jsonws/dlapp/'\
+        'get-folders'
+    get_files_url = 'https://beep.metid.polimi.it/api/secure/jsonws/dlapp/'\
+        'get-file-entries'
     gmt1 = GMT1()
 
     def __init__(self, username, password):
@@ -454,15 +515,11 @@ class User(object):
         self.password = password
         self.session = requests.Session()
         self.logged = False
-        self.subscribed_courses = []
         self.courses_url = ""
         self.available_courses = Courses()
         self.root_save_folder = ""
         self.chunk_download = sSignal(args=['course'])
         # self.chunk_download.connect(self.print_chunk)
-
-    # def print_chunk(self, **kwargs):
-    # print(kwargs['chunk_size'])
 
     def logout(self):
         """Logout.
@@ -473,7 +530,7 @@ class User(object):
         # self.session.cookies.clear()
         self.logged = False
 
-    def get_page(self, url):
+    def get_page(self, url, params=None):
         """Use this method to get a webpage.
 
         It will check if the session is expired, and relogin if necessary.
@@ -482,17 +539,18 @@ class User(object):
             response (:class:`requests.Response`): a :class:`requests.Response`
             instance
         """
-        response = self.session.get(url, timeout=5, verify=True)
+        response = self.session.get(url, params=params, timeout=5, verify=True)
         soup = BeautifulSoup(response.text, "lxml")
         login_tag = soup.find('input', attrs={'id': 'login'})
-        if login_tag is not None:
+        if response.status_code == 401 or login_tag is not None:
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, timeout=5, verify=True)
+            response = self.session.get(url, params=params,
+                                        timeout=5, verify=True)
         return response
 
-    def get_file(self, url):
+    def get_file(self, url, params=None):
         """Use this method to get a f.
 
         It will check if the session is expired, and re-login if necessary.
@@ -506,14 +564,15 @@ class User(object):
         Returns:
             response (requests.Response): a :class:`requests.Response` object
         """
-        response = self.session.get(url, timeout=5, verify=True, stream=True)
+        response = self.session.get(url, params=params,
+                                    timeout=5, verify=True, stream=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, timeout=5, verify=True,
-                                        stream=True)
+            response = self.session.get(url, params=params,
+                                        timeout=5, verify=True, stream=True)
         return response
 
     def _login_first_step(self):
@@ -617,64 +676,6 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             self.logged = False
             raise InvalidLoginError
 
-    def _create_course(self, name, firstlink):
-        """Helper function to create a Course with the real URL.
-
-        This is done because the href present in the courses page is a
-        redirect to the real page.
-        """
-        link = self.get_page(firstlink).url
-        link = link.rstrip('attivita-online-e-avvisi')
-        weird_parameters = [
-            '_20_folderId=0',
-            '_20_displayStyle=list',
-            '_20_viewEntries=0',
-            '_20_viewFolders=0',
-            '_20_entryEnd=500',
-            '_20_entryStart=0',
-            '_20_folderEnd=500',
-            '_20_folderStart=0',
-            '_20_viewEntriesPage=1',
-            'p_p_id=20',
-            'p_p_lifecycle=0'
-            ]
-        link = link + 'documenti-e-media?' + "&".join(weird_parameters)
-        course = Course(name, link)
-        commonlogger.debug(f'Course found: {course.name}')
-        return course
-
-    def _courses_scraper(self, text):
-        """Return a list of tuples containing the courses from the input text.
-
-        Each tuple is (name, firstlink) where "name" is the complete name of
-        the course (not stripped of squared brackets) and firstlink is the
-        link to be followed in order to get the real course url.
-        """
-        courses_soup = BeautifulSoup(text, "lxml")
-        raw_courses = courses_soup.find_all('tr',
-                                            attrs={'class': 'results-row'})
-        # the first tag is not a course
-        raw_courses.pop(0)
-        # online_courses = Courses()
-        # we iterate over the tags
-        temporary_courses = []
-        # we only need year to parse for real courses
-        year = Group("[" + OneOrMore(
-            Word(nums, exact=4) + "-" + Word(nums, exact=2)) + "]")
-        # bracketed = Group("[" + OneOrMore(Word(printables, " ")) + "]")
-        # middle = ~bracketed + OneOrMore(Word(alphas))
-        # grammar = year.suppress() + Literal("-").suppress() + middle
-        grammar = year
-        for course in raw_courses:
-            firstlink = course.td.a['href']
-            name = course.td.a.strong.text.strip()
-            try:
-                grammar.parseString(name)
-                temporary_courses.append((name, firstlink))
-            except ParseException:
-                pass
-        return temporary_courses
-
     def get_online_courses(self):
         """Return the courses available online.
 
@@ -682,12 +683,12 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             online_courses (:class:`Courses`): a :class:`Courses` container of
             all courses available online."""
         commonlogger.info('Looking for new courses.')
-        coursespage = self.get_page(self.courses_url)
-        temp_courses = self._courses_scraper(coursespage.text)
+        res = self.session.get(self.user_courses_url)
+        parsed_courses = filter(lambda x: x["type"] == 2, res.json())
+
         courses = Courses()
-        for elem in temp_courses:
-            course = self._create_course(elem[0], elem[1])
-            courses.append(course)
+        for elem in parsed_courses:
+            courses.append(Course(elem))
         return courses
 
     def sync_available_courses(self, master_courses):
@@ -731,8 +732,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 self.available_courses.remove(elem)
 
     def update_course_files(self, course):
-        online = self.find_files_and_folders(course.documents_url,
-                                             'rootfolder')
+        online = self.find_files_and_folders(course._course_dict)
         synclocalwithonline(course.documents, online)
         sizes = []
         course.total_file_size = sum(folder_total_size(course.documents,
@@ -740,58 +740,33 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         human_total_size = sizeof_fmt(course.total_file_size)
         commonlogger.info(f'****DIMENSIONE TOTALE: {human_total_size}')
 
-    def find_files_and_folders(self, link, thisfoldername):
-        response = self.get_page(link)
-        soup = BeautifulSoup(response.text, "lxml")
-        tags = soup.find_all('tr', attrs={'class': 'document-display-style'})
+    def find_files_and_folders(self, folder_dict):
+        folder = Folder(folder_dict)
+        query_params_files = {'repositoryId': folder.group_id,
+                              'folderId': 0}
+        query_params_folder = {'repositoryId': folder.group_id,
+                               'parentFolderId': 0}
+        if folder_dict['folderId'] != -1:
+            query_params_files['folderId'] = folder_dict['folderId']
+            query_params_folder['parentFolderId'] = folder_dict['folderId']
 
-        folder = Folder(thisfoldername, response.url)
+        subfolders_dict = self.get_page(self.get_folders_url,
+                                        params=query_params_folder)\
+            .json()
 
-        for v in tags:
-            commonlogger.debug("Tags from which we extract the list of files:"
-                               " {}".format(v))
-            name_span = v.find('span', attrs={'class': 'taglib-text'})
-            name = name_span.text
-            rawdate = v.find('td', attrs={'class': 'col-5'}).text
-            last_column = v.find('td', attrs={'class': 'col-6'}).text
+        files_dict = self.get_page(self.get_files_url,
+                                   params=query_params_files).json()
 
-            day = int(rawdate.split(' ')[1].split('/')[0])
-            month = int(rawdate.split(' ')[1].split('/')[1])
-            year = int('20' + rawdate.split(' ')[1].split('/')[2])
-            hour = int(rawdate.split(' ')[2].split('.')[0])
-            minute = int(rawdate.split(' ')[2].split('.')[1])
-            complete_date = datetime(year, month, day, hour, minute,
-                                     tzinfo=self.gmt1)
+        for elem in subfolders_dict:
+            commonlogger.debug(f'Added {elem} to {folder}')
+            subfolder = self.find_files_and_folders(elem)
+            folder.folders.append(subfolder)
 
-            if '--' not in last_column:
-                download_page_link = name_span.parent['href']
-                response = self.get_page(download_page_link)
-                download_page = BeautifulSoup(response.text, "lxml")
+        for elem in files_dict:
+            commonlogger.debug(f'Added {elem} to {folder}')
+            course_file = CourseFile(elem)
+            folder.files.append(course_file)
 
-                try:
-                    down_div = download_page.find_all('span',
-                                                      {'class':
-                                                       'download-document'})[0]
-                    down_span = down_div.find_all('span',
-                                                  {'class': 'taglib-text'})[0]
-                except IndexError:
-                    pdb.set_trace()
-                    raise
-
-                down_link = down_div.find_all('a')[0]['href']
-                regex = re.search('(?<=\\()(.*?)(?=\\))', down_span.text)
-                size = regex.group(0)
-                size = re.sub('[^0-9\\.,]', '', size)
-                size = int(float(size.strip().replace(".", "").
-                                 replace(",", ".")) * 1024)
-                complete_file = CourseFile(name, down_link, complete_date)
-                complete_file.size = size
-                folder.files.append(complete_file)
-
-            else:
-                link = name_span.parent['href']
-                subfolder = self.find_files_and_folders(link, name)
-                folder.folders.append(subfolder)
         return folder
 
     def save_files(self, course, needsync, downloadsignal, datesignal,
@@ -806,6 +781,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
     def download_file(self, course, path, coursefile, needsync, downloadsignal,
                       datesignal, chunk_size):
         result = self.get_file(coursefile.url)
+        commonlogger.debug(coursefile.url)
         complete_basename = result.headers['Content-Disposition'] \
             .split("; ")[1].split("=")[1].strip('"')
         complete_name = os.path.join(path, complete_basename)
@@ -816,7 +792,6 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 if chunk:
                     f.write(chunk)
                     course.downloaded_size += len(chunk)
-                    commonlogger.debug('chunk size: {}'.format(len(chunk)))
                     downloadsignal.emit(course=course)
             coursefile.local_creation_time = datetime.now(self.gmt1)
             # we emit another signal here so that we can save to f

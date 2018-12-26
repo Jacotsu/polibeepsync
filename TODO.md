@@ -8,7 +8,7 @@
 
 - [ ] Write Tests
 
-- [ ] Fix graphical glitches
+- [X] Fix graphical glitches
 
 - [ ] Move from Beautiful soup to simple lxml to remove horrendous code
 
