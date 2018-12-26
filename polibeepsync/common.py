@@ -59,35 +59,32 @@ class QThreadPoolContexted(QThreadPool):
 class RefreshCoursesThread(QThread):
     def __init__(self, user, parent=None):
         super(RefreshCoursesThread, self).__init__(parent)
-        self.exiting = False
         self.dumpuser = MySignal()
         self.newcourses = CoursesSignal()
         self.removable = CoursesSignal()
         self.user = user
+        self.setPriority(QThread.LowPriority)
 
     def run(self):
-        while not self.exiting:
-            most_recent = self.user.get_online_courses()
-            last = self.user.available_courses
-            new = most_recent - last
-            removable = last - most_recent
-            if len(removable) > 0:
-                commonlogger.info('The following courses have'
-                                  ' been removed because they '
-                                  'aren\'t available online: {}'
-                                  .format(removable))
-            if len(new) > 0:
-                for course in new:
-                    course.save_folder_name = course.simplify_name(course.name)
-                    commonlogger.info('A new course '
-                                      'was found: {}'.format(course))
-            if len(new) == 0:
-                commonlogger.info('No new courses found.')
-            self.user.sync_available_courses(most_recent)
-            commonlogger.debug('User object changed')
-            self.newcourses.sig.emit(new)
-            self.removable.sig.emit(removable)
-            self.exiting = True
+        most_recent = self.user.get_online_courses()
+        last = self.user.available_courses
+        new = most_recent - last
+        removable = last - most_recent
+        if removable:
+            commonlogger.info('The following courses have'
+                              ' been removed because they '
+                              'aren\'t available online: {}'
+                              .format(removable))
+        for course in new:
+            course.save_folder_name = course.simplify_name(course.name)
+            commonlogger.info('A new course '
+                              'was found: {}'.format(course))
+        if not new:
+            commonlogger.info('No new courses found.')
+        self.user.sync_available_courses(most_recent)
+        self.newcourses.sig.emit(new)
+        self.removable.sig.emit(removable)
+        commonlogger.debug('User object changed')
         self.dumpuser.sig.emit('')
 
 
@@ -98,11 +95,12 @@ class LoginThread(QThread):
         self.signal_ok = MySignal()
         self.signal_error = MySignal()
         self.user = user
+        self.setPriority(QThread.LowPriority)
 
     def run(self):
-        commonlogger.info('Logging in.')
         while not self.exiting:
             try:
+                commonlogger.info('Logging in.')
                 self.user.logout()
                 self.user.login()
                 if self.user.logged is True:
@@ -137,6 +135,7 @@ class DownloadThread(QThread):
         self.download_signal = sSignal(args=['course'])
         self.initial_sizes = sSignal(args=['course'])
         self.date_signal = sSignal(args=['data'])
+        self.setPriority(QThread.LowPriority)
 
     def run(self):
         self.start_download_s.sig.emit('')
@@ -851,11 +850,3 @@ class SignalLoggingHandler(logging.Handler):
         def sig_emit(record):
             signal.sig.emit(record.msg)
         self.emit = sig_emit
-
-#import pickle
-#lel = None
-#with open('/home/jacotsu/.local/share/poliBeePsync/pbs.data', 'rb') as kek:
-#    lel = pickle.load(kek)
-#
-#course = lel.available_courses['[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO DULIO ]']
-#lel.update_course_files(course)

@@ -29,7 +29,8 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: X11 Applications :: Qt",
     "Intended Audience :: Education",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "License :: OSI Approved :: GNU General Public License v3 or later "
+    "(GPLv3+)",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.7"
@@ -39,8 +40,8 @@ setup(
     name='poliBeePsync',
     version=find_version("polibeepsync/__init__.py"),
     url="http://www.davideolianas.com/polibeepsync",
-    author="Davide Olianas",
-    author_email="ubuntupk@gmail.com",
+    author="Davide Olianas, Raffaele Di Campli",
+    author_email="ubuntupk@gmail.com, dcdrj.pub@gmail.com",
     license='GPLv3+',
     install_requires=[
         "requests",

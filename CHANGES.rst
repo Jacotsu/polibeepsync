@@ -1,8 +1,22 @@
 Changelog
 =========
 
-0.3.3
------------------
+0.4.0 (2018-12-26)
+------------------
+New
+~~~
+- Implemented beep's liferay json api (thanks to `davethecipo <https://github.com/davethecipo>`_ and
+  `edomora97 <https://github.com/edomora97>`_)[DCDRJ]
+
+Fix
+~~~
+- Now if the settings file is corrupted the application doesn't crash [DCDRJ]
+- Updated docs link in check new version code [DCDRJ]
+- Updated tests [DCDRJ]
+- Code cleanup [DCDRJ]
+
+0.3.3 (2018-12-14)
+------------------
 New
 ~~~
 - Set 'info' as default logging level [DCDRJ]

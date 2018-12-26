@@ -2,6 +2,10 @@
 
 - [X] Add dynamic connection management to bypass beep's anti dos system
 
+- [ ] Fix interface hanging when downloading a lot of files
+
+- [ ] Print message to status bar whe sync finishes
+
 - [ ] Fix bug that crashes the app when incorrect credentials are used
 
 - [ ] Add desktop link creation during installation

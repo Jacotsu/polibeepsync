@@ -22,20 +22,19 @@ import pickle
 import sys
 import logging
 import json
-from polibeepsync.common import User, InvalidLoginError, Folder, Course, \
-    DownloadThread, LoginThread, find_version, MySignal, CoursesSignal, \
-    DownloadChunkSignal, RefreshCoursesThread, SignalLoggingHandler
+from polibeepsync.common import (User, Folder, Course, DownloadThread,
+                                 LoginThread, find_version, MySignal,
+                                 RefreshCoursesThread, SignalLoggingHandler)
 from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
 from appdirs import user_config_dir, user_data_dir
 
-from PySide2.QtCore import (QThread, QObject, Signal, QAbstractTableModel,
-                            QModelIndex, Qt, Slot, QTimer, QLocale)
+from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot,
+                            QTimer, QLocale)
 from PySide2.QtGui import (QTextCursor, QCursor)
 from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog, QLabel,
-                               QSystemTrayIcon, qApp, QApplication,
-                               QProxyStyle)
+                               QSystemTrayIcon, qApp, QApplication)
 
 
 __version__ = find_version("__init__.py")
@@ -164,7 +163,7 @@ class MainWindow(Ui_Form):
         self.downloadthread = DownloadThread(self.user,
                                              self.settings['RootFolder'],
                                              self)
-
+        self.downloadthread.dumpuser.sig.connect(self.dumpUser)
         self.downloadthread.download_signal.connect(
             self.update_course_download)
         self.downloadthread.initial_sizes.connect(self.setinizialsizes)
@@ -176,12 +175,12 @@ class MainWindow(Ui_Form):
         self._window.password.textEdited.connect(self.setpassword)
         self._window.trylogin.clicked.connect(self.testlogin)
 
-        self._window.courses_model = CoursesListModel(self.user.available_courses)
+        self._window.courses_model = CoursesListModel(self.user.
+                                                      available_courses)
         self._window.coursesView.setModel(self._window.courses_model)
         self._resizeview()
         self._window.refreshCourses.clicked.connect(self.refreshcourses)
 
-        self._window.courses_model.dataChanged.connect(self.dumpUser)
         self._window.syncNow.clicked.connect(self.syncfiles)
 
         if self.settings['SyncNewCourses'] == str(True):
@@ -199,7 +198,8 @@ class MainWindow(Ui_Form):
         self._window.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self._window.changeRootFolder.clicked.connect(self.chooserootdir)
-        self._window.version_label.setText("Current version: {}.".format(__version__))
+        self._window.version_label.setText("Current version: {}."
+                                           .format(__version__))
         self._window.check_version.clicked.connect(self.checknewversion)
 
         self.trayIconMenu = QMenu()
@@ -217,11 +217,13 @@ class MainWindow(Ui_Form):
         self._window.statusbar.showMessage('Started syncing.')
 
     def checknewversion(self):
-        rawdata = requests.get('https://pypi.python.org/pypi/poliBeePsync/json')
+        rawdata = requests.get('https://pypi.python.org/pypi/'
+                               'poliBeePsync/json')
         latest = json.loads(rawdata.text)['info']['version']
         self._window.version_label.setTextFormat(Qt.RichText)
         self._window.version_label.setOpenExternalLinks(True)
-        self._window.version_label.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        self._window.version_label.setLocale(QLocale(QLocale.English,
+                                                     QLocale.UnitedStates))
         self._window.version_label.setScaledContents(True)
         self._window.version_label.setWordWrap(True)
         if latest != __version__:
@@ -375,6 +377,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
             self.downloadthread = DownloadThread(self.user,
                                                  self.settings['RootFolder'],
                                                  self)
+            self.downloadthread.dumpuser.sig.connect(self.dumpUser)
             self.dumpUser()
 
     @Slot()
@@ -382,9 +385,9 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         newcode = self._window.userCode.text()
         self.user.username = newcode
         try:
-            self.dumpUser()
             if len(newcode) == 8:
                 logger.info(f'User code changed to {newcode}.')
+                self.dumpUser()
         except OSError:
             logger.critical("I couldn't save data to disk. Run"
                             " poliBeePsync with option --debug"
@@ -401,8 +404,8 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
             logger.info("Password changed.")
         except OSError:
             logger.critical("I couldn't save data to disk. Run"
-                                  " poliBeePsync with option --debug"
-                                  " error to get more details.")
+                            " poliBeePsync with option --debug"
+                            " error to get more details.")
             logger.error('OSError raised while trying to write the User'
                          'instance to disk.', exc_info=True)
 
@@ -433,8 +436,8 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
 
     @Slot()
     def refreshcourses(self):
-        self._window.statusbar.showMessage('Searching for online updates...this may take a'
-                             ' while.')
+        self._window.statusbar.showMessage('Searching for online updates...'
+                                           'this may take a while.')
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.signal_ok.sig.connect(self.do_refreshcourses)
@@ -443,7 +446,6 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
     def do_refreshcourses(self):
         self.loginthread.signal_ok.sig.disconnect(self.do_refreshcourses)
         if not self.refreshcoursesthread.isRunning():
-            self.refreshcoursesthread.exiting = False
             self.refreshcoursesthread.start()
 
     @Slot()
@@ -486,7 +488,8 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         self._window.label_3 = QLabel()
         self._window.label_3.setTextFormat(Qt.RichText)
         self._window.label_3.setOpenExternalLinks(True)
-        self._window.label_3.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
+        self._window.label_3.setLocale(QLocale(QLocale.English,
+                                               QLocale.UnitedStates))
         self._window.label_3.setScaledContents(True)
         self._window.label_3.setWordWrap(True)
         text = """

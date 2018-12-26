@@ -1,6 +1,7 @@
 from polibeepsync.common import Courses, Course, CourseFile, User, Folder, \
     total_size, folder_total_size
 import pytest
+import json
 import os
 
 
@@ -34,13 +35,13 @@ class TestCourse:
 
     def test_size_calculation(self):
         afile = CourseFile({'title': 'a',
-                        'groupId': 5,
-                        'uuid': '50-ddf-kek',
-                        'size': 1000})
+                            'groupId': 5,
+                            'uuid': '50-ddf-kek',
+                            'size': 1000})
         asecondfile = CourseFile({'title': 'a',
-                        'groupId': 5,
-                        'uuid': '50-ddf-kek',
-                        'size': 10001})
+                                  'groupId': 5,
+                                  'uuid': '50-ddf-kek',
+                                  'size': 10001})
         afile.size = 1099776
         asecondfile.size = 752640
         complete_list = [(afile, '/his/path'), (asecondfile, '/another/path')]
@@ -94,59 +95,53 @@ class TestCourse:
 
     def test_ignorebeepcourse(self):
         clean_list = [
-            Course('[2014-15] - ADVANCED CHEMISTRY FOR MATERIALS ENGINEERING [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
-            Course('[2014-15] - DURABILITY OF MATERIALS [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
-            Course('[2014-15] - FAILURE AND CONTROL OF METALS [ MAURIZIO VEDANI ]', 'beep.com'),
-            Course('[2014-15] - MATHEMATICAL METHODS FOR MATERIALS ENGINEERING [ MICHELE DI CRISTO ]', 'beep.com'),
-            Course('[2014-15] - MECHANICAL BEHAVIOUR OF MATERIALS [ LAURA VERGANI ]', 'beep.com'),
-            Course('[2014-15] - MICRO ELECTRO MECHANICAL SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]', 'beep.com'),
-            Course('[2014-15] - PHYSICAL PROPERTIES OF MOLECULAR MATERIALS [ MATTEO MARIA SAVERIO TOMMASINI ]', 'beep.com'),
-            Course('[2014-15] - PHYSICS OF NANOSTRUCTURES [ CARLO S. CASARI ]', 'beep.com'),
-            Course('[2014-15] - SOLID STATE PHYSICS [ CARLO ENRICO BOTTANI ]', 'beep.com'),
-            Course('[2014-15] - STRUCTURAL CHEMISTRY OF MATERIALS [ GUIDO RAOS ]', 'beep.com'),
-            ]
+            Course({'name': '[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO MARIO GIOVANNI VEGNI ]',
+                    'friendlyURL': 'beep.com',
+                    'classPK': 122035314}),
+            Course({'name': '[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO DULIO ]',
+                    'friendlyURL': 'beep.com',
+                    'classPK': 115041662}),
+            Course({'name': '[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA LEONARDO LACAITA ]',
+                    'friendlyURL': 'beep.com',
+                    'classPK': 115292440})
+                ]
         clean_courses = Courses()
         clean_courses.append(*clean_list)
         # the following file is an exact copy of what you get online.
         # It's a one-line document
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            'courses-page.html')
+                            'courses-page.json')
         with open(path) as fake_courses:
-            text = fake_courses.read()
-            user = User("doesn't matter", 'nope')
-            temp_courses = user._courses_scraper(text)
+            temp_courses = json.load(fake_courses)
             courses = Courses()
             for elem in temp_courses:
-                course = Course(elem[0], elem[1])
+                course = Course(elem)
                 courses.append(course)
             assert courses == clean_courses
 
     def test_ignoreotherbadnames(self):
         clean_list = [
-            Course('[2014-15] - ADVANCED CHEMISTRY FOR MATERIALS ENGINEERING [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
-            Course('[2014-15] - DURABILITY OF MATERIALS [ MATERIALS ENGINEERING AND NANOTECHNOLOGY ]', 'beep.com'),
-            Course('[2014-15] - FAILURE AND CONTROL OF METALS [ MAURIZIO VEDANI ]', 'beep.com'),
-            Course('[2014-15] - MATHEMATICAL METHODS FOR MATERIALS ENGINEERING [ MICHELE DI CRISTO ]', 'beep.com'),
-            Course('[2014-15] - MECHANICAL BEHAVIOUR OF MATERIALS [ LAURA VERGANI ]', 'beep.com'),
-            Course('[2014-15] - MICRO ELECTRO MECHANICAL SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]', 'beep.com'),
-            Course('[2014-15] - PHYSICAL PROPERTIES OF MOLECULAR MATERIALS [ MATTEO MARIA SAVERIO TOMMASINI ]', 'beep.com'),
-            Course('[2014-15] - PHYSICS OF NANOSTRUCTURES [ CARLO S. CASARI ]', 'beep.com'),
-            Course('[2014-15] - SOLID STATE PHYSICS [ CARLO ENRICO BOTTANI ]', 'beep.com'),
-            Course('[2014-15] - STRUCTURAL CHEMISTRY OF MATERIALS [ GUIDO RAOS ]', 'beep.com'),
-            ]
+            Course({'name': '[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO MARIO GIOVANNI VEGNI ]',
+                    'friendlyURL': 'beep.com',
+                    'classPK': 122035314}),
+            Course({'name': '[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO DULIO ]',
+                    'friendlyURL': 'beep.com',
+                    'classPK': 115041662}),
+            Course({'name': '[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA LEONARDO LACAITA ]',
+                    'friendlyURL': 'beep.com',
+                    'classPK': 115292440})
+        ]
         clean_courses = Courses()
         clean_courses.append(*clean_list)
         # the following html file is like courses-page.html, but prettified
         # i.e has multiple lines, like humans would expect html pages.
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            'nicer-courses-page.html')
+                            'nicer-courses-page.json')
         with open(path) as fake_courses:
-            text = fake_courses.read()
-            user = User("doesn't matter", 'nope')
-            temp_courses = user._courses_scraper(text)
+            temp_courses = json.load(fake_courses)
             courses = Courses()
             for elem in temp_courses:
-                course = Course(elem[0], elem[1])
+                course = Course(elem)
                 courses.append(course)
             assert courses == clean_courses
 
@@ -198,7 +193,6 @@ class TestCourse:
         metal = Course({'name': 'metalli',
                         'friendlyURL': 'beep.com',
                         'classPK': 1})
-
 
         offline_metal.append(a, b)
         metal.append(a, b, c)
