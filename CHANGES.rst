@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.4.1 (2018-12-26)
+------------------
+Fix
+~~~
+- Included .ui file in pip package [DCDRJ]
+
 0.4.0 (2018-12-26)
 ------------------
 New

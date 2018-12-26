@@ -54,6 +54,8 @@ setup(
     ],
     python_requires='>=3.7',
     packages=['polibeepsync'],
+    package_data={'': ['new_gui.ui']},
+    include_package_data=True,
     description="Sync files from https://beep.metid.polimi.it "
     "(for students of Politecnico di Milano)",
     long_description=long_description,
