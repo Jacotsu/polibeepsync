@@ -1,0 +1,50 @@
+[
+	{  
+		"active":true,
+		"classNameId":10009,
+		"classPK":122035314,
+		"companyId":10112,
+		"creatorUserId":10115,
+		"description":"",
+		"friendlyURL":"/2016-17-analisi-matematica-1-federico-mario-giovanni-vegni-",
+		"groupId":122035314,
+		"liveGroupId":0,
+		"name":"[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO MARIO GIOVANNI VEGNI ]",
+		"parentGroupId":0,
+		"site":true,
+		"type":2,
+		"typeSettings":""
+	},
+	{  
+		"active":true,
+		"classNameId":10009,
+		"classPK":115041662,
+		"companyId":10112,
+		"creatorUserId":10115,
+		"description":"",
+		"friendlyURL":"/2015-16-geometria-e-algebra-lineare-paolo-dulio-",
+		"groupId":115041662,
+		"liveGroupId":0,
+		"name":"[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO DULIO ]",
+		"parentGroupId":0,
+		"site":true,
+		"type":2,
+		"typeSettings":""
+	},
+	{  
+		"active":true,
+		"classNameId":10009,
+		"classPK":115292440,
+		"companyId":10112,
+		"creatorUserId":10115,
+		"description":"",
+		"friendlyURL":"/2015-16-dispositivi-elettronici-andrea-leonardo-lacaita-",
+		"groupId":115292440,
+		"liveGroupId":0,
+		"name":"[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA LEONARDO LACAITA ]",
+		"parentGroupId":0,
+		"site":true,
+		"type":2,
+		"typeSettings":""
+	}
+]
