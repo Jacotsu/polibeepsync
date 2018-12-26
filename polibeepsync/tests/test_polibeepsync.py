@@ -19,6 +19,23 @@ class TestCourse:
 
         assert course.simplify_name(course.name) == "Some Stuff"
 
+    def test_simplifycoursewithoutyear(self):
+        course = Course({'name': 'RETI LOGICHE [ FABRIZIO FERRANDI ]',
+                         'friendlyURL': 'beep.com',
+                         'classPK': 1})
+
+        assert course.simplify_name(course.name) == "Reti Logiche"
+
+    def test_simplifycoursewithspecialchars(self):
+        course = Course({'name': "[2018-19] - SISTEMI INFORMATIVI (PER IL "
+                         "SETTORE DELL'INFORMAZIONE) [ MONICA VITALI ] "
+                         "classe-694572",
+                         'friendlyURL': 'beep.com',
+                         'classPK': 1})
+
+        assert course.simplify_name(course.name) == "Sistemi Informativi"
+
+
     def test_cannotsimplifyname(self):
         course = Course({'name': 'Metid',
                          'friendlyURL': 'beep.com',

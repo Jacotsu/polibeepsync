@@ -25,8 +25,8 @@ import logging
 import re
 from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
-from pyparsing import Word, alphanums, alphas, nums, Group, OneOrMore, \
-    Literal, ParseException
+from pyparsing import Word, alphanums, alphas8bit, alphas, nums, Group, OneOrMore, \
+    Literal, ParseException, ZeroOrMore, White
 from signalslot import Signal as sSignal
 
 
@@ -291,8 +291,10 @@ class Course(GenericSet):
 
     def simplify_name(self, name):
         simple = name
-        year = Group("[" + OneOrMore(Word(nums, exact=4) +
-                                     "-" + Word(nums, exact=2)) + "]")
+        year = Group(ZeroOrMore("[" + Word(nums, exact=4) +
+                                "-" + Word(nums, exact=2) + "]"))
+
+        dash = Group(ZeroOrMore(White() + "-" + White()))
         no_squared_brackets = Word(
             alphanums,
             ",;.:-_@#°§+*{}^'?=)(/&%$£!\\|\""
@@ -300,7 +302,7 @@ class Course(GenericSet):
         bracketed = Group("[" + OneOrMore(no_squared_brackets) + "]")
         middle = ~bracketed + OneOrMore(Word(alphas))
         try:
-            grammar = year.suppress() + Literal("-").suppress() + middle
+            grammar = year.suppress() + dash.suppress() + middle
             simple = " ".join(grammar.parseString(name))
         except ParseException:
             commonlogger.error(f'Failed to simplify course name {name}',
