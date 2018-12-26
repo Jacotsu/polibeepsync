@@ -26,7 +26,7 @@ import re
 from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
 from pyparsing import Word, alphanums, alphas8bit, alphas, nums, Group, OneOrMore, \
-    Literal, ParseException, ZeroOrMore, White
+    Literal, ParseException, ZeroOrMore, White, printables
 from signalslot import Signal as sSignal
 
 
@@ -296,11 +296,11 @@ class Course(GenericSet):
 
         dash = Group(ZeroOrMore(White() + "-" + White()))
         no_squared_brackets = Word(
-            alphanums,
+            alphanums+alphas8bit,
             ",;.:-_@#°§+*{}^'?=)(/&%$£!\\|\""
         )
         bracketed = Group("[" + OneOrMore(no_squared_brackets) + "]")
-        middle = ~bracketed + OneOrMore(Word(alphas))
+        middle = ~bracketed + OneOrMore(Word(alphanums+alphas8bit+"'"))
         try:
             grammar = year.suppress() + dash.suppress() + middle
             simple = " ".join(grammar.parseString(name))

@@ -26,6 +26,15 @@ class TestCourse:
 
         assert course.simplify_name(course.name) == "Reti Logiche"
 
+    def test_simplifycoursewithaccents(self):
+        course = Course({'name': "[2017-18] - PROBABILITÀ E STATISTICA PER L'INFORMATICA [ GIUSEPPINA GUATTERI ]",
+                         'friendlyURL': 'beep.com',
+                         'classPK': 1})
+
+        assert course.simplify_name(course.name) == "Probabilità E Statistica"\
+            " Per L'Informatica"
+
+
     def test_simplifycoursewithspecialchars(self):
         course = Course({'name': "[2018-19] - SISTEMI INFORMATIVI (PER IL "
                          "SETTORE DELL'INFORMAZIONE) [ MONICA VITALI ] "
