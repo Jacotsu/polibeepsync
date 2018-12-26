@@ -450,6 +450,15 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
 
     @Slot()
     def syncfiles(self):
+        # we delete the already present downloadthread and recreate it
+        # because otherwise it uses the old download folder. I don't know
+        # if there's a cleaner approach
+        del self.downloadthread
+        self.downloadthread = DownloadThread(self.user,
+                                             self.settings['RootFolder'],
+                                             self)
+        self.downloadthread.dumpuser.sig.connect(self.dumpUser)
+
         self.refreshcoursesthread.finished.connect(self.do_syncfiles)
         self.refreshcourses()
 
