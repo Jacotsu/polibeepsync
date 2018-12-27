@@ -483,7 +483,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
 
     @Slot(str)
     def _activate_traymenu(self, reason):
-        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+        if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
             self.showNormal()
         else:
             self.trayIconMenu.activateWindow()
