@@ -1,6 +1,19 @@
 Changelog
 =========
 
+0.4.2 (2018-12-27)
+------------------
+New
+~~~
+- New icon (thanks to `Davide Depau <https://github.com/Depau>`_ [DCDRJ]
+
+Fix
+~~~
+- Now the manually inserted root folder path is no longer ignored [DCDRJ]
+- Now course names without a year or with accents are supported [DCDRJ]
+- Now minimize and restore work properly [DCDRJ]
+- Now the tar file includes the new_gui.ui file [DCDRJ]
+
 0.4.1 (2018-12-26)
 ------------------
 Fix

@@ -473,8 +473,13 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         self._window.status.moveCursor(QTextCursor.End)
         self._window.status.insertPlainText(message + "\n")
 
+    def restore_window(self):
+        self._window.setWindowState(self.windowState() & ~Qt.WindowMinimized |
+                                Qt.WindowActive)
+        self._window.show()
+
     def createTray(self):
-        restoreAction = QAction("&Restore", self, triggered=self.showNormal)
+        restoreAction = QAction("&Restore", self, triggered=self.restore_window)
         quitAction = QAction("&Quit", self, triggered=qApp.quit)
         self.trayIconMenu.addAction(restoreAction)
         self.trayIconMenu.addAction(quitAction)
@@ -484,7 +489,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
     @Slot(str)
     def _activate_traymenu(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
-            self.showNormal()
+            self.restore_window()
         else:
             self.trayIconMenu.activateWindow()
             self.trayIconMenu.popup(QCursor.pos())
