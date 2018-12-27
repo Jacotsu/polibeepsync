@@ -181,7 +181,7 @@ class Ui_Form(QMainWindow):
         self._window.coursesView.setObjectName("coursesView")
         self._window.coursesView2.deleteLater()
 
-        self.icon = QIcon(":/icons/uglytheme/48x48/polibeepsync.png")
+        self.icon = QIcon(":/icons/uglytheme/polibeepsync.svg")
 
         self.retranslateUi(self._window)
         self._window.tabWidget.setCurrentIndex(0)
