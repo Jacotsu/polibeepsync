@@ -19,6 +19,7 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, tzinfo
 from functools import partial
+from urllib.parse import unquote
 import requests
 import os
 import logging
@@ -786,7 +787,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         commonlogger.debug(coursefile.url)
         complete_basename = result.headers['Content-Disposition'] \
             .split("; ")[1].split("=")[1].strip('"')
-        complete_name = os.path.join(path, complete_basename)
+        complete_name = os.path.join(path, unquote(complete_basename))
         os.makedirs(path, exist_ok=True)
         with open(complete_name, 'wb') as f:
             commonlogger.info('writing into {}'.format(complete_name))
