@@ -21,6 +21,7 @@ from datetime import datetime, timedelta, tzinfo
 from functools import partial
 from urllib.parse import unquote
 import requests
+from urllib.parse import urlsplit, urlunsplit
 import os
 import logging
 import re
@@ -643,11 +644,31 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         Raises:
             InvalidLoginError: when the login fails
         """
+        login_headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)'
+                          'Gecko/20100101 Firefox/34.0',
+        }
+
         # switch to english version if we're on the italian site
         first_response = self._login_first_step()
         first_soup = BeautifulSoup(first_response.text, "lxml")
         form = first_soup.find_all('form')[0]
-        url = form['action']
+
+        # If password change prompt is show handle this special case
+        if form.find('button', {'name': 'evn_continua'}):
+            logging.warning('Your password is about to expire, change it ASAP')
+            uri = urlsplit(first_response.url)
+            url = f'{uri.scheme}://{uri.netloc}{form["action"]}'
+            pwd_change_res = self.session.post(url,
+                                               data={'evn_continua': ''},
+                                               headers=login_headers)
+            first_response = self._do_shibboleth(pwd_change_res)
+            first_soup = BeautifulSoup(first_response.text, "lxml")
+            form = first_soup.find_all('form')[0]
+        url = form["action"]
+
+        logging.debug(f'Login url {url}')
+
         payload = {}
         for x in form.find_all('input'):
             try:
@@ -655,10 +676,6 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             except KeyError:
                 pass
 
-        login_headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)'
-                          'Gecko/20100101 Firefox/34.0',
-        }
         second_response = self.session.post(url,
                                             data=payload,
                                             headers=login_headers)

@@ -57,11 +57,18 @@ This code is in the beta stage. Documentation is under construction
 Changelog
 =========
 
+0.4.3 (2019-01-22)
+------------------
+Fix
+~~~
+- Url encoded filenames are now saved with a proper name [DCDRJ]
+- Login doesn't fail when password change prompt is shown [DCDRJ]
+
 0.4.2 (2018-12-27)
 ------------------
 New
 ~~~
-- New icon (thanks to `Davide Depau <https://github.com/Depau>`_ [DCDRJ]
+- New icon (thanks to `Davide Depau <https://github.com/Depau>`_) [DCDRJ]
 
 Fix
 ~~~
