@@ -2,6 +2,12 @@
 
 - [X] Add dynamic connection management to bypass beep's anti dos system
 
+- [ ] Use sqlite for settings and synced files tracking
+
+- [ ] Implement keyring password storage
+
+- [ ] Use qsettings for gui status persistency
+
 - [ ] Fix interface hanging when downloading a lot of files
 
 - [ ] Print message to status bar whe sync finishes
