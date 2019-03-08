@@ -22,6 +22,7 @@ import pickle
 import sys
 import logging
 import json
+import keyring
 from polibeepsync.common import (User, Folder, Course, DownloadThread,
                                  LoginThread, find_version, MySignal,
                                  RefreshCoursesThread, SignalLoggingHandler)
@@ -173,9 +174,9 @@ class MainWindow(Ui_Form):
         self.downloadthread.date_signal.connect(self.update_file_localtime)
 
         self._window.userCode.setText(str(self.user.username))
-        self._window.userCode.textEdited.connect(self.setusercode)
+        self._window.userCode.editingFinished.connect(self.setusercode)
         self._window.password.setText(self.user.password)
-        self._window.password.textEdited.connect(self.setpassword)
+        self._window.password.editingFinished.connect(self.setpassword)
         self._window.trylogin.clicked.connect(self.testlogin)
 
         self._window.courses_model = CoursesListModel(self.user.
@@ -315,6 +316,9 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
             with open(os.path.join(user_data_dir(self.appname),
                                    self.data_fname), 'rb') as f:
                 self.user = pickle.load(f)
+                self.user.password = keyring\
+                        .get_password('beep.metid.polimi.it',
+                                      self.user.username)
                 logger.info("Data has been loaded successfully.")
         except (EOFError, pickle.PickleError):
             logger.error('Settings corrupted', exc_info=True)
@@ -375,11 +379,13 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
     @Slot()
     def setusercode(self):
         newcode = self._window.userCode.text()
-        self.user.username = newcode
         try:
             if len(newcode) == 8:
+                self.user.username = newcode
                 logger.info(f'User code changed to {newcode}.')
-                self.dumpUser()
+                keyring.set_password('beep.metid.polimi.it',
+                                     self.user.username,
+                                     self.user.password)
         except OSError:
             logger.critical("I couldn't save data to disk. Run"
                             " poliBeePsync with option --debug"
@@ -392,7 +398,9 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         newpass = self._window.password.text()
         self.user.password = newpass
         try:
-            self.dumpUser()
+            keyring.set_password('beep.metid.polimi.it',
+                                 self.user.username,
+                                 self.user.password)
             logger.info("Password changed.")
         except OSError:
             logger.critical("I couldn't save data to disk. Run"
@@ -424,7 +432,10 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         # we don't use the message...
         with open(os.path.join(user_data_dir(self.appname),
                                self.data_fname), 'wb') as f:
+            tmp_pw = self.user.password
+            self.user.password = ''
             pickle.dump(self.user, f)
+            self.user.password = tmp_pw
 
     @Slot()
     def refreshcourses(self):

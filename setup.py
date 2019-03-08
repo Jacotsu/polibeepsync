@@ -50,6 +50,7 @@ setup(
         "beautifulsoup4",
         "lxml",
         "pyparsing",
+        "keyring",
         "signalslot"
     ],
     python_requires='>=3.7',

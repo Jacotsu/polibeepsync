@@ -57,6 +57,20 @@ This code is in the beta stage. Documentation is under construction
 Changelog
 =========
 
+0.4.4 (2019-03-08)
+------------------
+New
+~~~
+- The password is now saved in the system keyring instead of the dump file [DCDRJ]
+
+Fix
+~~~
+- Status bar now shows when sync is finished [DCDRJ]
+- Now thread priority is properly set [DCDRJ]
+- Removed tests from package [DCDRJ]
+- Now password and person code are updated when the input field looses focus [DCDRJ]
+
+
 0.4.3 (2019-01-22)
 ------------------
 Fix
