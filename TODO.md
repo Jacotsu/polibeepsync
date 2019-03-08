@@ -10,11 +10,11 @@
 
 - [ ] Fix interface hanging when downloading a lot of files
 
-- [ ] Print message to status bar whe sync finishes
+- [X] Print message to status bar whe sync finishes
 
 - [ ] Fix bug that crashes the app when incorrect credentials are used
 
-- [ ] Add desktop link creation during installation
+- [X] Add desktop link creation during installation (Implemented by installation package)
 
 - [ ] Write Tests
 

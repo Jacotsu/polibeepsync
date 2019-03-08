@@ -65,7 +65,6 @@ class RefreshCoursesThread(QThread):
         self.newcourses = CoursesSignal()
         self.removable = CoursesSignal()
         self.user = user
-        self.setPriority(QThread.LowPriority)
 
     def run(self):
         most_recent = self.user.get_online_courses()
@@ -97,7 +96,6 @@ class LoginThread(QThread):
         self.signal_ok = MySignal()
         self.signal_error = MySignal()
         self.user = user
-        self.setPriority(QThread.LowPriority)
 
     def run(self):
         while not self.exiting:
@@ -133,22 +131,36 @@ class DownloadThread(QThread):
         self.topdir = topdir
         self.start_download_s = MySignal()
         self.start_download_s.sig.connect(self._work)
+        if parent:
+            self.status_signal = MySignal()
+            self.status_signal.sig.connect(parent.update_status_bar)
         self.dumpuser = MySignal()
         self.download_signal = sSignal(args=['course'])
         self.initial_sizes = sSignal(args=['course'])
         self.date_signal = sSignal(args=['data'])
-        self.setPriority(QThread.LowPriority)
 
     def run(self):
+        self.setPriority(QThread.HighPriority)
         self.start_download_s.sig.emit('')
+
+    def notify_finished(self):
+        commonlogger.info('Syncing finished')
+        if self.status_signal:
+            self.status_signal.sig.emit('Syncing finished')
+
+    def _threaded_syncer(self):
+        with QThreadPoolContexted(wait=True) as TExec:
+            for course in self.user.available_courses:
+                if course.sync:
+                    commonlogger.debug(f'Syncing {course}')
+                    TExec.start(func_runnable(self, self.sync_course, course),
+                                QThread.HighPriority)
+        self.notify_finished()
 
     @Slot()
     def _work(self):
         with QThreadPoolContexted(wait=False, parent=self) as TExec:
-            for course in self.user.available_courses:
-                if course.sync is True:
-                    commonlogger.debug(f'Syncing {course}')
-                    TExec.start(func_runnable(self, self.sync_course, course))
+            TExec.start(func_runnable(self, self._threaded_syncer))
 
     def sync_course(self, course):
         try:

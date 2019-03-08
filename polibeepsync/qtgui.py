@@ -130,6 +130,9 @@ class MainWindow(Ui_Form):
         self.setupUi(self)
         self.w = QWidget()
 
+        self.status_signal = MySignal()
+        self.status_signal.sig.connect(self.update_status_bar)
+
         self.logging_signal = MySignal()
         self.logging_signal.sig.connect(self.myStream_message)
         logging_console_hdl = SignalLoggingHandler(self.logging_signal)
@@ -151,8 +154,8 @@ class MainWindow(Ui_Form):
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
 
         self.loginthread = LoginThread(self.user, self)
-        self.loginthread.signal_error.sig.connect(self.loginstatus)
-        self.loginthread.signal_ok.sig.connect(self.loginstatus)
+        self.loginthread.signal_error.sig.connect(self.update_status_bar)
+        self.loginthread.signal_ok.sig.connect(self.update_status_bar)
 
         self.refreshcoursesthread = RefreshCoursesThread(self.user, self)
         self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
@@ -212,9 +215,6 @@ class MainWindow(Ui_Form):
         self._window.coursesView.setColumnWidth(3, 160)
         self._window.coursesView.resizeColumnToContents(1)
         self._window.coursesView.setColumnWidth(0, 320)
-
-    def inittextincourses(self):
-        self._window.statusbar.showMessage('Started syncing.')
 
     def checknewversion(self):
         rawdata = requests.get('https://pypi.python.org/pypi/'
@@ -329,16 +329,8 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
                          " for the first time.")
 
     @Slot(str)
-    def loginstatus(self, status):
+    def update_status_bar(self, status):
         self._window.statusbar.showMessage(status)
-
-    # @Slot(int)
-    # def notifynew(self, state):
-    # if state == 2:
-    # self.settings['NotifyNewCourses'] = 'True'
-    # else:
-    # self.settings['NotifyNewCourses'] = 'False'
-    #    filesettings.settingsToFile(self.settings, self.settings_path)
 
     @Slot(int)
     def syncnewslot(self, state):
@@ -414,7 +406,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.start()
-            self._window.statusbar.showMessage("Logging in, please wait.")
+            self.status_signal.sig.emit("Logging in, please wait.")
 
     @Slot(list)
     def addtocoursesview(self, addlist):
@@ -436,8 +428,8 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
 
     @Slot()
     def refreshcourses(self):
-        self._window.statusbar.showMessage('Searching for online updates...'
-                                           'this may take a while.')
+        self.status_signal.sig.emit('Searching for online updates...'
+                                'this may take a while.')
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.signal_ok.sig.connect(self.do_refreshcourses)
@@ -465,7 +457,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
     @Slot()
     def do_syncfiles(self):
         self.refreshcoursesthread.finished.disconnect(self.do_syncfiles)
-        self.inittextincourses()
+        self.status_signal.sig.emit('Started syncing.')
         self.downloadthread.start()
 
     @Slot(str)
