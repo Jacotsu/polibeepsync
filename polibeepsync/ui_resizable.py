@@ -11,7 +11,7 @@ from PySide2.QtWidgets import (QApplication,QVBoxLayout, QTabWidget,
                                QStyleOptionProgressBar, QGridLayout, QLabel,
                                QLineEdit, QSpacerItem, QSizePolicy,
                                QPushButton, QSpinBox, QCheckBox, QTextEdit,
-                               QDialogButtonBox)
+                               QDialogButtonBox, QTreeWidget)
 from PySide2.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
                             QMetaObject, QFile)
 
@@ -175,11 +175,12 @@ class Ui_Form(QMainWindow):
         loader = QUiLoader()
         self._window = loader.load(ui_file)
 
-        # Need to fix this courses list view
-        self._window.coursesView = CoursesListView(self._window.courses_tab)
-        self._window.courses_layout.addWidget(self._window.coursesView)
-        self._window.coursesView.setObjectName("coursesView")
-        self._window.coursesView2.deleteLater()
+        courses_tree = self._window.findChild(QTreeWidget, 'coursesTreeWidget')
+        courses_tree.setItemDelegateForColumn(1,
+                                              CheckBoxDelegate(courses_tree))
+        courses_tree.setItemDelegateForColumn(3,
+                                              ProgressBarDelegate(courses_tree))
+        self._window.coursesView = courses_tree
 
         self.icon = QIcon(":/icons/uglytheme/polibeepsync.svg")
 

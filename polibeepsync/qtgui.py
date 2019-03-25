@@ -181,7 +181,7 @@ class MainWindow(Ui_Form):
 
         self._window.courses_model = CoursesListModel(self.user.
                                                       available_courses)
-        self._window.coursesView.setModel(self._window.courses_model)
+        #self._window.coursesView.setModel(self._window.courses_model)
         self._resizeview()
         self._window.refreshCourses.clicked.connect(self.refreshcourses)
 
