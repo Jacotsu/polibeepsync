@@ -553,6 +553,9 @@ QProgressBar::chunk:horizontal {
        <bool>false</bool>
       </property>
       <widget class="QWidget" name="settings_tab">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <attribute name="title">
         <string>Settings</string>
        </attribute>
@@ -1012,40 +1015,6 @@ QProgressBar::chunk:horizontal {
           </property>
           <property name="textInteractionFlags">
            <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="plugins_tab">
-       <attribute name="title">
-        <string>Plugins</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
-        <item>
-         <widget class="QLabel" name="label_wip">
-          <property name="minimumSize">
-           <size>
-            <width>760</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>760</width>
-            <height>483</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>36</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Work in Progress ...</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
