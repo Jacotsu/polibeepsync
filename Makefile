@@ -16,8 +16,9 @@ build-PPA:
 	python3 setup.py --command-packages=stdeb.command sdist_dsc \
 		--with-python3=true \
 		--with-python2=false \
+		-z disco\
 		-d packaging/ubuntu/deb
-	cd packaging/ubuntu/polibeepsync-$(VERSION) && \
+	cd packaging/ubuntu/deb/polibeepsync-$(VERSION) && \
 		debuild -S -k205ABB76D38C4928714ACD3CDAE2A4AB08E9C765
 	rm -rf dist poliBeePsync-$(VERSION).tar.gz
 
