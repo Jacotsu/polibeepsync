@@ -1,6 +1,18 @@
 Changelog
 =========
 
+0.5.0 (2019-07-09)
+------------------
+New
+~~~
+- PPA package release [DCDRJ]
+- Windows installer release [DCDRJ]
+- Automated multiplatform building with Makefile [DCDRJ]
+
+Fix
+~~~
+- Improved documentation [DCDRJ]
+
 0.4.4 (2019-03-08)
 ------------------
 New

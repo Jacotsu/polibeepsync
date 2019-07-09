@@ -65,7 +65,7 @@ Download the latest release, open the downloaded file and follow the installer i
 Changelog
 =========
 
-0.4.5 (2019-07-09)
+0.5.0 (2019-07-09)
 ------------------
 New
 ~~~
