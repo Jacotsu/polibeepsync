@@ -13,7 +13,9 @@ VERSION = $(shell grep -Po "(?<=^__version__ = \").*(?=\")" polibeepsync/__init_
 build-PPA:
 	$(info Building PPA)
 	mkdir -p packaging/ubuntu
-	python3 setup.py --command-packages=stdeb.command bdist_deb -d packaging/ubuntu
+	python3 setup.py --command-packages=stdeb.command bdist_deb
+	mv deb_dist packaging/ubuntu
+	rm -rf dist, poliBeePsync-$(VERSION).tar.gz
 
 build-arch-package:
 	$(info Building arch package)
