@@ -16,6 +16,7 @@ build-PPA:
 	python3 setup.py --command-packages=stdeb.command sdist_dsc \
 		--with-python3=true \
 		--with-python2=false \
+		-m "Di Campli Raffaele <dcdrj.pub@gmail.com>"\
 		-z disco\
 		-d packaging/ubuntu/deb
 	cd packaging/ubuntu/deb/polibeepsync-$(VERSION) && \
