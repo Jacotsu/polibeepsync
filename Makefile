@@ -1,9 +1,9 @@
 .PHONY: build build-and-upload build-PPA build-python-dists build-docs clean-build \
-	clean test-all
+	clean test-all upload-twine upload-PPA upload-AUR
 
 build: build-python-dists build-PPA build-arch-package build-windows-installer build-docs
 
-build-and-upload: build twine-upload AUR-upload PPA-upload
+build-and-upload: build upload-twine upload-AUR upload-PPA
 
 VERSION = $(shell grep -Po "(?<=^__version__ = \").*(?=\")" polibeepsync/__init__.py)
 
@@ -12,10 +12,14 @@ VERSION = $(shell grep -Po "(?<=^__version__ = \").*(?=\")" polibeepsync/__init_
 #
 build-PPA:
 	$(info Building PPA)
-	mkdir -p packaging/ubuntu
-	python3 setup.py --command-packages=stdeb.command bdist_deb
-	rsync deb_dist packaging/ubuntu
-	rm -rf deb_dist dist poliBeePsync-$(VERSION).tar.gz
+	mkdir -p packaging/ubuntu/deb
+	python3 setup.py --command-packages=stdeb.command sdist_dsc \
+		--with-python3=true \
+		--with-python2=false \
+		-d packaging/ubuntu/deb
+	cd packaging/ubuntu/polibeepsync-$(VERSION) && \
+		debuild -S -k205ABB76D38C4928714ACD3CDAE2A4AB08E9C765
+	rm -rf dist poliBeePsync-$(VERSION).tar.gz
 
 build-arch-package:
 	$(info Building arch package)
@@ -28,7 +32,7 @@ build-arch-package:
 
 build-windows-installer:
 	$(info Building windows installer)
-	mkdir -p build/windows
+	mkdir -p packaging/windows
 	# Pretty fragile and will change the python version too if it comes before the
 	# application version
 	sed -i "0,/^version=/s/^version=.*/version=$(VERSION)/" packaging/windows/installer.cfg
@@ -50,15 +54,15 @@ test-all:
 
 # Uploading
 
-twine-upload: build-python-dists
+upload-twine: build-python-dists
 	$(info Uploading to pypi)
 	twine upload -r pypi packaging/pypi/poliBeePsync-$(VERSION)*
 
-AUR-upload: build-arch-package
+upload-AUR: build-arch-package
 	$(info Uploading to AUR)
 	echo Not implemented
 
-PPA-upload: build-PPA
+upload-PPA: build-PPA
 	$(info Uploading to Launchpad)
 	dput ppa:jacotsu/polibeepsync packaging/ubuntu/deb_dist/polibeepsync_$(VERSION)-1_source.changes
 
