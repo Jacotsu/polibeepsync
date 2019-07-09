@@ -117,7 +117,7 @@ Remove ``~/.config/poliBeePsync`` and ``~/.local/share/poliBeePsync``
 
 Windows
 --------
-Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`
+Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_
 open the downloaded file and follow the installer instructions.
 
 Upgrading
