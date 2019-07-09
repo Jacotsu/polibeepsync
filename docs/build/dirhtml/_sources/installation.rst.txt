@@ -20,11 +20,6 @@ Arch
 
   yay -S polibeepsync
 
-Windows
---------
-Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`
-open the downloaded file and follow the installer instructions.
-
 Direct installation
 ^^^^^^^^^^^^^^^^^^^^^^
 .. warning::
@@ -118,6 +113,33 @@ Remove ``~/.config/poliBeePsync`` and ``~/.local/share/poliBeePsync``
     rm -r ~/.config/poliBeePsync
     rm -r ~/.local/share/poliBeePsync
 
+
+
+Windows
+--------
+Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`
+open the downloaded file and follow the installer instructions.
+
+Upgrading
+^^^^^^^^^
+
+Open the program ``cmd.exe``, Write the following and press ``Enter``
+
+.. code-block:: bash
+
+    pip3 install --upgrade poliBeePsync
+
+How to remove
+^^^^^^^^^^^^^
+
+Start > Search > polibeepsync > right click > uninstall
+
+Removing leftover data
+^^^^^^^^^^^^^^^^^^^^^^^
+The next step is removing the folders in which settings and data are saved.
+Open your user folder, make hidden files and folders visible, open
+``AppData\Local`` and remove the folder named ``poliBeePsync``.
+
 Start the application automatically at boot (Windows)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -132,25 +154,3 @@ the "Windows" key), write
 and then click ``Ok``. In the opened folder, go to ``Microsoft\Windows\Start Menu\Programs\Startup``
 and choose ``paste shortcut``. The next time you boot, the program will
 start automatically.
-
-
-Upgrade
-^^^^^^^
-
-Open the program ``cmd.exe``, Write the following and press ``Enter``
-
-.. code-block:: bash
-
-    pip3 install --upgrade poliBeePsync
-
-
-How to remove
-^^^^^^^^^^^^^
-
-Start > Search > polibeepsync > right click > uninstall
-
-Removing leftover data
-^^^^^^^^^^^^^^^^^^^^^^^
-The next step is removing the folders in which settings and data are saved.
-Open your user folder, make hidden files and folders visible, open
-``AppData\Local`` and remove the folder named ``poliBeePsync``.
