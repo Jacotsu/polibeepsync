@@ -1,5 +1,5 @@
 .. image:: https://api.travis-ci.org/Jacotsu/polibeepsync.svg?branch=master
-  :alt: Build status
+    :alt: Build status
 
 .. image:: https://pypip.in/license/poliBeePsync/badge.svg
     :target: https://pypi.python.org/pypi/poliBeePsync/
@@ -43,19 +43,18 @@ This code is in the beta stage. Documentation is under construction
 Installation
 ============
 
-Linux
-------
-
 Ubuntu 19.04
-^^^^^^^^^^^^
-.. code-block:: bash
+--------------
+:: 
+
   sudo add-apt-repository ppa:jacotsu/polibeepsync
   sudo apt update
   sudo apt install polibeepsync
 
 Arch
-^^^^
-.. code-block:: bash
+-----
+::
+
   yay -S polibeepsync
 
 Windows
