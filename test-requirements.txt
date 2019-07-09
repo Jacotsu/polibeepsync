@@ -5,6 +5,6 @@ pytest-cov>=1.8.1
 pyflakes>=0.8.1
 cov-core>=1.15.0
 py>=1.5.4
+bdist_deb
 pluggy
 lxml
-requests-mock

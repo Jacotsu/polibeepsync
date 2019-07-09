@@ -2,7 +2,7 @@ exclude =
     .git,
     __pycache__,
     docs/**,
+    packaging/**,
     old,
     build,
-    distro_packaging,
 max-complexity = 10
