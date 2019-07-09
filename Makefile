@@ -29,6 +29,9 @@ build-arch-package:
 build-windows-installer:
 	$(info Building windows installer)
 	mkdir -p build/windows
+	# Pretty fragile and will change the python version too if it comes before the
+	# application version
+	sed -i "0,/^version=/s/^version=.*/version=$(VERSION)/" packaging/windows/installer.cfg
 	pynsist packaging/windows/installer.cfg
 
 build-python-dists:
