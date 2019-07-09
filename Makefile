@@ -14,8 +14,8 @@ build-PPA:
 	$(info Building PPA)
 	mkdir -p packaging/ubuntu
 	python3 setup.py --command-packages=stdeb.command bdist_deb
-	mv deb_dist packaging/ubuntu
-	rm -rf dist, poliBeePsync-$(VERSION).tar.gz
+	rsync deb_dist packaging/ubuntu
+	rm -rf deb_dist dist poliBeePsync-$(VERSION).tar.gz
 
 build-arch-package:
 	$(info Building arch package)
