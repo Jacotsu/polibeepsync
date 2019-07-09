@@ -40,8 +40,44 @@ folder with files uploaded by professors on the
 This code is in the beta stage. Documentation is under construction
 `here <https://jacotsu.github.io/polibeepsync>`_.
 
+Installation
+============
+
+Linux
+------
+
+Ubuntu 19.04
+^^^^^^^^^^^^
+.. code-block:: bash
+  sudo add-apt-repository ppa:jacotsu/polibeepsync
+  sudo apt update
+  sudo apt install polibeepsync
+
+Arch
+^^^^
+.. code-block:: bash
+  yay -S polibeepsync
+
+Windows
+--------
+Download the latest release, open the downloaded file and follow the installer instructions.
+
 Changelog
 =========
+
+0.4.5 (2019-07-09)
+------------------
+New
+~~~
+- PPA package release [DCDRJ]
+- Windows installer release [DCDRJ]
+- Automated multiplatform building with Makefile [DCDRJ]
+
+Fix
+~~~
+- Improved documentation [DCDRJ]
+
+
 
 0.4.4 (2019-03-08)
 ------------------
