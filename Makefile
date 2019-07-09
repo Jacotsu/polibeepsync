@@ -21,6 +21,7 @@ build-arch-package:
 	$(info Building arch package)
 	mkdir -p packaging/arch/build
 	echo not implemented
+	sed -i "s/pkgver=.*/$(VERSION)/" PKGBUILD
 	#cd distro_packaging/arch; \
 	#makepkg --printsrcinfo > .SRCINFO; \
 	#makepkg
