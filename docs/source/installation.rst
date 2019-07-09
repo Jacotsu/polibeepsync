@@ -2,32 +2,32 @@ Installing, Upgrading or Removing
 =================================
 The program hasn't been tested on Mac OS X yet.
 
-Installation (Linux)
-----------------------
+Linux
+------
+For removal and upgrading consult your package manager manual
 
-.. note:: Every distribution uses slightly different names for the
-    ``python`` command. I'll show commands for Ubuntu 19.04.
-
-Install python 3.7 using the package manager of your distribution.
-
-You also need ``pip`` and other programs (to compile the library ``PySide``)
-Install the following dependencies
-
+Ubuntu 19.04
+^^^^^^^^^^^^
 .. code-block:: bash
+  sudo add-apt-repository ppa:jacotsu/polibeepsync
+  sudo apt update
+  sudo apt install polibeepsync
 
-    sudo apt update
-    sudo apt install python3.7 python3-pip build-essential cmake libqt4-dev
+Arch
+^^^^
+.. code-block:: bash
+  yay -S polibeepsync
 
-You have two choices now: install poliBeePsync directly or in a "virtual
-environment", which is a fancy name for a folder holding a copy of python,
-under which poliBeePsync will be installed. This implies that you can easily
-remove the application by just removing the folder of the virtual environment.
+Windows
+--------
+Download the latest release, open the downloaded file and follow the installer instructions.
 
-I recommend using a virtual environment, although it's slightly more
-difficult.
 
 Direct installation
 ^^^^^^^^^^^^^^^^^^^^^^
+.. warning::
+  Only use the direct installation if you want to hack on polibeepsync or be on the bleeding edge
+
 In a terminal issue the command
 
 .. code-block:: bash
@@ -37,12 +37,10 @@ In a terminal issue the command
 Once it has finished, you can start the application with the command
 ``polibeepsync-gui``.
 
-I recommend adding a custom menu entry to the application menu of your
-Desktop Environment.
-As an icon, you can use `this one <https://github.com/Jacotsu/polibeepsync/blob/master/icons/polibeepsync.svg>`_.
-
 Installation inside a virtual environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. warning::
+  Only use the virtual env installation if you want to hack on polibeepsync or be on the bleeding edge
 
 1. Create a virtual environment.
     Open a terminal and type
@@ -118,42 +116,6 @@ Remove ``~/.config/poliBeePsync`` and ``~/.local/share/poliBeePsync``
     rm -r ~/.config/poliBeePsync
     rm -r ~/.local/share/poliBeePsync
 
-Installation (Windows)
------------------------
-
-Install `python 3.7 <https://www.python.org/>`_, making sure to enable the
-option "Add python.exe to Path".
-
-.. image:: _static/img/addtopath.png
-
-Open the program ``cmd.exe``, then write
-
-.. code-block:: bash
-
-    pip3 install poliBeePsync
-
-.. image:: _static/img/pipinstall.png
-
-...and press ``Enter`` (if you get an error telling that ``pip`` is not a recognized command,
-logout and re-login, then write the command). Words will appear, wait. Once it says it has finished,
-look where it has been installed.
-
-.. image:: _static/img/whereisinstalled.png
-
-In the image, you can see that it has been installed to ``C:\Python37\Scripts``.
-Browse to that folder, right click on ``polibeepsync-gui.exe`` and
-choose ``create shortcut``.
-
-.. image:: _static/img/createshortcut.png
-
-Now you can copy the shortcut wherever you want and use it to start the
-program.
-
-You may want to add a `nicer icon <https://raw.githubusercontent.com/jacotsu/polibeepsync/master/icons/uglytheme/48x48/polibeepsync.ico>`_
-to the shortcut, by right-clicking on the shortcut, choosing ``Properties``
-and then clicking on ``Choose icon``.
-
-
 Start the application automatically at boot (Windows)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -183,15 +145,7 @@ Open the program ``cmd.exe``, Write the following and press ``Enter``
 How to remove
 ^^^^^^^^^^^^^
 
-Open ``cmd.exe``
-
-.. code-block:: bash
-
-    pip3 uninstall poliBeePsync
-
-...and then press ``Enter`` to execute the command. When it asks for
-confirmation, type ``y`` and press ``Enter``
-
+Start > Search > polibeepsync > right click > uninstall
 
 Removing leftover data
 ^^^^^^^^^^^^^^^^^^^^^^^
