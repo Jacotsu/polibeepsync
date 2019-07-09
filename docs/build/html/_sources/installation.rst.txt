@@ -75,8 +75,8 @@ As an icon, you can use `this one <https://github.com/Jacotsu/polibeepsync/blob/
 In this case, you would create an entry for the shell script.
 
 
-Upgrade
-^^^^^^^^
+Upgrading
+^^^^^^^^^
 
 If you installed poliBeePsync directly, open a terminal, write the following
 code and press ``Enter``
@@ -93,7 +93,7 @@ activate the virtual environment
     cd ~/polibeepsync-venv
     source bin/activate
 
-How to remove
+Removing
 ^^^^^^^^^^^^^
 
 Uninstall poliBeePsync by writing this code in a terminal
@@ -129,7 +129,7 @@ Open the program ``cmd.exe``, Write the following and press ``Enter``
 
     pip3 install --upgrade poliBeePsync
 
-How to remove
+Removing
 ^^^^^^^^^^^^^
 
 Start > Search > polibeepsync > right click > uninstall
