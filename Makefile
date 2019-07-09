@@ -44,7 +44,7 @@ build-python-dists:
 	python3 setup.py sdist -d packaging/pypi bdist_wheel -d packaging/pypi
 
 build-docs:
-	make html -C docs
+	make dirhtml -C docs
 
 # Testing
 
