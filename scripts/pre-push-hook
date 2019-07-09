@@ -1,0 +1,11 @@
+#!/bin/sh
+remote="$1"
+url="$2"
+root=$(git rev-parse --show-toplevel)
+
+if (git branch | grep "\* master"); then
+    "$root/scripts/sanity_check.sh"
+    exit $?
+else
+    exit 0
+fi
