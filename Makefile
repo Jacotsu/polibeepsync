@@ -28,7 +28,7 @@ build-arch-package:
 build-windows-installer:
 	$(info Building windows installer)
 	mkdir -p build/windows
-	pynsist distro_packaging/windows/installer.cfg
+	pynsist packaging/windows/installer.cfg
 
 build-python-dists:
 	$(info Building python dists)
