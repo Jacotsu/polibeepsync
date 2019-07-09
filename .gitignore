@@ -5,4 +5,6 @@ __pycache__/
 ghostdriver.log
 poliBeePsync.egg-info/
 /.coverage
-**/build/**
+packaging/**/build/**
+packaging/**/ubuntu/deb/**
+packaging/pypi/**

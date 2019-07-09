@@ -45,7 +45,7 @@ Installation
 
 Ubuntu 19.04
 --------------
-:: 
+::
 
   sudo add-apt-repository ppa:jacotsu/polibeepsync
   sudo apt update
@@ -59,7 +59,8 @@ Arch
 
 Windows
 --------
-Download the latest release, open the downloaded file and follow the installer instructions.
+Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`
+open the downloaded file and follow the installer instructions.
 
 Changelog
 =========
