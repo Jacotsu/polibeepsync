@@ -1,0 +1,8 @@
+exclude =
+    .git,
+    __pycache__,
+    docs/**,
+    old,
+    build,
+    distro_packaging,
+max-complexity = 10
