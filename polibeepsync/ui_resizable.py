@@ -228,9 +228,9 @@ class Ui_Form(QMainWindow):
         self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.status_tab),
                                   QApplication.translate("Form", "Status",
                                                          None))
-        self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.plugins_tab),
-                                  QApplication.translate("Form", "Plugins",
-                                                         None))
+        #self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.plugins_tab),
+        #                          QApplication.translate("Form", "Plugins",
+        #                                                 None))
 
 
 
