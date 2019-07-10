@@ -16,10 +16,11 @@ build-PPA:
 	python3 setup.py --command-packages=stdeb.command sdist_dsc \
 		--with-python3=true \
 		--with-python2=false \
-		-m "Di Campli Raffaele <dcdrj.pub@gmail.com>"\
-		-z disco\
+		-x packaging/ubuntu/stdeb.cfg \
 		-d packaging/ubuntu/deb
+	rsync -r packaging/ubuntu/polibeepsync-template/* packaging/ubuntu/deb/polibeepsync-$(VERSION)
 	cd packaging/ubuntu/deb/polibeepsync-$(VERSION) && \
+		dpkg-source --commit . add_desktop_file_and_icon && \
 		debuild -S -k205ABB76D38C4928714ACD3CDAE2A4AB08E9C765
 	rm -rf dist poliBeePsync-$(VERSION).tar.gz
 

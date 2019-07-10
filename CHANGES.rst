@@ -9,7 +9,7 @@ New
 Fix
 ~~~
 - Signalslot is now fetched from pypi [DCDRJ]
-
+- Included icon in PPA [DCDRJ]
 
 
 0.5.0 (2019-07-09)
