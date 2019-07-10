@@ -39,7 +39,7 @@ classifiers = [
 setup(
     name='poliBeePsync',
     version=find_version("polibeepsync/__init__.py"),
-    url="http://www.davideolianas.com/polibeepsync",
+    url="https://github.com/Jacotsu/polibeepsync",
     author="Davide Olianas, Raffaele Di Campli",
     author_email="ubuntupk@gmail.com, dcdrj.pub@gmail.com",
     license='GPLv3+',
