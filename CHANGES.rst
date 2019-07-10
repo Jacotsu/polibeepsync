@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.5.1 ()
+------------------
+New
+~~~
+
+Fix
+~~~
+- Signalslot is now fetched from pypi [DCDRJ]
+
+
+
 0.5.0 (2019-07-09)
 ------------------
 New

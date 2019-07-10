@@ -61,8 +61,6 @@ setup(
     "(for students of Politecnico di Milano)",
     long_description=long_description,
     classifiers=classifiers,
-    dependency_links=['http://github.com/davethecipo/signalslot/tarball'
-                      '/py34#egg=signalslot-0.10.0'],
     entry_points={
         'console_scripts': [
             'polibeepsync=polibeepsync.qtgui:main',
