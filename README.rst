@@ -65,6 +65,18 @@ open the downloaded file and follow the installer instructions.
 Changelog
 =========
 
+0.5.1 (2019-07-11)
+------------------
+Fix
+~~~
+- Signalslot is now fetched from pypi [DCDRJ]
+- Included icon in PPA [DCDRJ]
+- Modified GUI layout [DCDRJ]
+  - Made checkboxes bigger
+  - Checkboxes are now more centered
+  - Moved login form and sync button out of the settings tab
+
+
 0.5.0 (2019-07-09)
 ------------------
 New

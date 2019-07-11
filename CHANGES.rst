@@ -1,12 +1,8 @@
 Changelog
 =========
 
-0.6.0 ()
+0.5.1 (2019-07-11)
 ------------------
-New
-~~~
-- File level sync granularity [DCDRJ]
-
 Fix
 ~~~
 - Signalslot is now fetched from pypi [DCDRJ]
@@ -15,7 +11,6 @@ Fix
   - Made checkboxes bigger
   - Checkboxes are now more centered
   - Moved login form and sync button out of the settings tab
-
 
 0.5.0 (2019-07-09)
 ------------------
