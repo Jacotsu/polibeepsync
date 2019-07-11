@@ -2,7 +2,7 @@
 
 import os
 
-from PySide2.QtGui import QIcon
+from PySide2.QtGui import QIcon, QRegion
 
 from PySide2.QtWidgets import (QApplication,QVBoxLayout, QTabWidget,
                                QTableView,QStyledItemDelegate,
@@ -21,6 +21,8 @@ from PySide2.QtUiTools import QUiLoader
 class CoursesListView(QTableView):
     def __init__(self, parent=None):
         QTableView.__init__(self, parent)
+        if parent:
+            self.setStyleSheet(parent.styleSheet())
         header = self.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setStretchLastSection(True)
@@ -36,9 +38,6 @@ class ProgressBarDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         progressBar = QProgressBar()
-        style = """QProgressBar { color: #546E7A; }
-        QProgressBar::chunk { background: #80CBC4;
-        }"""
 
         progressBar.setAlignment(Qt.AlignCenter)
         progressBar.setTextVisible(True)
@@ -47,7 +46,8 @@ class ProgressBarDelegate(QStyledItemDelegate):
         progressBar.setMinimum(0)
         progressBar.setMaximum(100)
 
-        progressBar.setStyleSheet(style)
+        if self.parent():
+            progressBar.setStyleSheet(self.parent().styleSheet())
 
         dw = index.data()[0]
         tot = index.data()[1]
@@ -85,85 +85,41 @@ class CheckBoxDelegate(QStyledItemDelegate):
         else:
             checkbox.setEnabled(False)
 
+        # Implement tristate checkboxe for folder nodes
         if checked:
             checkbox.setCheckState(Qt.Checked)
         else:
             checkbox.setCheckState(Qt.Unchecked)
 
-        checkbox.rect = self.getCheckBoxRect(option)
+        if self.parent():
+            checkbox.setStyleSheet(self.parent().styleSheet())
 
-        #checkbox.setCheckState(QStyle.State_Enabled)
-
-        style = '''QCheckBox, QRadioButton {
-                color: #546E7A;
-            }
-
-            QCheckBox::indicator::unchecked  {
-                background-color: #FFFFFF;
-                border: 1px solid #536D79;
-            }
-
-            QCheckBox::indicator::checked, QTreeView::indicator::checked {
-                background-color: qradialgradient(cx:0.5, cy:0.5, fx:0.25, fy:0.15, radius:0.3, stop:0 #80CBC4, stop:1 #FFFFFF);
-                border: 1px solid #536D79;
-            }
-
-
-            QCheckBox::indicator:disabled, QRadioButton::indicator:disabled, QTreeView::indicator:disabled {
-                background-color: #444444;			/* Not sure what this looks like */
-            }
-
-            QCheckBox::indicator::checked:disabled, QRadioButton::indicator::checked:disabled, QTreeView::indicator::checked:disabled {  
-                background-color: qradialgradient(cx:0.5, cy:0.5, fx:0.25, fy:0.15, radius:0.3, stop:0 #BBBBBB, stop:1 #444444); /* Not sure what this looks like */
-            }
-
-            '''
-        checkbox.setStyleSheet(style)
+        width = option.widget.columnWidth(1)
+        height = option.widget.rowHeight(0)
 
         painter.save()
         painter.translate(option.rect.topLeft())
+        checkbox.rect = option.rect
+        checkbox.setFixedSize(width, height)
         checkbox.render(painter, QPoint(0, 0))
         painter.restore()
 
-
     def editorEvent(self, event, model, option, index):
-        if not (index.flags() & Qt.ItemIsEditable) > 0:
-            return False
-
-        # Do not change the checkbox-state
-        if event.type() == QEvent.MouseButtonPress:
-            return False
-        if event.type() == QEvent.MouseButtonRelease or event.type() == QEvent.MouseButtonDblClick:
-            if event.button() != Qt.LeftButton or not self.getCheckBoxRect(
-                    option).contains(event.pos()):
-                return False
-            if event.type() == QEvent.MouseButtonDblClick:
+        if index.flags() & Qt.ItemIsEditable:
+            if event.type() == QEvent.MouseButtonRelease:
+                self.setModelData(None, model, index)
                 return True
-        elif event.type() == QEvent.KeyPress:
-            if event.key() != Qt.Key_Space and event.key() != Qt.Key_Select:
-                return False
-            else:
-                return False
+            elif event.type() == QEvent.KeyPress:
+                if event.key() == Qt.Key_Space:
+                    self.setModelData(None, model, index)
+                    return True
 
-        # Change the checkbox-state
-        self.setModelData(None, model, index)
-        return True
+        return False
 
+    # Toggles the checkbox
     def setModelData(self, editor, model, index):
         newValue = not bool(index.data())
         model.setData(index, newValue, Qt.EditRole)
-
-    def getCheckBoxRect(self, option):
-        check_box_style_option = QStyleOptionButton()
-        check_box_rect = QApplication.style().subElementRect(
-            QStyle.SE_CheckBoxIndicator, check_box_style_option, None)
-        check_box_point = QPoint(option.rect.x() +
-                                 option.rect.width() / 2 -
-                                 check_box_rect.width() / 2,
-                                 option.rect.y() +
-                                 option.rect.height() / 2 -
-                                 check_box_rect.height() / 2)
-        return QRect(check_box_point, check_box_rect.size())
 
 
 class Ui_Form(QMainWindow):
@@ -174,6 +130,9 @@ class Ui_Form(QMainWindow):
 
         loader = QUiLoader()
         self._window = loader.load(ui_file)
+
+        # Set courses_tab stylesheet so that delegates can inherit it
+        self._window.courses_tab.setStyleSheet(self._window.styleSheet())
 
         # Need to fix this courses list view
         self._window.coursesView = CoursesListView(self._window.courses_tab)
