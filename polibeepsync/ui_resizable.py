@@ -26,10 +26,10 @@ class CoursesListView(QTableView):
         header = self.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setStretchLastSection(True)
+        header.setStyleSheet(self.styleSheet())
 
-        self.progbar = ProgressBarDelegate(self)
         self.setItemDelegateForColumn(1, CheckBoxDelegate(self))
-        self.setItemDelegateForColumn(3, self.progbar)
+        self.setItemDelegateForColumn(3, ProgressBarDelegate(self))
 
 
 class ProgressBarDelegate(QStyledItemDelegate):
