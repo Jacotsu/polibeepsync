@@ -827,6 +827,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 if chunk:
                     f.write(chunk)
                     course.downloaded_size += len(chunk)
+                    coursefile.downloaded_size += len(chunk)
                     downloadsignal.emit(course=course)
             coursefile.local_creation_time = datetime.now(self.gmt1)
             # we emit another signal here so that we can save to f
