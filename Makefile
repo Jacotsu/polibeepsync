@@ -29,9 +29,9 @@ build-arch-package:
 	mkdir -p packaging/arch/build
 	echo not implemented
 	sed -i "s/pkgver=.*/pkgver=$(VERSION)/" packaging/arch/PKGBUILD
-	#cd distro_packaging/arch; \
-	#makepkg --printsrcinfo > .SRCINFO; \
-	#makepkg
+	cd distro_packaging/arch; \
+	makepkg --printsrcinfo > .SRCINFO; \
+	makepkg
 
 build-windows-installer:
 	$(info Building windows installer)
@@ -63,7 +63,10 @@ upload-twine: build-python-dists
 
 upload-AUR: build-arch-package
 	$(info Uploading to AUR)
-	echo Not implemented
+	cd distro_packaging/arch; \
+	git add PKGBUILD .SRCINFO; \
+	git commit \
+	git push
 
 upload-PPA: build-PPA
 	$(info Uploading to Launchpad)
