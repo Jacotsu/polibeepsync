@@ -49,7 +49,7 @@ Ubuntu 19.04
 
   sudo add-apt-repository ppa:jacotsu/polibeepsync
   sudo apt update
-  sudo apt install polibeepsync
+  sudo apt install python3-polibeepsync
 
 Arch
 -----
