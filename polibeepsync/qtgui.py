@@ -105,7 +105,7 @@ class CoursesListModel(QAbstractTableModel):
                 return self.courses[index.row()].save_folder_name
             if index.column() == 3:
                 dw = self.courses[index.row()].downloaded_size
-                total = self.courses[index.row()].total_file_size
+                total = self.courses[index.row()].size
                 return (dw, total)
         elif role == Qt.CheckStateRole:
             return None
@@ -278,7 +278,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
             updating.downloaded_size = course.downloaded_size
-            updating.total_file_size = course.total_file_size
+            updating.size = course.size
             row = self._window.courses_model.courses.index(updating)
             where = self._window.courses_model.index(row, 3)
             self._window.courses_model.dataChanged.emit(where, where)

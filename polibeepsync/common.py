@@ -175,7 +175,7 @@ class DownloadThread(QThread):
 
             syncsize = total_size(needsync)
             commonlogger.info(f'****SYNCSIZE: {sizeof_fmt(syncsize)}')
-            alreadysynced = course.total_file_size - syncsize
+            alreadysynced = course.size - syncsize
             commonlogger.info(f'****ALREADYSYNCED {sizeof_fmt(alreadysynced)}')
             course.downloaded_size = alreadysynced
             commonlogger.info('****DOWNLOADED SIZE setting to '
@@ -291,7 +291,7 @@ class Course(GenericSet):
         self.sync = sync
         self.documents = Folder({'name': 'root'})
         self.save_folder_name = ""
-        self.total_file_size = 0  # in bytes
+        self.size = 0  # in bytes
         self.downloaded_size = 0  # in bytes
 
     @property
@@ -348,6 +348,9 @@ class CourseFile():
         self._file_dict = file_dict
         self.local_creation_time = None
         self.gmt1 = GMT1()
+        self.sync = True
+        self.save_folder_name = self._file_dict['title']
+        self.downloaded_size = 0
 
     @property
     def extension(self):
@@ -767,9 +770,9 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         online = self.find_files_and_folders(course._course_dict)
         synclocalwithonline(course.documents, online)
         sizes = []
-        course.total_file_size = sum(folder_total_size(course.documents,
+        course.size = sum(folder_total_size(course.documents,
                                                        sizes))
-        human_total_size = sizeof_fmt(course.total_file_size)
+        human_total_size = sizeof_fmt(course.size)
         commonlogger.info(f'****DIMENSIONE TOTALE: {human_total_size}')
 
     def find_files_and_folders(self, folder_dict):
