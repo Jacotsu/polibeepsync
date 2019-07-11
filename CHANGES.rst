@@ -1,15 +1,17 @@
 Changelog
 =========
 
-0.5.1 ()
+0.6.0 ()
 ------------------
 New
 ~~~
+- File level sync granularity [DCDRJ]
 
 Fix
 ~~~
 - Signalslot is now fetched from pypi [DCDRJ]
 - Included icon in PPA [DCDRJ]
+- Modified GUI layout [DCDRJ]
 
 
 0.5.0 (2019-07-09)
