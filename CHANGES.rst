@@ -1,24 +1,14 @@
 Changelog
 =========
 
-0.5.1 (2019-07-11)
-------------------
-Fix
-~~~
-- Signalslot is now fetched from pypi [DCDRJ]
-- Included icon in PPA [DCDRJ]
-- Modified GUI layout [DCDRJ]
-- Made checkboxes bigger [DCDRJ]
-- Checkboxes are now more centered [DCDRJ]
-- Moved login form and sync button out of the settings tab [DCDRJ]
-
-0.5.0 (2019-07-09)
+0.6.0 ()
 ------------------
 New
 ~~~
-- PPA package release [DCDRJ]
-- Windows installer release [DCDRJ]
-- Automated multiplatform building with Makefile [DCDRJ]
+- Added file level granularity [DCDRJ]
+
+Fix
+~~~
 
 Fix
 ~~~

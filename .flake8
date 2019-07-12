@@ -6,3 +6,5 @@ exclude =
     old,
     build,
 max-complexity = 10
+# QT5 names are not PEP8 compliant
+ignore = N806 N802

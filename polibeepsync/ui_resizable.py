@@ -18,20 +18,6 @@ from PySide2.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
 from PySide2.QtUiTools import QUiLoader
 
 
-class CoursesListView(QTableView):
-    def __init__(self, parent=None):
-        QTableView.__init__(self, parent)
-        if parent:
-            self.setStyleSheet(parent.styleSheet())
-        header = self.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setStretchLastSection(True)
-        header.setStyleSheet(self.styleSheet())
-
-        self.setItemDelegateForColumn(1, CheckBoxDelegate(self))
-        self.setItemDelegateForColumn(3, ProgressBarDelegate(self))
-
-
 class ProgressBarDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         QStyledItemDelegate.__init__(self, parent)
@@ -131,14 +117,13 @@ class Ui_Form(QMainWindow):
         loader = QUiLoader()
         self._window = loader.load(ui_file)
 
-        # Set courses_tab stylesheet so that delegates can inherit it
-        self._window.courses_tab.setStyleSheet(self._window.styleSheet())
-
-        # Need to fix this courses list view
-        self._window.coursesView = CoursesListView(self._window.courses_tab)
-        self._window.courses_layout.addWidget(self._window.coursesView)
-        self._window.coursesView.setObjectName("coursesView")
-        self._window.coursesView2.deleteLater()
+        coursesView = self._window.coursesView
+        coursesView.setStyleSheet(self._window.styleSheet())
+        coursesView.setItemDelegateForColumn(1, CheckBoxDelegate(coursesView))
+        coursesView.setItemDelegateForColumn(3,
+                                             ProgressBarDelegate(coursesView))
+        coursesView.horizontalHeader()\
+            .setSectionResizeMode(QHeaderView.ResizeToContents)
 
         self.icon = QIcon(":/icons/uglytheme/polibeepsync.svg")
 
