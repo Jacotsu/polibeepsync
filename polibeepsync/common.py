@@ -506,7 +506,7 @@ def need_syncing(folder, parent_folder):
             commonlogger.debug(f'Nessun tempo di creazione locale: {f}')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
-            commonlogger.info('File locale non aggiornato: {f} '
+            commonlogger.info(f'File locale non aggiornato: {f} '
                               f'{f.local_creation_time} '
                               f'{f.last_online_edit_time}')
             syncthese.append((f, parent_folder))
