@@ -1,5 +1,5 @@
 from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot,
-                            QTimer, QLocale, TreeModel, TreeItem,
+                            QTimer, QLocale, QAbstractItemModel, TreeItem,
                             QEvent, Qt, QPoint, QRect, QLocale, QSize,
                             QMetaObject, QFile)
 from PySide2.QtGui import (QTextCursor, QCursor)
@@ -17,7 +17,7 @@ from PySide2.QtUiTools import QUiLoader
 
 
 
-class CoursesListModel(TreeModel):
+class CoursesTreeModel(QAbstractItemModel):
     def __init__(self, courses):
         super().__init__(self)
         # my object is a mapping, while table model uses an index (so it's
@@ -26,7 +26,10 @@ class CoursesListModel(TreeModel):
         self._root_element = TreeItem()
 
     def rowCount(self, parent=QModelIndex()):
-        return len(self.courses)
+        if parent.isValid():
+            return parent.childCount()
+        else:
+            return self._root_element.childCount()
 
     def columnCount(self, parent=QModelIndex()):
         return 4
@@ -46,17 +49,22 @@ class CoursesListModel(TreeModel):
         return True
 
     def flags(self, index):
-        # Destination save name
-        if index.column() == 2:
-            flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
-            return flags
-        # Sync checkbox
-        elif index.column() == 1:
-            flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | \
-                Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
-            return flags
+        if index.isValid():
+            col = index.column()
+            # Destination save name
+            if col == 2:
+                flags = Qt.ItemIsEditable | Qt.ItemIsEnabled |\
+                        Qt.ItemIsSelectable
+                return flags
+            # Sync checkbox
+            elif col == 1:
+                flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | \
+                    Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
+                return flags
+            else:
+                return Qt.ItemIsEnabled
         else:
-            return Qt.ItemIsEnabled
+            return Qt.NoItemFlags
 
     def setData(self, index, value, role=Qt.EditRole):
         if role == Qt.EditRole:
@@ -91,29 +99,13 @@ class CoursesListModel(TreeModel):
 
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            if col == 0:
-                return "Name"
-            elif col == 1:
-                return "Sync"
-            elif col == 2:
-                return "Save as"
-            elif col == 3:
-                return "Download %"
-
-
-class CoursesListView(QTreeView):
-    def __init__(self, parent=None):
-        QTableView.__init__(self, parent)
-        if parent:
-            self.setStyleSheet(parent.styleSheet())
-        header = self.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setStretchLastSection(True)
-        header.setStyleSheet(self.styleSheet())
-
-        self.setItemDelegateForColumn(1, CheckBoxDelegate(self))
-        self.setItemDelegateForColumn(3, ProgressBarDelegate(self))
-
+            headers_list = [
+                "Name",
+                "Sync",
+                "Save as",
+                "Download %"
+            ]
+            return headers_list[col]
 
 class ProgressBarDelegate(QStyledItemDelegate):
     def __init__(self, parent):
@@ -203,5 +195,6 @@ class CheckBoxDelegate(QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         newValue = not bool(index.data())
         model.setData(index, newValue, Qt.EditRole)
+
 
 
