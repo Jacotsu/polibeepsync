@@ -40,7 +40,8 @@
 <p>For removal and upgrading consult your package manager manual</p>
 <div class="section" id="ubuntu-19-04">
 <h3>Ubuntu 19.04<a class="headerlink" href="#ubuntu-19-04" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo add-apt-repository ppa:jacotsu/polibeepsync
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3E54FA70
+sudo add-apt-repository ppa:jacotsu/polibeepsync
 sudo apt update
 sudo apt install python3-polibeepsync
 </pre></div>

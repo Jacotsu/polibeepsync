@@ -47,6 +47,7 @@ Ubuntu 19.04
 --------------
 ::
 
+  sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3E54FA70
   sudo add-apt-repository ppa:jacotsu/polibeepsync
   sudo apt update
   sudo apt install python3-polibeepsync

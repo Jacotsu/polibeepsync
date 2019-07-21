@@ -35,7 +35,7 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">PySide2.QtGui</span> <span class="k">import</span> <span class="n">QIcon</span>
+<span class="kn">from</span> <span class="nn">PySide2.QtGui</span> <span class="k">import</span> <span class="n">QIcon</span><span class="p">,</span> <span class="n">QRegion</span>
 
 <span class="kn">from</span> <span class="nn">PySide2.QtWidgets</span> <span class="k">import</span> <span class="p">(</span><span class="n">QApplication</span><span class="p">,</span><span class="n">QVBoxLayout</span><span class="p">,</span> <span class="n">QTabWidget</span><span class="p">,</span>
                                <span class="n">QTableView</span><span class="p">,</span><span class="n">QStyledItemDelegate</span><span class="p">,</span>
@@ -51,27 +51,12 @@
 <span class="kn">from</span> <span class="nn">PySide2.QtUiTools</span> <span class="k">import</span> <span class="n">QUiLoader</span>
 
 
-<div class="viewcode-block" id="CoursesListView"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.ui_resizable.CoursesListView">[docs]</a><span class="k">class</span> <span class="nc">CoursesListView</span><span class="p">(</span><span class="n">QTableView</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">QTableView</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
-        <span class="n">header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span>
-        <span class="n">header</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="n">QHeaderView</span><span class="o">.</span><span class="n">ResizeToContents</span><span class="p">)</span>
-        <span class="n">header</span><span class="o">.</span><span class="n">setStretchLastSection</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">progbar</span> <span class="o">=</span> <span class="n">ProgressBarDelegate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setItemDelegateForColumn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">CheckBoxDelegate</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setItemDelegateForColumn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">progbar</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="ProgressBarDelegate"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.ui_resizable.ProgressBarDelegate">[docs]</a><span class="k">class</span> <span class="nc">ProgressBarDelegate</span><span class="p">(</span><span class="n">QStyledItemDelegate</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
         <span class="n">QStyledItemDelegate</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ProgressBarDelegate.paint"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.ui_resizable.ProgressBarDelegate.paint">[docs]</a>    <span class="k">def</span> <span class="nf">paint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">painter</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">progressBar</span> <span class="o">=</span> <span class="n">QProgressBar</span><span class="p">()</span>
-        <span class="n">style</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;QProgressBar { color: #546E7A; }</span>
-<span class="s2">        QProgressBar::chunk { background: #80CBC4;</span>
-<span class="s2">        }&quot;&quot;&quot;</span>
 
         <span class="n">progressBar</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
         <span class="n">progressBar</span><span class="o">.</span><span class="n">setTextVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
@@ -80,7 +65,8 @@
         <span class="n">progressBar</span><span class="o">.</span><span class="n">setMinimum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">progressBar</span><span class="o">.</span><span class="n">setMaximum</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
 
-        <span class="n">progressBar</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">():</span>
+            <span class="n">progressBar</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">styleSheet</span><span class="p">())</span>
 
         <span class="n">dw</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">tot</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
@@ -118,85 +104,41 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">checkbox</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
+        <span class="c1"># Implement tristate checkboxe for folder nodes</span>
         <span class="k">if</span> <span class="n">checked</span><span class="p">:</span>
             <span class="n">checkbox</span><span class="o">.</span><span class="n">setCheckState</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Checked</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">checkbox</span><span class="o">.</span><span class="n">setCheckState</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">Unchecked</span><span class="p">)</span>
 
-        <span class="n">checkbox</span><span class="o">.</span><span class="n">rect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCheckBoxRect</span><span class="p">(</span><span class="n">option</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">():</span>
+            <span class="n">checkbox</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">styleSheet</span><span class="p">())</span>
 
-        <span class="c1">#checkbox.setCheckState(QStyle.State_Enabled)</span>
-
-        <span class="n">style</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;QCheckBox, QRadioButton {</span>
-<span class="s1">                color: #546E7A;</span>
-<span class="s1">            }</span>
-
-<span class="s1">            QCheckBox::indicator::unchecked  {</span>
-<span class="s1">                background-color: #FFFFFF;</span>
-<span class="s1">                border: 1px solid #536D79;</span>
-<span class="s1">            }</span>
-
-<span class="s1">            QCheckBox::indicator::checked, QTreeView::indicator::checked {</span>
-<span class="s1">                background-color: qradialgradient(cx:0.5, cy:0.5, fx:0.25, fy:0.15, radius:0.3, stop:0 #80CBC4, stop:1 #FFFFFF);</span>
-<span class="s1">                border: 1px solid #536D79;</span>
-<span class="s1">            }</span>
-
-
-<span class="s1">            QCheckBox::indicator:disabled, QRadioButton::indicator:disabled, QTreeView::indicator:disabled {</span>
-<span class="s1">                background-color: #444444;			/* Not sure what this looks like */</span>
-<span class="s1">            }</span>
-
-<span class="s1">            QCheckBox::indicator::checked:disabled, QRadioButton::indicator::checked:disabled, QTreeView::indicator::checked:disabled {  </span>
-<span class="s1">                background-color: qradialgradient(cx:0.5, cy:0.5, fx:0.25, fy:0.15, radius:0.3, stop:0 #BBBBBB, stop:1 #444444); /* Not sure what this looks like */</span>
-<span class="s1">            }</span>
-
-<span class="s1">            &#39;&#39;&#39;</span>
-        <span class="n">checkbox</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">columnWidth</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">rowHeight</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="n">painter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
         <span class="n">painter</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">topLeft</span><span class="p">())</span>
+        <span class="n">checkbox</span><span class="o">.</span><span class="n">rect</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">rect</span>
+        <span class="n">checkbox</span><span class="o">.</span><span class="n">setFixedSize</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
         <span class="n">checkbox</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">painter</span><span class="p">,</span> <span class="n">QPoint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
         <span class="n">painter</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span></div>
 
-
 <div class="viewcode-block" id="CheckBoxDelegate.editorEvent"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.ui_resizable.CheckBoxDelegate.editorEvent">[docs]</a>    <span class="k">def</span> <span class="nf">editorEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">flags</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-
-        <span class="c1"># Do not change the checkbox-state</span>
-        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QEvent</span><span class="o">.</span><span class="n">MouseButtonPress</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QEvent</span><span class="o">.</span><span class="n">MouseButtonRelease</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QEvent</span><span class="o">.</span><span class="n">MouseButtonDblClick</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">button</span><span class="p">()</span> <span class="o">!=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">LeftButton</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCheckBoxRect</span><span class="p">(</span>
-                    <span class="n">option</span><span class="p">)</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">pos</span><span class="p">()):</span>
-                <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QEvent</span><span class="o">.</span><span class="n">MouseButtonDblClick</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">index</span><span class="o">.</span><span class="n">flags</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">Qt</span><span class="o">.</span><span class="n">ItemIsEditable</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QEvent</span><span class="o">.</span><span class="n">MouseButtonRelease</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setModelData</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QEvent</span><span class="o">.</span><span class="n">KeyPress</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="o">!=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Space</span> <span class="ow">and</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="o">!=</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Select</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span><span class="p">()</span> <span class="o">==</span> <span class="n">QEvent</span><span class="o">.</span><span class="n">KeyPress</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="o">==</span> <span class="n">Qt</span><span class="o">.</span><span class="n">Key_Space</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setModelData</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">True</span>
 
-        <span class="c1"># Change the checkbox-state</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setModelData</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
+    <span class="c1"># Toggles the checkbox</span>
 <div class="viewcode-block" id="CheckBoxDelegate.setModelData"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.ui_resizable.CheckBoxDelegate.setModelData">[docs]</a>    <span class="k">def</span> <span class="nf">setModelData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editor</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">newValue</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">data</span><span class="p">())</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">newValue</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="CheckBoxDelegate.getCheckBoxRect"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.ui_resizable.CheckBoxDelegate.getCheckBoxRect">[docs]</a>    <span class="k">def</span> <span class="nf">getCheckBoxRect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
-        <span class="n">check_box_style_option</span> <span class="o">=</span> <span class="n">QStyleOptionButton</span><span class="p">()</span>
-        <span class="n">check_box_rect</span> <span class="o">=</span> <span class="n">QApplication</span><span class="o">.</span><span class="n">style</span><span class="p">()</span><span class="o">.</span><span class="n">subElementRect</span><span class="p">(</span>
-            <span class="n">QStyle</span><span class="o">.</span><span class="n">SE_CheckBoxIndicator</span><span class="p">,</span> <span class="n">check_box_style_option</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">check_box_point</span> <span class="o">=</span> <span class="n">QPoint</span><span class="p">(</span><span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">x</span><span class="p">()</span> <span class="o">+</span>
-                                 <span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">width</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span>
-                                 <span class="n">check_box_rect</span><span class="o">.</span><span class="n">width</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-                                 <span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">y</span><span class="p">()</span> <span class="o">+</span>
-                                 <span class="n">option</span><span class="o">.</span><span class="n">rect</span><span class="o">.</span><span class="n">height</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span>
-                                 <span class="n">check_box_rect</span><span class="o">.</span><span class="n">height</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">QRect</span><span class="p">(</span><span class="n">check_box_point</span><span class="p">,</span> <span class="n">check_box_rect</span><span class="o">.</span><span class="n">size</span><span class="p">())</span></div></div>
+        <span class="n">model</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">newValue</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">EditRole</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="Ui_Form"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.ui_resizable.Ui_Form">[docs]</a><span class="k">class</span> <span class="nc">Ui_Form</span><span class="p">(</span><span class="n">QMainWindow</span><span class="p">):</span>
@@ -208,11 +150,13 @@
         <span class="n">loader</span> <span class="o">=</span> <span class="n">QUiLoader</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_window</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ui_file</span><span class="p">)</span>
 
-        <span class="c1"># Need to fix this courses list view</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="o">.</span><span class="n">coursesView</span> <span class="o">=</span> <span class="n">CoursesListView</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="o">.</span><span class="n">courses_tab</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="o">.</span><span class="n">courses_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="o">.</span><span class="n">coursesView</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="o">.</span><span class="n">coursesView</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="s2">&quot;coursesView&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="o">.</span><span class="n">coursesView2</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+        <span class="n">coursesView</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="o">.</span><span class="n">coursesView</span>
+        <span class="n">coursesView</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_window</span><span class="o">.</span><span class="n">styleSheet</span><span class="p">())</span>
+        <span class="n">coursesView</span><span class="o">.</span><span class="n">setItemDelegateForColumn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">CheckBoxDelegate</span><span class="p">(</span><span class="n">coursesView</span><span class="p">))</span>
+        <span class="n">coursesView</span><span class="o">.</span><span class="n">setItemDelegateForColumn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span>
+                                             <span class="n">ProgressBarDelegate</span><span class="p">(</span><span class="n">coursesView</span><span class="p">))</span>
+        <span class="n">coursesView</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span>\
+            <span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="n">QHeaderView</span><span class="o">.</span><span class="n">ResizeToContents</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">icon</span> <span class="o">=</span> <span class="n">QIcon</span><span class="p">(</span><span class="s2">&quot;:/icons/uglytheme/polibeepsync.svg&quot;</span><span class="p">)</span>
 
