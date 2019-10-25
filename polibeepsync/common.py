@@ -1,4 +1,4 @@
-__copyright__ = """Copyright 2018 Davide Olianas (ubuntupk@gmail.com), Di
+__copyright__ = """Copyright 2019 Davide Olianas (ubuntupk@gmail.com), Di
 Campli Raffaele."""
 
 __license__ = """This f is part of poliBeePsync.
@@ -17,18 +17,21 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from bs4 import BeautifulSoup
+from lxml import etree
+from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timedelta, tzinfo
 from functools import partial
 from urllib.parse import unquote
 import requests
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit
+from utils import raw_date_to_datetime
 import os
 import logging
 import re
 from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
 from pyparsing import Word, alphanums, alphas8bit, alphas, nums, Group, OneOrMore, \
-    Literal, ParseException, ZeroOrMore, White, printables
+    Literal, ParseException, ZeroOrMore, White
 from signalslot import Signal as sSignal
 
 
@@ -453,6 +456,15 @@ def folder_total_size(parentfolder, sizes):
     return sizes
 
 
+def beep_size_to_byte_size(text_size):
+    #regex = re.search('(?<=\\()(.*?)(?=\\))', text_size)
+    #size = regex.group(0)
+    size = re.sub('[^0-9\\.,]', '', text_size)
+    size = int(float(size.strip().replace(".", "").
+                     replace(",", ".")) * 1024)
+    return size
+
+
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
     for f in online.files:
@@ -519,7 +531,7 @@ def need_syncing(folder, parent_folder):
     return syncthese
 
 
-class User(object):
+class User():
     loginurl = 'https://beep.metid.polimi.it/polimi/login'
     user_courses_url = 'https://beep.metid.polimi.it/api/secure/jsonws/'\
         'group/get-user-sites'
@@ -529,9 +541,10 @@ class User(object):
         'get-file-entries'
     gmt1 = GMT1()
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, use_json_endpoint=False):
         self.username = username
         self.password = password
+        self._use_json_endpoint = use_json_endpoint
         self.session = requests.Session()
         self.logged = False
         self.courses_url = ""
@@ -680,6 +693,20 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             first_response = self._do_shibboleth(pwd_change_res)
             first_soup = BeautifulSoup(first_response.text, "lxml")
             form = first_soup.find_all('form')[0]
+
+        # Bypass any security "Advice"
+        url = form["action"]
+        if 'AvvisiBroadcast' in url:
+            uri = urlsplit(first_response.url)
+            url = f'{uri.scheme}://{uri.netloc}{url}'
+            notice_change_res = self.session.post(url,
+                                                  data={'evn_continua': ''},
+                                                  headers=login_headers)
+            first_response = self._do_shibboleth(notice_change_res)
+            first_soup = BeautifulSoup(first_response.text, "lxml")
+            form = first_soup.find_all('form')[0]
+
+
         url = form["action"]
 
         logging.debug(f'Login url {url}')
@@ -718,13 +745,76 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
             online_courses (:class:`Courses`): a :class:`Courses` container of
             all courses available online."""
         commonlogger.info('Looking for new courses.')
-        res = self.session.get(self.user_courses_url)
-        parsed_courses = filter(lambda x: x["type"] == 2, res.json())
+
+        parsed_courses = []
+        if self._use_json_endpoint:
+            res = self.session.get(self.user_courses_url)
+            parsed_courses = filter(lambda x: x["type"] == 2, res.json())
+        else:
+            coursespage = self.get_page(self.courses_url)
+            parsed_courses = self._courses_scraper(coursespage.text)
 
         courses = Courses()
         for elem in parsed_courses:
             courses.append(Course(elem))
         return courses
+
+    def _courses_scraper(self, text):
+        """
+        This function scrapes the main beep page to look for newcourses
+        the returned dictionaries have the following structure:
+            - name: The name of the course
+            - friendlyURL: The URL of the course
+            - classPK: The unique groupID assigned from liferay
+        :return: A list of dictionaries with the scraped courses
+        :rtype: List
+        """
+
+        courses_tree = etree.HTML(text)
+        courses_link_xpath = '//tr[contains(@class, "results-row")]/'\
+            'td[1]/a/@href'
+        courses_name_xpath = '//tr[contains(@class, "results-row")]/'\
+            'td[1]/a//text()'
+        courses_links = courses_tree.xpath(courses_link_xpath)
+        courses_names = courses_tree.xpath(courses_name_xpath)
+        scraped_courses_list = zip(courses_names, courses_links)
+
+        # online_courses = Courses()
+        # we iterate over the tags
+        # we only need year to parse for real courses
+        year = Group("[" + OneOrMore(
+            Word(nums, exact=4) + "-" + Word(nums, exact=2)) + "]")
+
+        # bracketed = Group("[" + OneOrMore(Word(printables, " ")) + "]")
+        # middle = ~bracketed + OneOrMore(Word(alphas))
+        # grammar = year.suppress() + Literal("-").suppress() + middle
+        grammar = year
+
+        temporary_courses = []
+        for course in scraped_courses_list:
+            parsed_link = urlparse(course[1])
+            parsed_query_str = parse_qs(parsed_link.query)
+
+            try:
+                grammar.parseString(course[0])
+                course_dict = {
+                    # Corresponds to the groupId or the course name
+                    # fortunately the groupId resolving works anyway
+                    'friendlyURL': parsed_query_str['_29_groupId'][0],
+                    # Course name
+                    'name': course[0],
+                    # Course ID, usually it's the same as group id
+                    'classPK': parsed_query_str['_29_groupId'][0],
+                    # Same as Course ID
+                    'groupId': parsed_query_str['_29_groupId'][0],
+                    # Courses have folderId 0
+                    'folderId': 0
+                }
+                temporary_courses.append(course_dict)
+            except ParseException:
+                pass
+
+        return temporary_courses
 
     def sync_available_courses(self, master_courses):
         """Sync :attr:`available_courses` to :attr:`master_courses`.
@@ -770,37 +860,119 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         online = self.find_files_and_folders(course._course_dict)
         synclocalwithonline(course.documents, online)
         sizes = []
-        course.size = sum(folder_total_size(course.documents,
-                                                       sizes))
+        course.size = sum(folder_total_size(course.documents, sizes))
         human_total_size = sizeof_fmt(course.size)
         commonlogger.info(f'****DIMENSIONE TOTALE: {human_total_size}')
 
     def find_files_and_folders(self, folder_dict):
         folder = Folder(folder_dict)
-        query_params_files = {'repositoryId': folder.group_id,
-                              'folderId': 0}
-        query_params_folder = {'repositoryId': folder.group_id,
-                               'parentFolderId': 0}
-        if folder_dict['folderId'] != -1:
-            query_params_files['folderId'] = folder_dict['folderId']
-            query_params_folder['parentFolderId'] = folder_dict['folderId']
+        if self._use_json_endpoint:
+            logging.debug('Using JSON endpoint method')
+            query_params_files = {'repositoryId': folder.group_id,
+                                  'folderId': 0}
+            query_params_folder = {'repositoryId': folder.group_id,
+                                   'parentFolderId': 0}
+            if folder_dict['folderId'] != -1:
+                query_params_files['folderId'] = folder_dict['folderId']
+                query_params_folder['parentFolderId'] = folder_dict['folderId']
 
-        subfolders_dict = self.get_page(self.get_folders_url,
-                                        params=query_params_folder)\
-            .json()
+            subfolders_dict = self.get_page(self.get_folders_url,
+                                            params=query_params_folder)\
+                .json()
 
-        files_dict = self.get_page(self.get_files_url,
-                                   params=query_params_files).json()
+            files_dict = self.get_page(self.get_files_url,
+                                       params=query_params_files).json()
 
-        for elem in subfolders_dict:
-            commonlogger.debug(f'Added {elem} to \n{folder}')
-            subfolder = self.find_files_and_folders(elem)
-            folder.folders.append(subfolder)
+            for elem in subfolders_dict:
+                commonlogger.debug(f'Added {elem} to \n{folder}')
+                subfolder = self.find_files_and_folders(elem)
+                folder.folders.append(subfolder)
 
-        for elem in files_dict:
-            commonlogger.debug(f'Added {elem} to \n{folder}')
-            course_file = CourseFile(elem)
-            folder.files.append(course_file)
+            for elem in files_dict:
+                commonlogger.debug(f'Added {elem} to \n{folder}')
+                course_file = CourseFile(elem)
+                folder.files.append(course_file)
+        else:
+            logging.debug('Falling back to webscraper method')
+
+            weird_parameters = {
+                '_20_folderId': folder_dict['folderId'],
+                '_20_displayStyle': 'list',
+                '_20_viewEntries': '0',
+                '_20_viewFolders': '0',
+                '_20_entryEnd': '500',
+                '_20_entryStart': '0',
+                '_20_folderEnd': '500',
+                '_20_folderStart': '0',
+                '_20_viewEntriesPage': '1',
+                'p_p_id': '20',
+                'p_p_lifecycle': '0'
+            }
+            response = self.get_page(
+                "https://beep.metid.polimi.it/web/"
+                f"{folder_dict['groupId']}/documenti-e-media",
+                weird_parameters)
+            page_tree = etree.HTML(response.text)
+            entry_xpath = '//div[contains(@id, "SearchContainer")]//'\
+                    'tr[contains(@class, "document-display-style")]'
+
+            title_xpath = 'td[contains(@class, "col-2")]//span[1]'\
+                    '/text()'
+            is_folder_xpath = '@data-folder'
+            folder_id_xpath = '@data-folder-id'
+            date_xpath = 'td[contains(@class, "col-5")]/text()'
+            size_xpath = 'td[contains(@class, "col-3")]/text()'
+
+            for entry in page_tree.xpath(entry_xpath):
+                title = entry.xpath(title_xpath)[1]
+                raw_date = entry.xpath(date_xpath)[0]
+                is_folder = entry.xpath(is_folder_xpath)
+                raw_size = entry.xpath(size_xpath)[0]
+
+                date = raw_date_to_datetime(raw_date, self.gmt1)
+
+                if is_folder:
+                    folder_dict = {
+                        'folderId': entry.xpath(folder_id_xpath)[0],
+                        # Don't remove the *1000, this necessary to keep the
+                        # timestamp consistent with liferay precision (1/1000s)
+                        'lastPostDate': date.timestamp()*1000,
+                        'name': title,
+                        'groupId': folder_dict['groupId'],
+                    }
+
+                    subfolder = self.find_files_and_folders(folder_dict)
+                    folder.folders.append(subfolder)
+                else:
+                    file_page_xpath = 'td[contains(@class, "col-2")]//span[1]'\
+                            '//a/@href'
+                    file_version_xpath = '//div[contains(@class,'\
+                            '"lfr-search-container")]//tr[contains(@class,'\
+                            'results-row)]//td[1]/text()'
+                    url_xpath = '//div[contains(@class, "url-file-container")'\
+                            ']//input/@value'
+
+
+                    parsed_link = urlparse(entry.xpath(file_page_xpath)[0])
+                    parsed_query_str = parse_qs(parsed_link.query)
+
+                    file_download_page =  self.get_page(parsed_link.geturl())
+                    download_page_tree = etree.HTML(file_download_page.text)
+
+                    filename, extension = os.path.splitext(title)
+                    file_dict = {
+                        'extension': extension,
+                        'version': download_page_tree
+                        .xpath(file_version_xpath)[0],
+                        'fileEntryId': parsed_query_str['_20_fileEntryId'][0],
+                        'title': filename,
+                        'groupId': folder_dict['groupId'],
+                        'uuid': download_page_tree.xpath(url_xpath)[0]
+                        .split("/")[-1],
+                        'modifiedDate': date.timestamp()*1000,
+                        'size': beep_size_to_byte_size(raw_size)
+                    }
+                    folder.files.append(CourseFile(file_dict))
 
         return folder
 

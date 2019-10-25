@@ -1,4 +1,4 @@
-__copyright__ = """Copyright 2018 Davide Olianas (ubuntupk@gmail.com), Di
+__copyright__ = """Copyright 2019 Davide Olianas (ubuntupk@gmail.com), Di
 Campli Raffaele."""
 
 __license__ = """This file is part of poliBeePsync.
