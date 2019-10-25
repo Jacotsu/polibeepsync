@@ -65,6 +65,12 @@ open the downloaded file and follow the installer instructions.
 Changelog
 =========
 
+0.5.2 (2019-10-25)
+----------------
+Fix
+~~~
+- Reimplemented webscraping as default download method due to BeeP's JSON API deactivation [DCDRJ]
+
 0.5.1 (2019-07-11)
 ------------------
 Fix

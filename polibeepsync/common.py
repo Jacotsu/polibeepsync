@@ -24,7 +24,7 @@ from functools import partial
 from urllib.parse import unquote
 import requests
 from urllib.parse import urlsplit
-from utils import raw_date_to_datetime
+from polibeepsync.utils import raw_date_to_datetime
 import os
 import logging
 import re
