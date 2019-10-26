@@ -312,6 +312,7 @@ class Course(GenericSet):
                                 "-" + Word(nums, exact=2) + "]"))
 
         dash = Group(ZeroOrMore(White() + "-" + White()))
+        dash_with_student_code = Group(ZeroOrMore(White() + "-" + Word(nums)))
         no_squared_brackets = Word(
             alphanums+alphas8bit,
             ",;.:-_@#°§+*{}^'?=)(/&%$£!\\|\""
@@ -319,7 +320,8 @@ class Course(GenericSet):
         bracketed = Group("[" + OneOrMore(no_squared_brackets) + "]")
         middle = ~bracketed + OneOrMore(Word(alphanums+alphas8bit+"'"))
         try:
-            grammar = year.suppress() + dash.suppress() + middle
+            grammar = year.suppress() + dash_with_student_code.suppress() + \
+                    dash.suppress() + middle
             simple = " ".join(grammar.parseString(name))
         except ParseException:
             commonlogger.error(f'Failed to simplify course name {name}',
@@ -680,10 +682,10 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         # switch to english version if we're on the italian site
         first_response = self._login_first_step()
         first_soup = BeautifulSoup(first_response.text, "lxml")
-        form = first_soup.find_all('form')[0]
+        form = first_soup.find_all('form')
 
         # If password change prompt is show handle this special case
-        if form.find('button', {'name': 'evn_continua'}):
+        if form and form[0].find('button', {'name': 'evn_continua'}):
             logging.warning('Your password is about to expire, change it ASAP')
             uri = urlsplit(first_response.url)
             url = f'{uri.scheme}://{uri.netloc}{form["action"]}'

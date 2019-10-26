@@ -59,6 +59,13 @@ class TestCourse:
 
         assert course.simplify_name(course.name) == "Micro Electro Mechanical Systems"
 
+    def test_simplify_name_with_student_number(self):
+        course = Course({'name': '[2019-20] -088775 - DYNAMICS OF MECHANICAL SYSTEMS [ STEFANO BRUNI ]',
+                         'friendlyURL': 'beep.com',
+                         'classPK': 1})
+
+        assert course.simplify_name(course.name) == "Dynamics Of Mechanical Systems"
+
     def test_size_calculation(self):
         afile = CourseFile({'title': 'a',
                             'groupId': 5,
