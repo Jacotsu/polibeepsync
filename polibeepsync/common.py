@@ -24,7 +24,7 @@ from functools import partial
 from urllib.parse import unquote
 import requests
 from urllib.parse import urlsplit
-from polibeepsync.utils import raw_date_to_datetime
+from polibeepsync.utils import raw_date_to_datetime, debug_dump
 import os
 import logging
 import re
@@ -682,42 +682,34 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         # switch to english version if we're on the italian site
         first_response = self._login_first_step()
         first_soup = BeautifulSoup(first_response.text, "lxml")
-        form = first_soup.find_all('form')
-        url = ''
+        form = None
+        try:
+            form = first_soup.find_all('form')[0]
+        except:
+            debug_dump(first_response.text)
+            debug_dump(form.encode())
 
         # If password change prompt is show handle this special case
-        if form and form[0].find('button', {'name': 'evn_continua'}):
+        if form.find('button', {'name': 'evn_pwd_change'}):
             logging.warning('Your password is about to expire, change it ASAP')
             uri = urlsplit(first_response.url)
-            url = f'{uri.scheme}://{uri.netloc}{form[0]["action"]}'
+            url = f'{uri.scheme}://{uri.netloc}{form["action"]}'
             pwd_change_res = self.session.post(url,
                                                data={'evn_continua': ''},
                                                headers=login_headers)
             first_response = self._do_shibboleth(pwd_change_res)
             first_soup = BeautifulSoup(first_response.text, "lxml")
-            form = first_soup.find_all('form')
-            if form:
-                url = form[0]['action']
+            try:
+                form = first_soup.find_all('form')[0]
+            except:
+                debug_dump(first_response.text)
+                debug_dump(form.encode())
 
-        # Bypass any security "Advice"
-        if form:
-            url = form[0]["action"]
-        if 'AvvisiBroadcast' in url:
-            uri = urlsplit(first_response.url)
-            url = f'{uri.scheme}://{uri.netloc}{url}'
-            notice_change_res = self.session.post(url,
-                                                  data={'evn_continua': ''},
-                                                  headers=login_headers)
-            first_response = self._do_shibboleth(notice_change_res)
-            first_soup = BeautifulSoup(first_response.text, "lxml")
-            form = first_soup.find_all('form')
-            if form:
-                url = form[0]["action"]
-
+        url = form['action']
         logging.debug(f'Login url {url}')
 
         payload = {}
-        for x in form[0].find_all('input'):
+        for x in form.find_all('input'):
             try:
                 payload[x['name']] = x['value']
             except KeyError:

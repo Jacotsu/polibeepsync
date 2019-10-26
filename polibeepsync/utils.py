@@ -1,4 +1,6 @@
 from datetime import datetime
+import logging
+import time
 
 
 def raw_date_to_datetime(rawdate, gmt):
@@ -10,3 +12,9 @@ def raw_date_to_datetime(rawdate, gmt):
     complete_date = datetime(year, month, day, hour, minute,
                              tzinfo=gmt)
     return complete_date
+
+
+def debug_dump(data, min_level=logging.DEBUG):
+    if logging.getLogger().level >= min_level:
+        with open(f'Polybeepsync-dump-{time.time()}', 'wb') as dump:
+            dump.write(data)
