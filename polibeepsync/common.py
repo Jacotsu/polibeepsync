@@ -688,7 +688,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         if form and form[0].find('button', {'name': 'evn_continua'}):
             logging.warning('Your password is about to expire, change it ASAP')
             uri = urlsplit(first_response.url)
-            url = f'{uri.scheme}://{uri.netloc}{form["action"]}'
+            url = f'{uri.scheme}://{uri.netloc}{form[0]["action"]}'
             pwd_change_res = self.session.post(url,
                                                data={'evn_continua': ''},
                                                headers=login_headers)
