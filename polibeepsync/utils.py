@@ -15,6 +15,6 @@ def raw_date_to_datetime(rawdate, gmt):
 
 
 def debug_dump(data, min_level=logging.DEBUG):
-    if logging.getLogger().level >= min_level:
+    if logging.getLogger().level <= min_level:
         with open(f'Polybeepsync-dump-{time.time()}', 'wb') as dump:
             dump.write(data)
