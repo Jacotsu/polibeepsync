@@ -6,34 +6,53 @@ import os
 
 
 class TestCourse:
-    def test_simplifynamewithsquarebrackets(self):
-        course = Course({'name': '[2014-15] - OTTICA FISICA E TECNOLOGIE OTTICHE [C.I.] [ INGEGNERIA FISICA ]',
+    def test_multiprofessor(self):
+        course = Course({'name': '[2017-18] - FISICA [ GALZERANO / VITTORIO '
+                         'MAGNI ]',
                          'friendlyURL': 'beep.com',
                          'classPK': 1})
-        assert course.simplify_name(course.name) == "Ottica Fisica E Tecnologie Ottiche"
+        assert course.simplify_name(course.name) == "Fisica [Galzerano / "\
+            "Vittorio Magni]"
+
+    def test_nobracketsprofessor(self):
+        course = Course({'name': '[2017-18] - ANALISI MATEMATICA 1 - E. '
+                         'MALUTA',
+                         'friendlyURL': 'beep.com',
+                         'classPK': 1})
+        assert course.simplify_name(course.name) == "Analisi Matematica 1 "\
+                "[E. Maluta]"
+
+    def test_simplifynamewithsquarebrackets(self):
+        course = Course({'name': '[2014-15] - OTTICA FISICA E TECNOLOGIE '
+                         'OTTICHE [ C.I. ] [ INGEGNERIA FISICA ]',
+                         'friendlyURL': 'beep.com',
+                         'classPK': 1})
+        assert course.simplify_name(course.name) == "Ottica Fisica E "\
+        "Tecnologie Ottiche [C.I.]"
 
     def test_simplifysimplename(self):
         course = Course({'name': '[2014-15] - SOME STUFF [ A PROFESSOR ]',
                          'friendlyURL': 'beep.com',
                          'classPK': 1})
 
-        assert course.simplify_name(course.name) == "Some Stuff"
+        assert course.simplify_name(course.name) == "Some Stuff [A Professor]"
 
     def test_simplifycoursewithoutyear(self):
         course = Course({'name': 'RETI LOGICHE [ FABRIZIO FERRANDI ]',
                          'friendlyURL': 'beep.com',
                          'classPK': 1})
 
-        assert course.simplify_name(course.name) == "Reti Logiche"
+        assert course.simplify_name(course.name) == "Reti Logiche [Fabrizio "\
+            "Ferrandi]"
 
     def test_simplifycoursewithaccents(self):
-        course = Course({'name': "[2017-18] - PROBABILITÀ E STATISTICA PER L'INFORMATICA [ GIUSEPPINA GUATTERI ]",
+        course = Course({'name': "[2017-18] - PROBABILITÀ E STATISTICA PER "
+                         "L'INFORMATICA [ GIUSEPPINA GUATTERI ]",
                          'friendlyURL': 'beep.com',
                          'classPK': 1})
 
         assert course.simplify_name(course.name) == "Probabilità E Statistica"\
-            " Per L'Informatica"
-
+            " Per L'Informatica [Giuseppina Guatteri]"
 
     def test_simplifycoursewithspecialchars(self):
         course = Course({'name': "[2018-19] - SISTEMI INFORMATIVI (PER IL "
@@ -42,8 +61,8 @@ class TestCourse:
                          'friendlyURL': 'beep.com',
                          'classPK': 1})
 
-        assert course.simplify_name(course.name) == "Sistemi Informativi"
-
+        assert course.simplify_name(course.name) == "Sistemi Informativi "\
+            "[Monica Vitali]"
 
     def test_cannotsimplifyname(self):
         course = Course({'name': 'Metid',
@@ -53,18 +72,22 @@ class TestCourse:
         assert course.simplify_name(course.name) == "Metid"
 
     def test_simplify_mems(self):
-        course = Course({'name': '[2014-15] - MICRO ELECTRO MECHANICAL SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]',
+        course = Course({'name': '[2014-15] - MICRO ELECTRO MECHANICAL '
+                         'SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]',
                          'friendlyURL': 'beep.com',
                          'classPK': 1})
 
-        assert course.simplify_name(course.name) == "Micro Electro Mechanical Systems"
+        assert course.simplify_name(course.name) == "Micro Electro Mechanical"\
+            " Systems [Alberto Corigliano]"
 
     def test_simplify_name_with_student_number(self):
-        course = Course({'name': '[2019-20] -088775 - DYNAMICS OF MECHANICAL SYSTEMS [ STEFANO BRUNI ]',
+        course = Course({'name': '[2019-20] -088775 - DYNAMICS OF MECHANICAL '
+                         'SYSTEMS [ STEFANO BRUNI ]',
                          'friendlyURL': 'beep.com',
                          'classPK': 1})
 
-        assert course.simplify_name(course.name) == "Dynamics Of Mechanical Systems"
+        assert course.simplify_name(course.name) == "Dynamics Of Mechanical "\
+            "Systems [Stefano Bruni]"
 
     def test_size_calculation(self):
         afile = CourseFile({'title': 'a',
@@ -128,13 +151,16 @@ class TestCourse:
 
     def test_ignorebeepcourse(self):
         clean_list = [
-            Course({'name': '[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO MARIO GIOVANNI VEGNI ]',
+            Course({'name': '[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO '
+                    'MARIO GIOVANNI VEGNI ]',
                     'friendlyURL': 'beep.com',
                     'classPK': 122035314}),
-            Course({'name': '[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO DULIO ]',
+            Course({'name': '[2016-17] - GEOMETRIA E ALGEBRA LINEARE '
+                    '[ PAOLO DULIO ]',
                     'friendlyURL': 'beep.com',
                     'classPK': 115041662}),
-            Course({'name': '[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA LEONARDO LACAITA ]',
+            Course({'name': '[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA '
+                    'LEONARDO LACAITA ]',
                     'friendlyURL': 'beep.com',
                     'classPK': 115292440})
                 ]
@@ -154,13 +180,16 @@ class TestCourse:
 
     def test_ignoreotherbadnames(self):
         clean_list = [
-            Course({'name': '[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO MARIO GIOVANNI VEGNI ]',
+            Course({'name': '[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO '
+                    'MARIO GIOVANNI VEGNI ]',
                     'friendlyURL': 'beep.com',
                     'classPK': 122035314}),
-            Course({'name': '[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO DULIO ]',
+            Course({'name': '[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO '
+                    'DULIO ]',
                     'friendlyURL': 'beep.com',
                     'classPK': 115041662}),
-            Course({'name': '[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA LEONARDO LACAITA ]',
+            Course({'name': '[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA '
+                    'LEONARDO LACAITA ]',
                     'friendlyURL': 'beep.com',
                     'classPK': 115292440})
         ]

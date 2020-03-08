@@ -30,8 +30,8 @@ import logging
 import re
 from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
-from pyparsing import Word, alphanums, alphas8bit, alphas, nums, Group, OneOrMore, \
-    Literal, ParseException, ZeroOrMore, White
+from pyparsing import (Word, alphanums, alphas8bit, alphas, nums, Group,
+                       OneOrMore, ParseException, ZeroOrMore, Suppress)
 from signalslot import Signal as sSignal
 
 
@@ -310,19 +310,34 @@ class Course(GenericSet):
         simple = name
         year = Group(ZeroOrMore("[" + Word(nums, exact=4) +
                                 "-" + Word(nums, exact=2) + "]"))
+        dash_with_student_code = Group(ZeroOrMore("-" + Word(nums)))
+        personal_names = OneOrMore(Word(alphas + ',.;:/'))
+        course_name = Group(OneOrMore(Word(alphanums + alphas8bit +
+            ',.;:/|\'"'))).setResultsName('course_name')
+        course_extra_specs = Group(ZeroOrMore('(' + ZeroOrMore(Word(alphanums +
+            ',.:;/\'')) + ')'))
+        # Some courses specifies the professor name like this
+        # [2019/20] COURSE MEMEOLOGY - George Miller
+        # Most of the courses like this
+        # [2019/20] COURSE MEMEOLOGY [ George Miller ]
+        prof_name = Group(
+            Suppress('[') + personal_names + Suppress(']') ^
+            Suppress('-') + personal_names) \
+            .setResultsName('prof_name')
 
-        dash = Group(ZeroOrMore(White() + "-" + White()))
-        dash_with_student_code = Group(ZeroOrMore(White() + "-" + Word(nums)))
-        no_squared_brackets = Word(
-            alphanums+alphas8bit,
-            ",;.:-_@#°§+*{}^'?=)(/&%$£!\\|\""
-        )
-        bracketed = Group("[" + OneOrMore(no_squared_brackets) + "]")
-        middle = ~bracketed + OneOrMore(Word(alphanums+alphas8bit+"'"))
         try:
             grammar = year.suppress() + dash_with_student_code.suppress() + \
-                    dash.suppress() + middle
-            simple = " ".join(grammar.parseString(name))
+                    Suppress(ZeroOrMore('-')) + course_name +\
+                    course_extra_specs.suppress() + prof_name
+            parsed_name_tokens = grammar.parseString(name)
+
+            # Special chars like '/' may be problematic for new terminal users
+            # a filter maybe considered if the feedback is significant
+            simple = f"{' '.join(parsed_name_tokens['course_name'])} "
+            # Append professor names only if present
+            if parsed_name_tokens['prof_name']:
+                simple += f"[{' '.join(parsed_name_tokens['prof_name'])}]"
+
         except ParseException:
             commonlogger.error(f'Failed to simplify course name {name}',
                                exc_info=True)
@@ -459,8 +474,8 @@ def folder_total_size(parentfolder, sizes):
 
 
 def beep_size_to_byte_size(text_size):
-    #regex = re.search('(?<=\\()(.*?)(?=\\))', text_size)
-    #size = regex.group(0)
+    # regex = re.search('(?<=\\()(.*?)(?=\\))', text_size)
+    # size = regex.group(0)
     size = re.sub('[^0-9\\.,]', '', text_size)
     size = int(float(size.strip().replace(".", "").
                      replace(",", ".")) * 1024)
@@ -911,10 +926,10 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 weird_parameters)
             page_tree = etree.HTML(response.text)
             entry_xpath = '//div[contains(@id, "SearchContainer")]//'\
-                    'tr[contains(@class, "document-display-style")]'
+                'tr[contains(@class, "document-display-style")]'
 
             title_xpath = 'td[contains(@class, "col-2")]//span[1]'\
-                    '/text()'
+                '/text()'
             is_folder_xpath = '@data-folder'
             folder_id_xpath = '@data-folder-id'
             date_xpath = 'td[contains(@class, "col-5")]/text()'
@@ -942,18 +957,17 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                     folder.folders.append(subfolder)
                 else:
                     file_page_xpath = 'td[contains(@class, "col-2")]//span[1]'\
-                            '//a/@href'
+                        '//a/@href'
                     file_version_xpath = '//div[contains(@class,'\
-                            '"lfr-search-container")]//tr[contains(@class,'\
-                            'results-row)]//td[1]/text()'
+                        '"lfr-search-container")]//tr[contains(@class,'\
+                        'results-row)]//td[1]/text()'
                     url_xpath = '//div[contains(@class, "url-file-container")'\
-                            ']//input/@value'
-
+                        ']//input/@value'
 
                     parsed_link = urlparse(entry.xpath(file_page_xpath)[0])
                     parsed_query_str = parse_qs(parsed_link.query)
 
-                    file_download_page =  self.get_page(parsed_link.geturl())
+                    file_download_page = self.get_page(parsed_link.geturl())
                     download_page_tree = etree.HTML(file_download_page.text)
 
                     filename, extension = os.path.splitext(title)
