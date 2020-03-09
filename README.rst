@@ -29,6 +29,10 @@
     :target: https://pypi.python.org/pypi/poliBeePsync/
     :alt: Wheel Status
 
+.. image:: https://liberapay.com/assets/widgets/donate.svg
+    :target: https://liberapay.com/jacotsu/donate
+    :width: 12%
+    :alt: Donate using liberapay
 
 PoliBeePsync
 ============
@@ -64,6 +68,25 @@ open the downloaded file and follow the installer instructions.
 
 Changelog
 =========
+
+0.6.0 (2020-03-10)
+------------------
+Fix
+~~~
+- Improved name simplification code [DCDRJ]
+  - Now course files destination folders contain professor names [DCDRJ]
+  - Updated tests to match the new simplification algorithm [DCDRJ]
+  - Minor test code cleanup [DCDRJ]
+- Removed some cruft [DCDRJ]
+- Removed old icons [DCDRJ]
+- Reorganized resources [DCDRJ]
+
+New
+~~~
+- Set 8 hours as new default sync time [DCDRJ]
+- Added references in about info [DCDRJ]
+- Added donate button link [DCDRJ]
+- Renewed copyright year and explicitly added license to each file [DCDRJ]
 
 0.5.2 (2019-10-25)
 ------------------
