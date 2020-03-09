@@ -35,7 +35,8 @@ from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot,
                             QTimer, QLocale)
 from PySide2.QtGui import (QTextCursor, QCursor)
 from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog, QLabel,
-                               QSystemTrayIcon, qApp, QApplication)
+                               QSystemTrayIcon, qApp, QApplication,
+                               QMessageBox)
 
 
 __version__ = find_version("__init__.py")
@@ -140,7 +141,6 @@ class MainWindow(Ui_Form):
         logger.addHandler(logging_console_hdl)
         commonlogger.addHandler(logging_console_hdl)
 
-        self.about_text()
         self.timer = QTimer(self)
 
         # settings_path is a string containing the path to settings
@@ -206,10 +206,48 @@ class MainWindow(Ui_Form):
                                            .format(__version__))
         self._window.check_version.clicked.connect(self.checknewversion)
 
+        self._window.about.clicked.connect(self.showabout)
+
         self.trayIconMenu = QMenu()
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
         self.trayIcon.activated.connect(self._activate_traymenu)
         self.createTray()
+
+    @Slot()
+    def showabout(self, **kwargs):
+        msgBox = QMessageBox(self._window)
+        msgBox.setTextFormat(Qt.RichText)
+        text = """
+<html>
+<head/>
+<body>
+  <p>
+    poliBeePsync is a program written by Davide Olianas and Raffaele Di Campli
+    released under GNU GPLv3+.
+    More information is available on the
+    <a href=\"https://github.com/Jacotsu/polibeepsync\">
+    <span style=\" text-decoration: underline; color:#0000ff;\">
+    official github</span></a>.
+    Feel free to contact us at
+    <a href=\"mailto:dcdrj.pub@gmail.com\">dcdrj.pub@gmail.com</a> for
+    suggestions and bug reports.
+  </p>
+  <p>
+  Want to learn how to make softwares like this? Then join <br>
+    <a href='https://poul.org/'>
+      <img src=':/root/imgs/PinguiniStilNovoFullLogoBlack.svg'>
+    </a>
+  </p>
+  <p>
+    <a href='https://liberapay.com/jacotsu/donate'>
+        Want to offer me a sandwich?
+    </a>
+  </p>
+</body>
+</html>
+"""
+        msgBox.setInformativeText(text)
+        msgBox.exec()
 
     @Slot()
     def _resizeview(self, **kwargs):
@@ -331,7 +369,6 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
                          " predefined directory. Ignore this"
                          "message if you're using poliBeePsync"
                          " for the first time.")
-
     @Slot(str)
     def update_status_bar(self, status):
         self._window.statusbar.showMessage(status)
@@ -500,36 +537,6 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
     def closeEvent(self, event):
         self._window.hide()
         event.ignore()
-
-    def about_text(self):
-        self._window.label_3 = QLabel()
-        self._window.label_3.setTextFormat(Qt.RichText)
-        self._window.label_3.setOpenExternalLinks(True)
-        self._window.label_3.setLocale(QLocale(QLocale.English,
-                                               QLocale.UnitedStates))
-        self._window.label_3.setScaledContents(True)
-        self._window.label_3.setWordWrap(True)
-        text = """
-<html>
-<head/>
-<body>
-  <p>poliBeePsync is a program written by Davide Olianas,
-released under GNU GPLv3+.</p>
-  <p>Feel free to contact me at <a
-  href=\"mailto:ubuntupk@gmail.com\">ubuntupk@gmail.com</a> for
-  suggestions and bug reports.</p>
-  <p>More information is available on the
-  <a href=\"http://www.davideolianas.com/polibeepsync\">
-  <span style=\" text-decoration: underline; color:#0000ff;\">
-  official website</span></a>.
-  </p>
-</body>
-</html>
-"""
-
-        self._window.label_3.setText(QApplication.translate("Form", text,
-                                                            None))
-
 
 def main():
     # load options from cmdline

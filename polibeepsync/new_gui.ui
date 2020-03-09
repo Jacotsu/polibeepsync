@@ -30,7 +30,7 @@
    <string>PoliBeePSync</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../uglytheme.qrc">
+   <iconset>
     <normaloff>:/icons/uglytheme/polibeepsync.svg</normaloff>:/icons/uglytheme/polibeepsync.svg</iconset>
   </property>
   <property name="styleSheet">
@@ -650,7 +650,7 @@ QProgressBar::chunk:horizontal {
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -727,14 +727,14 @@ QProgressBar::chunk:horizontal {
             <attribute name="horizontalHeaderCascadingSectionResizes">
              <bool>false</bool>
             </attribute>
+            <attribute name="horizontalHeaderMinimumSectionSize">
+             <number>50</number>
+            </attribute>
             <attribute name="horizontalHeaderDefaultSectionSize">
              <number>200</number>
             </attribute>
             <attribute name="horizontalHeaderHighlightSections">
              <bool>true</bool>
-            </attribute>
-            <attribute name="horizontalHeaderMinimumSectionSize">
-             <number>50</number>
             </attribute>
             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
              <bool>true</bool>

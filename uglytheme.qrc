@@ -1,5 +1,7 @@
 <RCC>
-  <qresource prefix="icons/uglytheme">
-    <file alias="polibeepsync.svg">icons/uglytheme/polibeepsync.svg</file>
+  <qresource prefix="root">
+    <file>imgs/icons/polibeepsync.svg</file>
+    <file>imgs/PinguiniStilNovoFullLogoBlack.svg</file>
+    <file>imgs/donate.svg</file>
   </qresource>
 </RCC>

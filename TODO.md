@@ -10,7 +10,9 @@
 
 - [ ] Fix bug where download progress bars update only when clicked
 
-- [ ] Write Tests
+- [ ] Implement correct svg rendering in Richtext (images in about popup)
+
+- [X] Write Tests
 
 - [ ] Move from Beautiful soup to simple lxml to remove horrendous code
 
