@@ -30,8 +30,8 @@
    <string>PoliBeePSync</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>:/icons/uglytheme/polibeepsync.svg</normaloff>:/icons/uglytheme/polibeepsync.svg</iconset>
+   <iconset resource="../uglytheme.qrc">
+    <normaloff>:/root/imgs/icons/polibeepsync.svg</normaloff>:/root/imgs/icons/polibeepsync.svg</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true">/* https://github.com/martinrotter/qt-material-stylesheet */
@@ -650,7 +650,7 @@ QProgressBar::chunk:horizontal {
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -983,7 +983,7 @@ QProgressBar::chunk:horizontal {
                <number>4800</number>
               </property>
               <property name="value">
-               <number>60</number>
+               <number>480</number>
               </property>
              </widget>
             </item>
