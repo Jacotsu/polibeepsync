@@ -342,7 +342,8 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         self.settings_path = os.path.join(user_config_dir(self.appname),
                                           self.settings_fname)
         defaults = {
-            'UpdateEvery': '60',
+            # Update every 8 hours
+            'UpdateEvery': '480',
             'RootFolder': os.path.join(os.path.expanduser('~'), self.appname),
             'SyncNewCourses': 'False'
         }
