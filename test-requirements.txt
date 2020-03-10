@@ -10,3 +10,5 @@ pluggy
 lxml
 twine
 wheel
+pynsist
+makensis
