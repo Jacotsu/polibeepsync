@@ -217,6 +217,7 @@ class MainWindow(Ui_Form):
     def showabout(self, **kwargs):
         msgBox = QMessageBox(self._window)
         msgBox.setTextFormat(Qt.RichText)
+        msgBox.setWindowTitle('About poliBeePSync')
         text = """
 <html>
 <head/>
