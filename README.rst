@@ -74,9 +74,9 @@ Changelog
 Fix
 ~~~
 - Improved name simplification code [DCDRJ]
-  - Now course files destination folders contain professor names [DCDRJ]
-  - Updated tests to match the new simplification algorithm [DCDRJ]
-  - Minor test code cleanup [DCDRJ]
+- Now course files destination folders contain professor names [DCDRJ]
+- Updated tests to match the new simplification algorithm [DCDRJ]
+- Minor test code cleanup [DCDRJ]
 - Removed some cruft [DCDRJ]
 - Removed old icons [DCDRJ]
 - Reorganized resources [DCDRJ]
