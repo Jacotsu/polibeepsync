@@ -5,4 +5,5 @@ appdirs>=1.4.0
 pyparsing>=2.0.3
 keyring>=18.0.0
 lxml
--e git://github.com/davethecipo/signalslot.git@ca41d813ed0007c8ea6743fd6332447b003a2390#egg=signalslot
+signalslot
+PyQt5>=5.14.1

@@ -12,6 +12,8 @@
 
 - [ ] Implement correct svg rendering in Richtext (images in about popup)
 
+- [ ] Reduce size of windows installer
+
 - [X] Write Tests
 
 - [ ] Move from Beautiful soup to simple lxml to remove horrendous code
