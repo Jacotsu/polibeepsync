@@ -29,13 +29,12 @@
     :target: https://pypi.python.org/pypi/poliBeePsync/
     :alt: Wheel Status
 
-.. image:: https://liberapay.com/assets/widgets/donate.svg
+PoliBeePsync |donate|
+=====================
+.. |donate| image:: https://liberapay.com/assets/widgets/donate.svg
     :target: https://liberapay.com/jacotsu/donate
-    :width: 12%
+    :width: 10%
     :alt: Donate using liberapay
-
-PoliBeePsync
-============
 
 This program, aimed at students of Politecnico di Milano, synces a local
 folder with files uploaded by professors on the
@@ -66,11 +65,26 @@ Windows
 Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_
 open the downloaded file and follow the installer instructions.
 
+Manual
+------
+**Use this only if the other methods don't work**
+::
+
+  pip3 install --user polibeepsync
+
+
 Changelog
 =========
 
 0.6.0 (2020-03-10)
 ------------------
+New
+~~~
+- Set 8 hours as new default sync time [DCDRJ]
+- Added references in about info [DCDRJ]
+- Added donate button link [DCDRJ]
+- Renewed copyright year and explicitly added license to each file [DCDRJ]
+
 Fix
 ~~~
 - Improved name simplification code [DCDRJ]
@@ -80,13 +94,6 @@ Fix
 - Removed some cruft [DCDRJ]
 - Removed old icons [DCDRJ]
 - Reorganized resources [DCDRJ]
-
-New
-~~~
-- Set 8 hours as new default sync time [DCDRJ]
-- Added references in about info [DCDRJ]
-- Added donate button link [DCDRJ]
-- Renewed copyright year and explicitly added license to each file [DCDRJ]
 
 0.5.2 (2019-10-25)
 ------------------

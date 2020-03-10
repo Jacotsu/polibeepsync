@@ -3,6 +3,13 @@ Changelog
 
 0.6.0 (2020-03-10)
 ------------------
+New
+~~~
+- Set 8 hours as new default sync time [DCDRJ]
+- Added references in about info [DCDRJ]
+- Added donate button link [DCDRJ]
+- Renewed copyright year and explicitly added license to each file [DCDRJ]
+
 Fix
 ~~~
 - Improved name simplification code [DCDRJ]
@@ -12,13 +19,6 @@ Fix
 - Removed some cruft [DCDRJ]
 - Removed old icons [DCDRJ]
 - Reorganized resources [DCDRJ]
-
-New
-~~~
-- Set 8 hours as new default sync time [DCDRJ]
-- Added references in about info [DCDRJ]
-- Added donate button link [DCDRJ]
-- Renewed copyright year and explicitly added license to each file [DCDRJ]
 
 0.5.2 (2019-10-25)
 ------------------
