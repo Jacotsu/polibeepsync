@@ -24,7 +24,7 @@ from functools import partial
 from urllib.parse import unquote
 import requests
 from urllib.parse import urlsplit
-from polibeepsync.utils import raw_date_to_datetime, debug_dump
+from polibeepsync.utils import raw_date_to_datetime, debug_dump, bcolors
 import os
 import logging
 import re
@@ -993,18 +993,25 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                                              ' entry id')
                         file_entry_id = 0
 
-                    file_dict = {
-                        'extension': extension,
-                        'version': file_version,
-                        'fileEntryId': file_entry_id,
-                        'title': filename,
-                        'groupId': folder_dict['groupId'],
-                        'uuid': download_page_tree.xpath(url_xpath)[0]
-                        .split("/")[-1],
-                        'modifiedDate': date.timestamp()*1000,
-                        'size': beep_size_to_byte_size(raw_size)
-                    }
-                    folder.files.append(CourseFile(file_dict))
+                    try:
+                        file_dict = {
+                            'extension': extension,
+                            'version': file_version,
+                            'fileEntryId': file_entry_id,
+                            'title': filename,
+                            'groupId': folder_dict['groupId'],
+                            'uuid': download_page_tree.xpath(url_xpath)[0]
+                            .split("/")[-1],
+                            'modifiedDate': date.timestamp()*1000,
+                            'size': beep_size_to_byte_size(raw_size)
+                        }
+                        folder.files.append(CourseFile(file_dict))
+                    except IndexError:
+                        # uuid is missing or malformed
+                        commonlogger.error(f'{bcolors.FAIL}Can\'t download '
+                                           f'{filename} please proceed to '
+                                           'download it manually')
+                        commonlogger.error(download_page_tree.xpath(url_xpath))
 
         return folder
 
