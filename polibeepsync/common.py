@@ -701,8 +701,12 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         try:
             form = first_soup.find_all('form')[0]
         except:
+            commonlogger.critical('Something went wront with the login method')
             debug_dump(first_response.text)
-            debug_dump(form.encode())
+            if form:
+                debug_dump(form.encode())
+            else:
+                commonlogger.critical('No login form found')
 
         # If password change prompt is show handle this special case
         if form.find('button', {'name': 'evn_pwd_change'}):
@@ -972,10 +976,18 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                     download_page_tree = etree.HTML(file_download_page.text)
 
                     filename, extension = os.path.splitext(title)
+                    file_version = None
+                    try:
+                        file_version = download_page_tree\
+                                .xpath(file_version_xpath)[0]
+                    except IndexError:
+                        commonlogger.warning(f'{filename} is missing its'
+                                             ' version')
+                        file_version = 0
+
                     file_dict = {
                         'extension': extension,
-                        'version': download_page_tree
-                        .xpath(file_version_xpath)[0],
+                        'version': file_version,
                         'fileEntryId': parsed_query_str['_20_fileEntryId'][0],
                         'title': filename,
                         'groupId': folder_dict['groupId'],
