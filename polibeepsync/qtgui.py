@@ -330,7 +330,7 @@ class MainWindow(Ui_Form):
                 logger.critical('OSError while calling os.makedirs.',
                                 exc_info=True)
                 logger.critical(f"I couldn't create {path}.\nStart"
-                                " poliBeePsync with --debug "
+                                " poliBeePsync with --log-level=debug "
                                 "error to get more details.")
         self.settings_path = os.path.join(user_config_dir(self.appname),
                                           self.settings_fname)
@@ -419,7 +419,7 @@ class MainWindow(Ui_Form):
                                      self.user.password)
         except OSError:
             logger.critical("I couldn't save data to disk. Run"
-                            " poliBeePsync with option --debug"
+                            " poliBeePsync with option --log-level=debug"
                             " error to get more details.")
             logger.error('OSError raised while trying to write the User'
                          'instance to disk.', exc_info=True)
@@ -435,7 +435,7 @@ class MainWindow(Ui_Form):
             logger.info("Password changed.")
         except OSError:
             logger.critical("I couldn't save data to disk. Run"
-                            " poliBeePsync with option --debug"
+                            " poliBeePsync with option --log-level=debug"
                             " error to get more details.")
             logger.error('OSError raised while trying to write the User'
                          'instance to disk.', exc_info=True)
@@ -532,6 +532,7 @@ class MainWindow(Ui_Form):
         self._window.hide()
         event.ignore()
 
+
 def main():
     # load options from cmdline
     parser = create_parser()
@@ -548,8 +549,8 @@ def main():
     }
 
     level_name = 'info'
-    if args.debug:
-        level_name = args.debug
+    if args.log_level:
+        level_name = args.log_level
     level = LEVELS.get(level_name, logging.INFO)
 
     # now get the logger used in the common module and set its level to what
