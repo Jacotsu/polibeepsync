@@ -988,7 +988,11 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                     file_entry_id = None
                     try:
                         file_version = parsed_query_str['_20_fileEntryId'][0]
-                    except (IndexError, KeyError):
+                    except KeyError:
+                        commonlogger.warning(f'{filename} is missing its'
+                                             ' entry id')
+                        file_entry_id = 0
+                    except IndexError:
                         commonlogger.warning(f'{filename} is missing its'
                                              ' entry id')
                         file_entry_id = 0
