@@ -125,7 +125,7 @@ class CoursesListModel(QAbstractTableModel):
 
 
 class MainWindow(Ui_Form):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, args=None):
         super(MainWindow, self).__init__(parent)
         self.appname = "poliBeePsync"
         self.settings_fname = 'pbs-settings.ini'
@@ -213,10 +213,15 @@ class MainWindow(Ui_Form):
         self.createTray()
 
         try:
-            if self.settings['SyncOnStartup'] == str(True):
+            if args.sync_on_startup or \
+               self.settings['SyncOnStartup'] == str(True):
                 self.syncfiles()
         except KeyError:
             pass
+        if args.sync_interval:
+            logger.info('Sync interval overridden with '
+                        f'{args.sync_interval} minutes')
+            self.timer.start(1000 * 60 * args.sync_interval)
 
     @Slot()
     def showabout(self, **kwargs):
@@ -591,7 +596,7 @@ def main():
 
     app = QApplication(sys.argv)
 
-    frame = MainWindow()
+    frame = MainWindow(args=args)
     # args is defined at the top of this module
     if not args.hidden:
         # Need to fix showing wrong window
