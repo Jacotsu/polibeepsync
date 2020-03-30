@@ -10,16 +10,20 @@
 
 - [ ] Fix bug where download progress bars update only when clicked
 
-- [ ] Implement correct svg rendering in Richtext (images in about popup)
-
 - [ ] Reduce size of windows installer
-
-- [X] Write Tests
 
 - [ ] Move from Beautiful soup to simple lxml to remove horrendous code
 
 - [ ] Add plugin system which allows to download material from non beep
       teachers' website
+
+- [ ] Update docs to explain new command line options
+
+- [ ] Try to package for Mac Os
+
+- [X] Write Tests
+
+- [X] Implement correct svg rendering in Richtext (images in about popup)
 
 - [X] Add dynamic connection management to bypass beep's anti dos system
 
