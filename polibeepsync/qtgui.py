@@ -86,7 +86,7 @@ class CoursesListModel(QAbstractTableModel):
         if role == Qt.EditRole:
             if index.column() == 2:
                 other_names = [elem.save_folder_name for elem in self.courses]
-                if value not in other_names and value is not "":
+                if value not in other_names and value != "":
                     self.courses[index.row()].save_folder_name = value
                     self.dataChanged.emit(index, index)
                 return True
@@ -202,7 +202,7 @@ class MainWindow(Ui_Form):
         self._window.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self._window.changeRootFolder.clicked.connect(self.chooserootdir)
-        self._window.version_label.setText("Current version: {}."
+        self._window.version_label.setText("Current version: {}"
                                            .format(__version__))
         self._window.check_version.clicked.connect(self.checknewversion)
 
@@ -260,19 +260,11 @@ class MainWindow(Ui_Form):
         rawdata = requests.get('https://pypi.python.org/pypi/'
                                'poliBeePsync/json')
         latest = json.loads(rawdata.text)['info']['version']
-        self._window.version_label.setTextFormat(Qt.RichText)
-        self._window.version_label.setOpenExternalLinks(True)
-        self._window.version_label.setLocale(QLocale(QLocale.English,
-                                                     QLocale.UnitedStates))
-        self._window.version_label.setScaledContents(True)
-        self._window.version_label.setWordWrap(True)
         if latest != __version__:
-            newtext = """<p>Current version: {}.<br>
-Latest version: {}. </p>
-<p>Visit <a
-href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
-        #how-to-install-upgrade-remove'>here</a> to find out how to upgrade.
-""".format(__version__, latest)
+            newtext = 'Current version: {}. Latest version: {}. '\
+                'Click <a href="https://jacotsu.github.io/polibeepsync/build/'\
+                'html/installation.html">here</a>'\
+                ' to find out how to upgrade'.format(__version__, latest)
         else:
             newtext = "Current version: {} up-to-date.".format(__version__)
         self._window.version_label.setText(newtext)
