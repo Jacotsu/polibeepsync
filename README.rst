@@ -65,6 +65,19 @@ Windows
 Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_
 open the downloaded file and follow the installer instructions.
 
+MAC OS
+------
+::
+
+  pip3 install --user polibeepsync
+  echo 'export PATH=/Library/Frameworks/Python.framework/Versions/3.7/bin:$PATH' >>.bashrc
+
+Riaprire il terminale ed avviare *PoliBeePsync* con il comando
+::
+
+  polibeepsync-gui
+
+
 Manual
 ------
 **Use this only if the other methods don't work**
@@ -75,6 +88,17 @@ Manual
 
 Changelog
 =========
+
+0.6.1 (2020-)
+------------------
+New
+~~~
+- Added MAC OS installation instructions to README [DCDRJ]
+
+Fix
+~~~
+- Added missing dependency to setup.py [DCDRJ]
+
 
 0.6.0 (2020-03-10)
 ------------------

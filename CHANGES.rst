@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.6.1 (2020-)
+------------------
+New
+~~~
+- Added MAC OS installation instructions to README [DCDRJ]
+
+Fix
+~~~
+- Added missing dependency to setup.py [DCDRJ]
+
 0.6.0 (2020-03-10)
 ------------------
 New

@@ -51,7 +51,8 @@ setup(
         "lxml",
         "pyparsing",
         "keyring",
-        "signalslot"
+        "signalslot",
+        "PyQt5"
     ],
     python_requires='>=3.7',
     packages=['polibeepsync'],
