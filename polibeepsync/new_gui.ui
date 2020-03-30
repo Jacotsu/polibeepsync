@@ -650,7 +650,7 @@ QProgressBar::chunk:horizontal {
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -1110,6 +1110,13 @@ QProgressBar::chunk:horizontal {
             </property>
             <property name="tristate">
              <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="startupSync">
+            <property name="text">
+             <string>Sync on startup</string>
             </property>
            </widget>
           </item>

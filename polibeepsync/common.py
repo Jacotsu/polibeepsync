@@ -527,10 +527,10 @@ def need_syncing(folder, parent_folder):
         basenames = [os.path.splitext(os.path.basename(f))[0]
                      for f in os.listdir(parent_folder)
                      if os.path.isfile(os.path.join(parent_folder, f))]
-    logging.debug(basenames)
+    commonlogger.debug(basenames)
     for f in folder.files:
         simplename = os.path.join(parent_folder, f.name)
-        logging.debug(f)
+        commonlogger.debug(f)
         if f.local_creation_time is None:
             commonlogger.debug(f'Nessun tempo di creazione locale: {f}')
             syncthese.append((f, parent_folder))
@@ -706,7 +706,8 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
 
         # If password change prompt is show handle this special case
         if form.find('button', {'name': 'evn_pwd_change'}):
-            logging.warning('Your password is about to expire, change it ASAP')
+            commonlogger.warning('Your password is about to expire, '
+                                 'change it ASAP')
             uri = urlsplit(first_response.url)
             url = f'{uri.scheme}://{uri.netloc}{form["action"]}'
             pwd_change_res = self.session.post(url,
@@ -721,7 +722,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 debug_dump(form.encode())
 
         url = form['action']
-        logging.debug(f'Login url {url}')
+        commonlogger.debug(f'Login url {url}')
 
         payload = {}
         for x in form.find_all('input'):
@@ -879,7 +880,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
     def find_files_and_folders(self, folder_dict):
         folder = Folder(folder_dict)
         if self._use_json_endpoint:
-            logging.debug('Using JSON endpoint method')
+            commonlogger.debug('Using JSON endpoint method')
             query_params_files = {'repositoryId': folder.group_id,
                                   'folderId': 0}
             query_params_folder = {'repositoryId': folder.group_id,
@@ -905,7 +906,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 course_file = CourseFile(elem)
                 folder.files.append(course_file)
         else:
-            logging.debug('Falling back to webscraper method')
+            commonlogger.debug('Falling back to webscraper method')
 
             weird_parameters = {
                 '_20_folderId': folder_dict['folderId'],

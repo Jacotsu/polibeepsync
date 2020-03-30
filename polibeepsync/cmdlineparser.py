@@ -27,8 +27,7 @@ def create_parser():
                         help="Don't show the main window, just the icon"
                              " in the system tray")
     parser.add_argument('--log-level', action='store', choices=debug_levels,
-                        help='Choose logging report verbosity between:'
-                        'debug, info, warning, error, critical')
+                        help='Choose logging report verbosity')
     parser.add_argument('-s', '--use_theme',
                         action='store_true', default=False,
                         help="Choose Qt theme over gtk")

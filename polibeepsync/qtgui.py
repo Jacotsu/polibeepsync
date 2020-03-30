@@ -29,6 +29,7 @@ from polibeepsync.common import (User, Folder, Course, DownloadThread,
 from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
+from polibeepsync.utils import init_checkbox
 from appdirs import user_config_dir, user_data_dir
 
 from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot,
@@ -187,16 +188,14 @@ class MainWindow(Ui_Form):
 
         self._window.syncNow.clicked.connect(self.syncfiles)
 
-        if self.settings['SyncNewCourses'] == str(True):
-            self._window.sync_new = Qt.Checked
-        else:
-            self._window.sync_new = Qt.Unchecked
-
         self._window.rootfolder.setText(self.settings['RootFolder'])
         self._window.rootfolder.textChanged.connect(self.rootfolderslot)
 
-        self._window.addSyncNewCourses.setCheckState(self._window.sync_new)
-        self._window.addSyncNewCourses.stateChanged.connect(self.syncnewslot)
+        init_checkbox(self._window.addSyncNewCourses, self.settings,
+                      'SyncNewCourses', state_slot=self.syncnewslot)
+
+        init_checkbox(self._window.startupSync, self.settings,
+                      'SyncOnStartup', state_slot=self.sync_on_startup_slot)
 
         self._window.timerMinutes.setValue(int(self.settings['UpdateEvery']))
         self._window.timerMinutes.valueChanged.connect(self.updateminuteslot)
@@ -212,6 +211,12 @@ class MainWindow(Ui_Form):
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
         self.trayIcon.activated.connect(self._activate_traymenu)
         self.createTray()
+
+        try:
+            if self.settings['SyncOnStartup'] == str(True):
+                self.syncfiles()
+        except KeyError:
+            pass
 
     @Slot()
     def showabout(self, **kwargs):
@@ -338,7 +343,8 @@ class MainWindow(Ui_Form):
             # Update every 8 hours
             'UpdateEvery': '480',
             'RootFolder': os.path.join(os.path.expanduser('~'), self.appname),
-            'SyncNewCourses': 'False'
+            'SyncNewCourses': 'False',
+            'SyncOnStartup': 'False'
         }
         self.settings = filesettings.settingsFromFile(self.settings_path,
                                                       defaults)
@@ -363,6 +369,7 @@ class MainWindow(Ui_Form):
                          " predefined directory. Ignore this"
                          "message if you're using poliBeePsync"
                          " for the first time.")
+
     @Slot(str)
     def update_status_bar(self, status):
         self._window.statusbar.showMessage(status)
@@ -371,8 +378,20 @@ class MainWindow(Ui_Form):
     def syncnewslot(self, state):
         if state == 2:
             self.settings['SyncNewCourses'] = 'True'
+            logger.info('New courses will now be automatically synced')
         else:
             self.settings['SyncNewCourses'] = 'False'
+            logger.info('New courses will NOT be automatically synced')
+        filesettings.settingsToFile(self.settings, self.settings_path)
+
+    @Slot(int)
+    def sync_on_startup_slot(self, state):
+        if state == 2:
+            self.settings['SyncOnStartup'] = 'True'
+            logger.info('All courses will be synced at startup')
+        else:
+            self.settings['SyncOnStartup'] = 'False'
+            logger.info('No course will be synced at startup')
         filesettings.settingsToFile(self.settings, self.settings_path)
 
     @Slot(int)
@@ -380,11 +399,14 @@ class MainWindow(Ui_Form):
         self.settings['UpdateEvery'] = str(minutes)
         filesettings.settingsToFile(self.settings, self.settings_path)
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
+        logger.info('All courses will be automatically synced every '
+                     f'{self.settings["UpdateEvery"]} minutes')
 
     @Slot(str)
     def rootfolderslot(self, path):
         self.settings['RootFolder'] = path
         filesettings.settingsToFile(self.settings, self.settings_path)
+        logger.info(f'Root folder set to: {path}')
 
     @Slot()
     def chooserootdir(self):
