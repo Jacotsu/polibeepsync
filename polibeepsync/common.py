@@ -985,10 +985,18 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                                              ' version')
                         file_version = 0
 
+                    file_entry_id = None
+                    try:
+                        file_version = parsed_query_str['_20_fileEntryId'][0]
+                    except IndexError:
+                        commonlogger.warning(f'{filename} is missing its'
+                                             ' entry id')
+                        file_entry_id = 0
+
                     file_dict = {
                         'extension': extension,
                         'version': file_version,
-                        'fileEntryId': parsed_query_str['_20_fileEntryId'][0],
+                        'fileEntryId': file_entry_id,
                         'title': filename,
                         'groupId': folder_dict['groupId'],
                         'uuid': download_page_tree.xpath(url_xpath)[0]
