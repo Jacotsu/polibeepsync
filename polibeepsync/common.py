@@ -1014,7 +1014,8 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                         # uuid is missing or malformed
                         commonlogger.error(f'{bcolors.FAIL}Can\'t download '
                                            f'{filename} please proceed to '
-                                           'download it manually')
+                                           'download it manually '
+                                           f'{bcolors.RESET}')
                         commonlogger.error(download_page_tree.xpath(url_xpath))
 
         return folder

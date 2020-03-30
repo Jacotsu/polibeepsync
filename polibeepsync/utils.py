@@ -36,6 +36,7 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+    RESET = '\u001b[0m'
 
 
 def raw_date_to_datetime(rawdate, gmt):
