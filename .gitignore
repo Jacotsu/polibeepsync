@@ -8,3 +8,7 @@ poliBeePsync.egg-info/
 packaging/**/build/**
 packaging/**/ubuntu/deb/**
 packaging/pypi/**
+**/.pytest_cache/
+bin/
+changes
+lib/
