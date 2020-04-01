@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'PoliBeePsync'
-copyright = '2019, Davide Olianas, Raffaele Di Campli'
+copyright = '2020, Davide Olianas, Raffaele Di Campli'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -273,7 +273,7 @@ texinfo_documents = [
 epub_title = 'PoliBeePsync'
 epub_author = 'Davide Olianas, Di Campli Raffaele'
 epub_publisher = 'Davide Olianas, Di Campli Raffaele'
-epub_copyright = '2019, Davide Olianas, Di Campli Raffaele'
+epub_copyright = '2020, Davide Olianas, Di Campli Raffaele'
 
 # The basename for the epub file. It defaults to the project name.
 #epub_basename = 'PoliBeePsync'
