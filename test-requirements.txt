@@ -13,3 +13,4 @@ wheel
 pynsist
 signalslot
 PyQt5>=5.14.1
+py2app
