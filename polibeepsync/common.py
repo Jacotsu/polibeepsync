@@ -24,7 +24,7 @@ from functools import partial
 from urllib.parse import unquote
 import requests
 from urllib.parse import urlsplit
-from polibeepsync.utils import raw_date_to_datetime, debug_dump, bcolors
+from polibeepsync.utils import raw_date_to_datetime, debug_dump
 import os
 import logging
 import re
@@ -113,18 +113,25 @@ class LoginThread(QThread):
             except (InvalidLoginError, requests.exceptions.MissingSchema):
                 self.user.logout()
                 self.exiting = True
-                commonlogger.error("Login failed.", exc_info=True)
+                commonlogger.error('Login failed.', exc_info=True)
                 self.signal_error.sig.emit('Login failed')
-            except requests.ConnectionError:
+            except requests.exceptions.SSLError as ssl_error:
                 self.user.logout()
                 self.exiting = True
-                commonlogger.error('Connection error.', exc_info=True)
+                commonlogger.error(f'Connection SSL error: {ssl_error}',
+                                   exc_info=True)
+                self.signal_error.sig.emit('Connection SSL error')
+            except requests.ConnectionError as conn_err:
+                self.user.logout()
+                self.exiting = True
+                commonlogger.error(f'Connection error: {conn_err}',
+                                   exc_info=True)
                 self.signal_error.sig.emit('Connection error')
             except requests.Timeout:
                 self.user.logout()
                 self.exiting = True
-                commonlogger.error("Timeout error.", exc_info=True)
-                self.signal_error.sig.emit('Timeout error')
+                commonlogger.error(f'Connection timeout error.', exc_info=True)
+                self.signal_error.sig.emit('Connection timeout error')
 
 
 class DownloadThread(QThread):
@@ -570,13 +577,17 @@ class User():
         self.chunk_download = sSignal(args=['course'])
         # self.chunk_download.connect(self.print_chunk)
 
+        # We manually load this certficate because sometimes the beep's one
+        # is malformed and it's not accepted by openssl
+        self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
+
     def logout(self):
         """Logout.
 
         It re-creates a session and sets :attr:`logged` to ``False``."""
         del self.session
         self.session = requests.Session()
-        # self.session.cookies.clear()
+        self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
         self.logged = False
 
     def get_page(self, url, params=None):
@@ -588,15 +599,14 @@ class User():
             response (:class:`requests.Response`): a :class:`requests.Response`
             instance
         """
-        response = self.session.get(url, params=params, timeout=5, verify=True)
+        response = self.session.get(url, params=params, timeout=5)
         soup = BeautifulSoup(response.text, "lxml")
         login_tag = soup.find('input', attrs={'id': 'login'})
         if response.status_code == 401 or login_tag is not None:
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, params=params,
-                                        timeout=5, verify=True)
+            response = self.session.get(url, params=params, timeout=5)
         return response
 
     def get_file(self, url, params=None):
@@ -606,32 +616,30 @@ class User():
         The f bytes can be accessed with the :attr:`content` attribute
 
         >>> user = User('username', 'password')
-        >>> response = user.get_file('url_to_file', timeout=5, verify=True)
+        >>> response = user.get_file('url_to_file', timeout=5)
         >>> with open('outfile','wb') as f:
         ...    f.write(response.content)
 
         Returns:
             response (requests.Response): a :class:`requests.Response` object
         """
-        response = self.session.get(url, params=params,
-                                    timeout=5, verify=True, stream=True)
+        response = self.session.get(url, params=params, timeout=5, stream=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, params=params,
-                                        timeout=5, verify=True, stream=True)
+            response = self.session.get(url, params=params, timeout=5,
+                                        stream=True)
         return response
 
     def _login_first_step(self):
-        default_lang_page = self.session.get(self.loginurl, timeout=5,
-                                             verify=True)
+        default_lang_page = self.session.get(self.loginurl, timeout=5)
         lang_soup = BeautifulSoup(default_lang_page.text, 'lxml')
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' +
-                             lang_tag['href'], timeout=5, verify=True)
+                             lang_tag['href'], timeout=5)
         payload = {'login': self.username,
                    'password': self.password,
                    'evn_conferma': ''
@@ -640,11 +648,10 @@ class User():
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)'
                           'Gecko/20100101 Firefox/34.0',
         }
-        login_response = self.session.post(
-            'https://aunicalogin.polimi.it:443/aunicalogin/\
-aunicalogin/controller/IdentificazioneUnica.do?\
-&jaf_currentWFID=main',
-            data=payload, headers=login_headers)
+        login_response = self.session\
+            .post('https://aunicalogin.polimi.it:443/aunicalogin/aunicalogin'
+                  '/controller/IdentificazioneUnica.do?&jaf_currentWFID=main',
+                  data=payload, headers=login_headers)
         return login_response
 
     def _do_shibboleth(self, first_response):
@@ -654,11 +661,11 @@ aunicalogin/controller/IdentificazioneUnica.do?\
         relay_state = hidden_fields[0].attrs['value']
         saml_response = hidden_fields[1].attrs['value'].replace('+',
                                                                 '%2B')
-        final_request_data = 'RelayState=%s&SAMLResponse=%s' % \
-                             (relay_state, saml_response)
+        final_request_data = f'RelayState={relay_state}&'\
+            f'SAMLResponse={saml_response}'
         final_headers = {
-            'Cookie': 'GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER',
+            'Cookie': 'GUEST_LANGUAGE_ID=en_GB; COOKIE_SUPPORT=true; '
+            'polij_device_category=PERSONAL_COMPUTER',
             'Content-Type': 'application/x-www-form-urlencoded',
         }
         self.session.post(
@@ -668,15 +675,14 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER',
         cookies = requests.utils.dict_from_cookiejar(self.session.cookies)
         for key in cookies:
             if key.startswith('_shibsession'):
-                shibsessionstr = "%s=%s" % (key, cookies[key])
+                shibsessionstr = f"{key}={cookies[key]}"
         main_headers = {
-            'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
-                      shibsessionstr
+            'Cookie': 'GUEST_LANGUAGE_ID=en_GB; COOKIE_SUPPORT=true; '
+            f'polij_device_category=PERSONAL_COMPUTER; {shibsessionstr}'
         }
         mainpage = self.session.get(
             'https://beep.metid.polimi.it/polimi/login',
-            headers=main_headers, timeout=5, verify=True)
+            headers=main_headers, timeout=5)
         return mainpage
 
     def login(self):
@@ -1012,10 +1018,9 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                         folder.files.append(CourseFile(file_dict))
                     except IndexError:
                         # uuid is missing or malformed
-                        commonlogger.error(f'{bcolors.FAIL}Can\'t download '
+                        commonlogger.error('Can\'t download '
                                            f'{filename} please proceed to '
-                                           'download it manually '
-                                           f'{bcolors.RESET}')
+                                           'download it manually')
                         commonlogger.error(download_page_tree.xpath(url_xpath))
 
         return folder

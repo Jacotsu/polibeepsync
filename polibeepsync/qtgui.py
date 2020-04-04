@@ -156,6 +156,7 @@ class MainWindow(Ui_Form):
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
 
         self.loginthread = LoginThread(self.user, self)
+
         self.loginthread.signal_error.sig.connect(self.update_status_bar)
         self.loginthread.signal_ok.sig.connect(self.update_status_bar)
 

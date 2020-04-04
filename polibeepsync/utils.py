@@ -21,24 +21,6 @@ import logging
 import time
 from PySide2.QtCore import Qt
 
-"""
-https://stackoverflow.com/questions/287871
-/how-to-print-colored-text-in-terminal-in-python
-"""
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    RESET = '\u001b[0m'
-
-
 def raw_date_to_datetime(rawdate, gmt):
     day = int(rawdate.split(' ')[1].split('/')[0])
     month = int(rawdate.split(' ')[1].split('/')[1])
