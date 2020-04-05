@@ -55,7 +55,6 @@ OPTIONS = {
 }
 
 
-
 setup(
     app=APP,
     data_files=DATA_FILES,
@@ -68,15 +67,15 @@ setup(
     author_email="ubuntupk@gmail.com, dcdrj.pub@gmail.com",
     license='GPLv3+',
     install_requires=[
-        "requests",
         "appdirs",
-        "PySide2",
         "beautifulsoup4",
+        "keyring",
         "lxml",
         "pyparsing",
-        "keyring",
-        "signalslot",
         "PyQt5"
+        "PySide2",
+        "requests",
+        "signalslot",
     ],
     python_requires='>=3.7',
     packages=['polibeepsync'],

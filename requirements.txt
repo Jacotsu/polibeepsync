@@ -1,9 +1,9 @@
-beautifulsoup4>=4.3.2
-requests>=2.3.0
-PySide2>=5.11.0
 appdirs>=1.4.0
-pyparsing>=2.0.3
+beautifulsoup4>=4.3.2
 keyring>=18.0.0
 lxml
-signalslot
+pyparsing>=2.0.3
 PyQt5>=5.14.1
+PySide2>=5.11.0
+requests>=2.3.0
+signalslot
