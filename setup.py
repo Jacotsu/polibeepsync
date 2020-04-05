@@ -2,6 +2,8 @@ from setuptools import setup
 import os
 import re
 
+APP = ['poliBeePSync.py']
+DATA_FILES = []
 
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
@@ -36,7 +38,29 @@ classifiers = [
     "Programming Language :: Python :: 3.7"
 ]
 
+OPTIONS = {
+ 'O1': True,
+ 'app': 'poliBeePSync.py',
+ 'arch': 'x86_64',
+ 'dist_dir': 'packaging/mac_os/',
+ 'packages': 'requests,appdirs,PySide2,beautifulsoup4,lxml,pyparsing,'
+             'keyring,signalslot,PyQt5',
+ 'plist': {
+     'CFBundleName': 'poliBeePSync',
+     'CFBundleShortVersionString': find_version("polibeepsync/__init__.py"),
+     'CFBundleVersion': find_version("polibeepsync/__init__.py"),
+     'CFBundleIdentifier': 'com.github.jacotsu.polibeepsync',
+     'NSHumanReadableCopyright': '@ Davide Olianas, Raffaele Di Campli 2020'
+ }
+}
+
+
+
 setup(
+    app=APP,
+    data_files=DATA_FILES,
+    options={'py2app': OPTIONS},
+    setup_requires=['py2app'],
     name='poliBeePsync',
     version=find_version("polibeepsync/__init__.py"),
     url="https://github.com/Jacotsu/polibeepsync",
@@ -56,7 +80,7 @@ setup(
     ],
     python_requires='>=3.7',
     packages=['polibeepsync'],
-    package_data={'': ['new_gui.ui']},
+    package_data={'': ['new_gui.ui', 'beep.pem']},
     include_package_data=True,
     description="Sync files from https://beep.metid.polimi.it "
     "(for students of Politecnico di Milano)",
