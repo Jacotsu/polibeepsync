@@ -2,8 +2,8 @@ from setuptools import setup
 import os
 import re
 
-APP = ['poliBeePSync.py']
-DATA_FILES = []
+APP = ['polibeepsync/qtgui.py']
+DATA_FILES = ['polibeepsync/beep.pem', 'polibeepsync/new_gui.ui']
 
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
@@ -39,18 +39,19 @@ classifiers = [
 ]
 
 OPTIONS = {
- 'O1': True,
- 'app': 'poliBeePSync.py',
  'arch': 'x86_64',
  'dist_dir': 'packaging/mac_os/',
- 'packages': 'requests,appdirs,PySide2,beautifulsoup4,lxml,pyparsing,'
+ 'iconfile': 'imgs/icons/polibeepsync.icns',
+ 'packages': 'requests,appdirs,PySide2,bs4,lxml,pyparsing,'
              'keyring,signalslot,PyQt5',
  'plist': {
      'CFBundleName': 'poliBeePSync',
+     'CFBundleDisplayName': 'poliBeePSync',
      'CFBundleShortVersionString': find_version("polibeepsync/__init__.py"),
      'CFBundleVersion': find_version("polibeepsync/__init__.py"),
      'CFBundleIdentifier': 'com.github.jacotsu.polibeepsync',
-     'NSHumanReadableCopyright': '@ Davide Olianas, Raffaele Di Campli 2020'
+     'NSHumanReadableCopyright': 'Copyright © Davide Olianas, '
+     'Raffaele Di Campli 2020'
  }
 }
 
@@ -72,10 +73,10 @@ setup(
         "keyring",
         "lxml",
         "pyparsing",
-        "PyQt5"
+        "PyQt5",
         "PySide2",
         "requests",
-        "signalslot",
+        "signalslot"
     ],
     python_requires='>=3.7',
     packages=['polibeepsync'],
