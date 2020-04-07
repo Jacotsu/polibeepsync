@@ -2,8 +2,6 @@ from setuptools import setup
 import os
 import re
 
-APP = ['polibeepsync/qtgui.py']
-DATA_FILES = ['polibeepsync/beep.pem', 'polibeepsync/new_gui.ui']
 
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
@@ -38,29 +36,8 @@ classifiers = [
     "Programming Language :: Python :: 3.7"
 ]
 
-OPTIONS = {
- 'arch': 'x86_64',
- 'dist_dir': 'packaging/mac_os/',
- 'iconfile': 'imgs/icons/polibeepsync.icns',
- 'packages': 'requests,appdirs,PySide2,bs4,lxml,pyparsing,'
-             'keyring,signalslot,PyQt5',
- 'plist': {
-     'CFBundleName': 'poliBeePSync',
-     'CFBundleDisplayName': 'poliBeePSync',
-     'CFBundleShortVersionString': find_version("polibeepsync/__init__.py"),
-     'CFBundleVersion': find_version("polibeepsync/__init__.py"),
-     'CFBundleIdentifier': 'com.github.jacotsu.polibeepsync',
-     'NSHumanReadableCopyright': 'Copyright © Davide Olianas, '
-     'Raffaele Di Campli 2020'
- }
-}
-
 
 setup(
-    app=APP,
-    data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
-    setup_requires=['py2app'],
     name='poliBeePsync',
     version=find_version("polibeepsync/__init__.py"),
     url="https://github.com/Jacotsu/polibeepsync",
