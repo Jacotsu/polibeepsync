@@ -2,6 +2,7 @@
 import sys
 import glob
 import shutil
+import re
 
 deletable_files = [
     'dist/PoliBeePsync/**.pyc',
