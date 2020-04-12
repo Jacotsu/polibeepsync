@@ -58,6 +58,12 @@ deletable_files = [
     'dist/PoliBeePsync/shiboken2/docs**'
 ]
 
+def read(*names, **kwargs):
+    with open(
+        os.path.join(os.path.dirname(__file__), *names),
+        encoding=kwargs.get("encoding", "utf8")
+    ) as fp:
+        return fp.read()
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
