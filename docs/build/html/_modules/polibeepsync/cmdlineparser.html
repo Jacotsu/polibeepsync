@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>polibeepsync.cmdlineparser &#8212; PoliBeePsync 0.4.4 documentation</title>
+    <title>polibeepsync.cmdlineparser &#8212; PoliBeePsync 0.7.0 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -31,7 +31,39 @@
           <div class="body" role="main">
             
   <h1>Source code for polibeepsync.cmdlineparser</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span></span><span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Copyright 2020 Davide Olianas (ubuntupk@gmail.com), Di</span>
+<span class="s2">Campli Raffaele (dcdrj.pub@gmail.com).&quot;&quot;&quot;</span>
+
+<span class="n">__license__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;This f is part of poliBeePsync.</span>
+<span class="s2">poliBeePsync is free software: you can redistribute it and/or modify</span>
+<span class="s2">it under the terms of the GNU General Public License as published by</span>
+<span class="s2">the Free Software Foundation, either version 3 of the License, or</span>
+<span class="s2">any later version.</span>
+
+<span class="s2">poliBeePsync is distributed in the hope that it will be useful,</span>
+<span class="s2">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="s2">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="s2">GNU General Public License for more details.</span>
+
+<span class="s2">You should have received a copy of the GNU General Public License</span>
+<span class="s2">along with poliBeePsync. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Thanks</span>
+<span class="sd">https://stackoverflow.com/questions/14117415/in-python-using-argparse-allow</span>
+<span class="sd">-only-positive-integers</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="check_positive"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.cmdlineparser.check_positive">[docs]</a><span class="k">def</span> <span class="nf">check_positive</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="n">ivalue</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ivalue</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentTypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">: 0 and negative numbers are not allowed&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ivalue</span></div>
 
 
 <div class="viewcode-block" id="create_parser"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.cmdlineparser.create_parser">[docs]</a><span class="k">def</span> <span class="nf">create_parser</span><span class="p">():</span>
@@ -41,22 +73,25 @@
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--hidden&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Don&#39;t show the main window, just the icon&quot;</span>
                              <span class="s2">&quot; in the system tray&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--debug&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">debug_levels</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Show debug information.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--log-level&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">debug_levels</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Choose logging report verbosity&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="s1">&#39;--use_theme&#39;</span><span class="p">,</span>
                         <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Choose Qt theme over gtk&quot;</span><span class="p">)</span>
 
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--sync-interval&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">check_positive</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;[Non persistent override] Choose how often (in minutes) the &#39;</span>
+        <span class="s1">&#39;courses files should be synced&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--sync-on-startup&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;[Non persistent override] Synces the courses files on startup&#39;</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">parser</span></div>
-
-
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.cmdlineparser.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">create_parser</span><span class="p">()</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
           </div>
@@ -99,7 +134,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -114,10 +149,10 @@
     </div>
 
     <div class="footer">
-      &copy;2019, Davide Olianas, Raffaele Di Campli.
+      &copy;2020, Davide Olianas, Raffaele Di Campli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -1,5 +1,6 @@
 ## To Do
 
+
 - [ ] Use qsettings for gui status persistency
 
 - [ ] Fix interface hanging when downloading a lot of files
@@ -19,7 +20,13 @@
 
 - [ ] Update docs to explain new command line options
 
-- [ ] Try to package for Mac Os
+- [ ] Docs version autoupdate
+
+- [ ] Write tests for invalid returned file dictionaries
+
+- ~~[ ] Bypass BeeP's login api and use directly unicalogin (not possible without serious patching)~~
+
+- [X] Try to package for Mac Os
 
 - [X] Write Tests
 

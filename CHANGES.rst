@@ -1,15 +1,30 @@
 Changelog
 =========
 
-0.6.1 (2020-)
+0.7.0 (2020-04-13)
 ------------------
 New
 ~~~
-- Added MAC OS installation instructions to README [DCDRJ]
+- Added support for MAC OS Catalina [DCDRJ]
+- Added more startup options [DCDRJ]
+
+  - `--sync-on-startup`: lets you override your settings file, and sync
+    the course files on application startup
+  - `--sync-interval`: lets you override your settings file sync frequency
+- Added built in backup certificate to mitigate malformed beep ones [DCDRJ]
 
 Fix
 ~~~
-- Added missing dependency to setup.py [DCDRJ]
+- Added missing dependencies to setup.py [DCDRJ]
+- Minor UI improvements [DCDRJ]
+- Minor code cleanup [DCDRJ]
+- Increased info logging [DCDRJ]
+- Fixed bug that hid some logging messages [DCDRJ]
+- Added a default file version (0) to manage files that have None [DCDRJ]
+- Added exception handling for invalid uuids [DCDRJ]
+- Renewed copyright year in documentation [DCDRJ]
+- Changed default professor name separator from `/` to `;` [DCDRJ]
+- Updated documentation [DCDRJ]
 
 0.6.0 (2020-03-10)
 ------------------
