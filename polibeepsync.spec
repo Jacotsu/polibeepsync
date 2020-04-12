@@ -60,7 +60,7 @@ deletable_files = [
 
 def read(*names, **kwargs):
     with open(
-        os.path.join(os.path.dirname(__file__), *names),
+        os.path.join('.', *names),
         encoding=kwargs.get("encoding", "utf8")
     ) as fp:
         return fp.read()
