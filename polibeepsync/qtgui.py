@@ -36,7 +36,7 @@ from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot,
                             QTimer, QLocale)
 from PySide2.QtGui import (QTextCursor, QCursor)
 from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog, QLabel,
-                               QSystemTrayIcon, qApp, QApplication,
+                               QSystemTrayIcon, QApplication,
                                QMessageBox)
 
 
@@ -542,7 +542,8 @@ class MainWindow(Ui_Form):
 
     def createTray(self):
         restoreAction = QAction("&Restore", self, triggered=self.restore_window)
-        quitAction = QAction("&Quit", self, triggered=qApp.quit)
+        quitAction = QAction("&Quit", self,
+                             triggered=QApplication.instance().quit)
         self.trayIconMenu.addAction(restoreAction)
         self.trayIconMenu.addAction(quitAction)
         self.trayIcon.setContextMenu(self.trayIconMenu)
