@@ -338,12 +338,13 @@ class Course(GenericSet):
                     course_extra_specs.suppress() + prof_name
             parsed_name_tokens = grammar.parseString(name)
 
-            # Special chars like '/' may be problematic for new terminal users
-            # a filter maybe considered if the feedback is significant
             simple = f"{' '.join(parsed_name_tokens['course_name'])} "
             # Append professor names only if present
             if parsed_name_tokens['prof_name']:
-                simple += f"[{' '.join(parsed_name_tokens['prof_name'])}]"
+                # Replace `/` with `;`
+                safe_names = ' '.join(parsed_name_tokens['prof_name'])\
+                    .replace(' /', ';')
+                simple += f"[{safe_names}]"
 
         except ParseException:
             commonlogger.error(f'Failed to simplify course name {name}',
