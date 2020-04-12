@@ -50,7 +50,7 @@ build-python-dists:
 build-app:
 	$(info Building Mac OS App)
 	@mkdir -p packaging/mac_os
-	@pyinstaller polibeepsync.spec --distpath /packaging/mac_os
+	@pyinstaller polibeepsync.spec --distpath packaging/mac_os
 
 build-docs:
 	make html -C docs
