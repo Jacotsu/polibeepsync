@@ -46,6 +46,12 @@ build-python-dists:
 	mkdir -p packaging/pypi
 	python3 setup.py sdist -d packaging/pypi bdist_wheel -d packaging/pypi
 
+# Mac OS App
+build-app:
+	$(info Building Mac OS App)
+	@mkdir -p packaging/mac_os
+	@pyinstaller polibeepsync.spec --distpath /packaging/mac_os
+
 build-docs:
 	make html -C docs
 
