@@ -815,27 +815,85 @@ QProgressBar::chunk:horizontal {
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="sizeConstraint">
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
           <property name="topMargin">
            <number>0</number>
           </property>
           <item alignment="Qt::AlignLeft">
-           <widget class="QPushButton" name="about">
-            <property name="text">
-             <string>About</string>
-            </property>
-           </widget>
-          </item>
-          <item alignment="Qt::AlignRight">
            <widget class="QPushButton" name="check_version">
             <property name="text">
              <string>Check for new version</string>
             </property>
            </widget>
           </item>
-          <item alignment="Qt::AlignRight">
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
            <widget class="QLabel" name="version_label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::RichText</enum>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+            <property name="margin">
+             <number>0</number>
+            </property>
+            <property name="indent">
+             <number>4</number>
+            </property>
+            <property name="openExternalLinks">
+             <bool>true</bool>
+            </property>
+            <property name="buddy">
+             <cstring></cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item alignment="Qt::AlignRight">
+           <widget class="QPushButton" name="about">
+            <property name="text">
+             <string>About</string>
             </property>
            </widget>
           </item>
@@ -1056,6 +1114,13 @@ QProgressBar::chunk:horizontal {
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="startupSync">
+            <property name="text">
+             <string>Sync on startup</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -1093,7 +1158,6 @@ QProgressBar::chunk:horizontal {
   <tabstop>tabWidget</tabstop>
   <tabstop>refreshCourses</tabstop>
   <tabstop>coursesView2</tabstop>
-  <tabstop>about</tabstop>
   <tabstop>check_version</tabstop>
   <tabstop>status</tabstop>
   <tabstop>timerMinutes</tabstop>

@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Installing, Upgrading or Removing &#8212; PoliBeePsync 0.4.4 documentation</title>
+    <title>Installing, Upgrading or Removing &#8212; PoliBeePsync 0.7.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Quickstart" href="quickstart.html" />
@@ -34,12 +34,11 @@
             
   <div class="section" id="installing-upgrading-or-removing">
 <h1>Installing, Upgrading or Removing<a class="headerlink" href="#installing-upgrading-or-removing" title="Permalink to this headline">¶</a></h1>
-<p>The program hasn’t been tested on Mac OS X yet.</p>
 <div class="section" id="linux">
 <h2>Linux<a class="headerlink" href="#linux" title="Permalink to this headline">¶</a></h2>
 <p>For removal and upgrading consult your package manager manual</p>
-<div class="section" id="ubuntu-19-04">
-<h3>Ubuntu 19.04<a class="headerlink" href="#ubuntu-19-04" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ubuntu-19-10">
+<h3>Ubuntu 19.10<a class="headerlink" href="#ubuntu-19-10" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo add-apt-repository ppa:jacotsu/polibeepsync
 sudo apt update
 sudo apt install python3-polibeepsync
@@ -52,8 +51,93 @@ sudo apt install python3-polibeepsync
 </pre></div>
 </div>
 </div>
+<div class="section" id="upgrading">
+<h3>Upgrading<a class="headerlink" href="#upgrading" title="Permalink to this headline">¶</a></h3>
+<p>If you installed poliBeePsync directly, open a terminal, write the following
+code and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3 install --upgrade poliBeePsync
+</pre></div>
+</div>
+<p>If you used a virtual environment, before issuing the command, remember to
+activate the virtual environment</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/polibeepsync-venv
+<span class="nb">source</span> bin/activate
+</pre></div>
+</div>
+</div>
+<div class="section" id="removing">
+<h3>Removing<a class="headerlink" href="#removing" title="Permalink to this headline">¶</a></h3>
+<p>Uninstall poliBeePsync by writing this code in a terminal</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3 uninstall poliBeePsync
+</pre></div>
+</div>
+<p>When it asks for confirmation, type <code class="docutils literal notranslate"><span class="pre">y</span></code> and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code> again.</p>
+</div>
+<div class="section" id="removing-leftover-data">
+<h3>Removing leftover data<a class="headerlink" href="#removing-leftover-data" title="Permalink to this headline">¶</a></h3>
+<p>Remove <code class="docutils literal notranslate"><span class="pre">~/.config/poliBeePsync</span></code> and <code class="docutils literal notranslate"><span class="pre">~/.local/share/poliBeePsync</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm -r ~/.config/poliBeePsync
+rm -r ~/.local/share/poliBeePsync
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="windows">
+<h2>Windows<a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="upgrading-or-installing">
+<h3>Upgrading or installing<a class="headerlink" href="#upgrading-or-installing" title="Permalink to this headline">¶</a></h3>
+<p>Download the exe file from the <a class="reference external" href="https://github.com/Jacotsu/polibeepsync/releases/latest">latest release</a>
+open the downloaded file and follow the installer instructions.</p>
+</div>
+<div class="section" id="id1">
+<h3>Removing<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Start &gt; Search &gt; polibeepsync &gt; right click &gt; uninstall</p>
+</div>
+<div class="section" id="id2">
+<h3>Removing leftover data<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>The next step is removing the folders in which settings and data are saved.
+Open your user folder, make hidden files and folders visible, open
+<code class="docutils literal notranslate"><span class="pre">AppData\Local</span></code> and remove the folder named <code class="docutils literal notranslate"><span class="pre">poliBeePsync</span></code>.</p>
+</div>
+<div class="section" id="start-the-application-automatically-at-boot-windows">
+<h3>Start the application automatically at boot (Windows)<a class="headerlink" href="#start-the-application-automatically-at-boot-windows" title="Permalink to this headline">¶</a></h3>
+<p>Right click on the shortcut and select <code class="docutils literal notranslate"><span class="pre">copy</span></code>.
+Open the <code class="docutils literal notranslate"><span class="pre">run</span></code> program (you can find it by typing <code class="docutils literal notranslate"><span class="pre">run</span></code> after pressing
+the “Windows” key), write</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%AppData%
+</pre></div>
+</div>
+<p>and then click <code class="docutils literal notranslate"><span class="pre">Ok</span></code>. In the opened folder, go to <code class="docutils literal notranslate"><span class="pre">Microsoft\Windows\Start</span> <span class="pre">Menu\Programs\Startup</span></code>
+and choose <code class="docutils literal notranslate"><span class="pre">paste</span> <span class="pre">shortcut</span></code>. The next time you boot, the program will
+start automatically.</p>
+</div>
+</div>
+<div class="section" id="mac-os">
+<h2>Mac Os<a class="headerlink" href="#mac-os" title="Permalink to this headline">¶</a></h2>
+<p>The App has been tested and built for Mac Os Catalina, if the app doesn’t work
+try to install it through the direct method.</p>
+<div class="section" id="installing">
+<h3>Installing<a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h3>
+<p>Download the .app.zip file from the <a class="reference external" href="https://github.com/Jacotsu/polibeepsync/releases/latest">latest release</a> and then
+drag it from the Downloads to Applications.</p>
+<img alt="Mac installing." src="_images/mac_installing.png" />
+<img alt="Mac installed." src="_images/mac_installed.png" />
+</div>
+<div class="section" id="id4">
+<h3>Removing<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>Drag the app file from the Applications directory to the bin</p>
+<img alt="Mac uninstall." src="_images/mac_uninstall.png" />
+</div>
+<div class="section" id="id5">
+<h3>Removing leftover data<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>Delete the following folder:</p>
+<ul class="simple">
+<li><p><cite>/Users/$YOUR_USERNAME/Library/Application Support/poliBeePsync</cite></p></li>
+</ul>
+</div>
+</div>
 <div class="section" id="direct-installation">
-<h3>Direct installation<a class="headerlink" href="#direct-installation" title="Permalink to this headline">¶</a></h3>
+<h2>Direct installation<a class="headerlink" href="#direct-installation" title="Permalink to this headline">¶</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Only use the direct installation if you want to hack on polibeepsync or be on the bleeding edge</p>
@@ -66,7 +150,7 @@ sudo apt install python3-polibeepsync
 <code class="docutils literal notranslate"><span class="pre">polibeepsync-gui</span></code>.</p>
 </div>
 <div class="section" id="installation-inside-a-virtual-environment">
-<h3>Installation inside a virtual environment<a class="headerlink" href="#installation-inside-a-virtual-environment" title="Permalink to this headline">¶</a></h3>
+<h2>Installation inside a virtual environment<a class="headerlink" href="#installation-inside-a-virtual-environment" title="Permalink to this headline">¶</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Only use the virtual env installation if you want to hack on polibeepsync or be on the bleeding edge</p>
@@ -107,71 +191,6 @@ Desktop Environment.
 As an icon, you can use <a class="reference external" href="https://github.com/Jacotsu/polibeepsync/blob/master/icons/polibeepsync.svg">this one</a>.
 In this case, you would create an entry for the shell script.</p>
 </div>
-<div class="section" id="upgrading">
-<h3>Upgrading<a class="headerlink" href="#upgrading" title="Permalink to this headline">¶</a></h3>
-<p>If you installed poliBeePsync directly, open a terminal, write the following
-code and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3 install --upgrade poliBeePsync
-</pre></div>
-</div>
-<p>If you used a virtual environment, before issuing the command, remember to
-activate the virtual environment</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/polibeepsync-venv
-<span class="nb">source</span> bin/activate
-</pre></div>
-</div>
-</div>
-<div class="section" id="removing">
-<h3>Removing<a class="headerlink" href="#removing" title="Permalink to this headline">¶</a></h3>
-<p>Uninstall poliBeePsync by writing this code in a terminal</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3 uninstall poliBeePsync
-</pre></div>
-</div>
-<p>When it asks for confirmation, type <code class="docutils literal notranslate"><span class="pre">y</span></code> and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code> again.</p>
-</div>
-<div class="section" id="removing-leftover-data">
-<h3>Removing leftover data<a class="headerlink" href="#removing-leftover-data" title="Permalink to this headline">¶</a></h3>
-<p>Remove <code class="docutils literal notranslate"><span class="pre">~/.config/poliBeePsync</span></code> and <code class="docutils literal notranslate"><span class="pre">~/.local/share/poliBeePsync</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm -r ~/.config/poliBeePsync
-rm -r ~/.local/share/poliBeePsync
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="windows">
-<h2>Windows<a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h2>
-<p>Download the exe file from the <a class="reference external" href="https://github.com/Jacotsu/polibeepsync/releases/latest">latest release</a>
-open the downloaded file and follow the installer instructions.</p>
-<div class="section" id="id1">
-<h3>Upgrading<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>Open the program <code class="docutils literal notranslate"><span class="pre">cmd.exe</span></code>, Write the following and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip3 install --upgrade poliBeePsync
-</pre></div>
-</div>
-</div>
-<div class="section" id="id2">
-<h3>Removing<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>Start &gt; Search &gt; polibeepsync &gt; right click &gt; uninstall</p>
-</div>
-<div class="section" id="id3">
-<h3>Removing leftover data<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>The next step is removing the folders in which settings and data are saved.
-Open your user folder, make hidden files and folders visible, open
-<code class="docutils literal notranslate"><span class="pre">AppData\Local</span></code> and remove the folder named <code class="docutils literal notranslate"><span class="pre">poliBeePsync</span></code>.</p>
-</div>
-<div class="section" id="start-the-application-automatically-at-boot-windows">
-<h3>Start the application automatically at boot (Windows)<a class="headerlink" href="#start-the-application-automatically-at-boot-windows" title="Permalink to this headline">¶</a></h3>
-<p>Right click on the shortcut and select <code class="docutils literal notranslate"><span class="pre">copy</span></code>.
-Open the <code class="docutils literal notranslate"><span class="pre">run</span></code> program (you can find it by typing <code class="docutils literal notranslate"><span class="pre">run</span></code> after pressing
-the “Windows” key), write</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>%AppData%
-</pre></div>
-</div>
-<p>and then click <code class="docutils literal notranslate"><span class="pre">Ok</span></code>. In the opened folder, go to <code class="docutils literal notranslate"><span class="pre">Microsoft\Windows\Start</span> <span class="pre">Menu\Programs\Startup</span></code>
-and choose <code class="docutils literal notranslate"><span class="pre">paste</span> <span class="pre">shortcut</span></code>. The next time you boot, the program will
-start automatically.</p>
-</div>
-</div>
 </div>
 
 
@@ -194,22 +213,28 @@ start automatically.</p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installing, Upgrading or Removing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#linux">Linux</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#ubuntu-19-04">Ubuntu 19.04</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ubuntu-19-10">Ubuntu 19.10</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#arch">Arch</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#direct-installation">Direct installation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#installation-inside-a-virtual-environment">Installation inside a virtual environment</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#upgrading">Upgrading</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#removing">Removing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#removing-leftover-data">Removing leftover data</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#windows">Windows</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1">Upgrading</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id2">Removing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id3">Removing leftover data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#upgrading-or-installing">Upgrading or installing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Removing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Removing leftover data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#start-the-application-automatically-at-boot-windows">Start the application automatically at boot (Windows)</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#mac-os">Mac Os</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installing">Installing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Removing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Removing leftover data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#direct-installation">Direct installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-inside-a-virtual-environment">Installation inside a virtual environment</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
@@ -234,7 +259,7 @@ start automatically.</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -249,10 +274,10 @@ start automatically.</p>
     </div>
 
     <div class="footer">
-      &copy;2019, Davide Olianas, Raffaele Di Campli.
+      &copy;2020, Davide Olianas, Raffaele Di Campli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

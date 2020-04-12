@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>How to debug &#8212; PoliBeePsync 0.4.4 documentation</title>
+    <title>How to debug &#8212; PoliBeePsync 0.7.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="polibeepsync package" href="polibeepsync.html" />
@@ -33,7 +33,7 @@
             
   <div class="section" id="how-to-debug">
 <h1>How to debug<a class="headerlink" href="#how-to-debug" title="Permalink to this headline">¶</a></h1>
-<p>In order to debug, you should open a terminal and pass the <code class="docutils literal notranslate"><span class="pre">--debug</span> <span class="pre">DEBUG_LEVEL</span></code>
+<p>In order to debug, you should open a terminal and pass the <code class="docutils literal notranslate"><span class="pre">--log-level</span> <span class="pre">DEBUG_LEVEL</span></code>
 option. <cite>DEBUG_LEVEL</cite> can be one of the following:</p>
 <ul class="simple">
 <li><p><cite>debug</cite></p></li>
@@ -47,7 +47,7 @@ option. <cite>DEBUG_LEVEL</cite> can be one of the following:</p>
 <div class="section" id="on-windows">
 <h2>On Windows<a class="headerlink" href="#on-windows" title="Permalink to this headline">¶</a></h2>
 <p>Open <code class="docutils literal notranslate"><span class="pre">cmd.exe</span></code> and write</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>polibeepsync --debug DEBUG_LEVEL
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>polibeepsync --log-level DEBUG_LEVEL
 </pre></div>
 </div>
 </div>
@@ -56,7 +56,7 @@ option. <cite>DEBUG_LEVEL</cite> can be one of the following:</p>
 <div class="section" id="if-you-used-the-direct-installation">
 <h3>If you used the direct installation<a class="headerlink" href="#if-you-used-the-direct-installation" title="Permalink to this headline">¶</a></h3>
 <p>In a terminal</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>polibeepsync --debug DEBUG_LEVEL
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>polibeepsync --log-level DEBUG_LEVEL
 </pre></div>
 </div>
 </div>
@@ -64,7 +64,7 @@ option. <cite>DEBUG_LEVEL</cite> can be one of the following:</p>
 <h3>If you used the virtual environment<a class="headerlink" href="#if-you-used-the-virtual-environment" title="Permalink to this headline">¶</a></h3>
 <p>In a terminal</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span> ~/polibeepsync-venv/bin/activate
-polibeepsync --debug DEBUG_LEVEL
+polibeepsync --log-level DEBUG_LEVEL
 </pre></div>
 </div>
 </div>
@@ -120,7 +120,7 @@ polibeepsync --debug DEBUG_LEVEL
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -135,10 +135,10 @@ polibeepsync --debug DEBUG_LEVEL
     </div>
 
     <div class="footer">
-      &copy;2019, Davide Olianas, Raffaele Di Campli.
+      &copy;2020, Davide Olianas, Raffaele Di Campli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

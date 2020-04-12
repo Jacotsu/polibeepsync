@@ -1,5 +1,6 @@
 ## To Do
 
+
 - [ ] Use qsettings for gui status persistency
 
 - [ ] Fix interface hanging when downloading a lot of files
@@ -10,16 +11,26 @@
 
 - [ ] Fix bug where download progress bars update only when clicked
 
-- [ ] Implement correct svg rendering in Richtext (images in about popup)
-
 - [ ] Reduce size of windows installer
-
-- [X] Write Tests
 
 - [ ] Move from Beautiful soup to simple lxml to remove horrendous code
 
 - [ ] Add plugin system which allows to download material from non beep
       teachers' website
+
+- [ ] Update docs to explain new command line options
+
+- [ ] Docs version autoupdate
+
+- [ ] Write tests for invalid returned file dictionaries
+
+- ~~[ ] Bypass BeeP's login api and use directly unicalogin (not possible without serious patching)~~
+
+- [X] Try to package for Mac Os
+
+- [X] Write Tests
+
+- [X] Implement correct svg rendering in Richtext (images in about popup)
 
 - [X] Add dynamic connection management to bypass beep's anti dos system
 

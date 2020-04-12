@@ -113,18 +113,25 @@ class LoginThread(QThread):
             except (InvalidLoginError, requests.exceptions.MissingSchema):
                 self.user.logout()
                 self.exiting = True
-                commonlogger.error("Login failed.", exc_info=True)
+                commonlogger.error('Login failed.', exc_info=True)
                 self.signal_error.sig.emit('Login failed')
-            except requests.ConnectionError:
+            except requests.exceptions.SSLError as ssl_error:
                 self.user.logout()
                 self.exiting = True
-                commonlogger.error('Connection error.', exc_info=True)
+                commonlogger.error(f'Connection SSL error: {ssl_error}',
+                                   exc_info=True)
+                self.signal_error.sig.emit('Connection SSL error')
+            except requests.ConnectionError as conn_err:
+                self.user.logout()
+                self.exiting = True
+                commonlogger.error(f'Connection error: {conn_err}',
+                                   exc_info=True)
                 self.signal_error.sig.emit('Connection error')
             except requests.Timeout:
                 self.user.logout()
                 self.exiting = True
-                commonlogger.error("Timeout error.", exc_info=True)
-                self.signal_error.sig.emit('Timeout error')
+                commonlogger.error(f'Connection timeout error.', exc_info=True)
+                self.signal_error.sig.emit('Connection timeout error')
 
 
 class DownloadThread(QThread):
@@ -331,12 +338,13 @@ class Course(GenericSet):
                     course_extra_specs.suppress() + prof_name
             parsed_name_tokens = grammar.parseString(name)
 
-            # Special chars like '/' may be problematic for new terminal users
-            # a filter maybe considered if the feedback is significant
             simple = f"{' '.join(parsed_name_tokens['course_name'])} "
             # Append professor names only if present
             if parsed_name_tokens['prof_name']:
-                simple += f"[{' '.join(parsed_name_tokens['prof_name'])}]"
+                # Replace `/` with `;`
+                safe_names = ' '.join(parsed_name_tokens['prof_name'])\
+                    .replace(' /', ';')
+                simple += f"[{safe_names}]"
 
         except ParseException:
             commonlogger.error(f'Failed to simplify course name {name}',
@@ -527,10 +535,10 @@ def need_syncing(folder, parent_folder):
         basenames = [os.path.splitext(os.path.basename(f))[0]
                      for f in os.listdir(parent_folder)
                      if os.path.isfile(os.path.join(parent_folder, f))]
-    logging.debug(basenames)
+    commonlogger.debug(basenames)
     for f in folder.files:
         simplename = os.path.join(parent_folder, f.name)
-        logging.debug(f)
+        commonlogger.debug(f)
         if f.local_creation_time is None:
             commonlogger.debug(f'Nessun tempo di creazione locale: {f}')
             syncthese.append((f, parent_folder))
@@ -570,13 +578,17 @@ class User():
         self.chunk_download = sSignal(args=['course'])
         # self.chunk_download.connect(self.print_chunk)
 
+        # We manually load this certficate because sometimes the beep's one
+        # is malformed and it's not accepted by openssl
+        self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
+
     def logout(self):
         """Logout.
 
         It re-creates a session and sets :attr:`logged` to ``False``."""
         del self.session
         self.session = requests.Session()
-        # self.session.cookies.clear()
+        self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
         self.logged = False
 
     def get_page(self, url, params=None):
@@ -588,15 +600,14 @@ class User():
             response (:class:`requests.Response`): a :class:`requests.Response`
             instance
         """
-        response = self.session.get(url, params=params, timeout=5, verify=True)
+        response = self.session.get(url, params=params, timeout=5)
         soup = BeautifulSoup(response.text, "lxml")
         login_tag = soup.find('input', attrs={'id': 'login'})
         if response.status_code == 401 or login_tag is not None:
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, params=params,
-                                        timeout=5, verify=True)
+            response = self.session.get(url, params=params, timeout=5)
         return response
 
     def get_file(self, url, params=None):
@@ -606,32 +617,30 @@ class User():
         The f bytes can be accessed with the :attr:`content` attribute
 
         >>> user = User('username', 'password')
-        >>> response = user.get_file('url_to_file', timeout=5, verify=True)
+        >>> response = user.get_file('url_to_file', timeout=5)
         >>> with open('outfile','wb') as f:
         ...    f.write(response.content)
 
         Returns:
             response (requests.Response): a :class:`requests.Response` object
         """
-        response = self.session.get(url, params=params,
-                                    timeout=5, verify=True, stream=True)
+        response = self.session.get(url, params=params, timeout=5, stream=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, params=params,
-                                        timeout=5, verify=True, stream=True)
+            response = self.session.get(url, params=params, timeout=5,
+                                        stream=True)
         return response
 
     def _login_first_step(self):
-        default_lang_page = self.session.get(self.loginurl, timeout=5,
-                                             verify=True)
+        default_lang_page = self.session.get(self.loginurl, timeout=5)
         lang_soup = BeautifulSoup(default_lang_page.text, 'lxml')
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' +
-                             lang_tag['href'], timeout=5, verify=True)
+                             lang_tag['href'], timeout=5)
         payload = {'login': self.username,
                    'password': self.password,
                    'evn_conferma': ''
@@ -640,11 +649,10 @@ class User():
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)'
                           'Gecko/20100101 Firefox/34.0',
         }
-        login_response = self.session.post(
-            'https://aunicalogin.polimi.it:443/aunicalogin/\
-aunicalogin/controller/IdentificazioneUnica.do?\
-&jaf_currentWFID=main',
-            data=payload, headers=login_headers)
+        login_response = self.session\
+            .post('https://aunicalogin.polimi.it:443/aunicalogin/aunicalogin'
+                  '/controller/IdentificazioneUnica.do?&jaf_currentWFID=main',
+                  data=payload, headers=login_headers)
         return login_response
 
     def _do_shibboleth(self, first_response):
@@ -654,11 +662,11 @@ aunicalogin/controller/IdentificazioneUnica.do?\
         relay_state = hidden_fields[0].attrs['value']
         saml_response = hidden_fields[1].attrs['value'].replace('+',
                                                                 '%2B')
-        final_request_data = 'RelayState=%s&SAMLResponse=%s' % \
-                             (relay_state, saml_response)
+        final_request_data = f'RelayState={relay_state}&'\
+            f'SAMLResponse={saml_response}'
         final_headers = {
-            'Cookie': 'GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER',
+            'Cookie': 'GUEST_LANGUAGE_ID=en_GB; COOKIE_SUPPORT=true; '
+            'polij_device_category=PERSONAL_COMPUTER',
             'Content-Type': 'application/x-www-form-urlencoded',
         }
         self.session.post(
@@ -668,15 +676,14 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER',
         cookies = requests.utils.dict_from_cookiejar(self.session.cookies)
         for key in cookies:
             if key.startswith('_shibsession'):
-                shibsessionstr = "%s=%s" % (key, cookies[key])
+                shibsessionstr = f"{key}={cookies[key]}"
         main_headers = {
-            'Cookie': "GUEST_LANGUAGE_ID=en_GB; \
-COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
-                      shibsessionstr
+            'Cookie': 'GUEST_LANGUAGE_ID=en_GB; COOKIE_SUPPORT=true; '
+            f'polij_device_category=PERSONAL_COMPUTER; {shibsessionstr}'
         }
         mainpage = self.session.get(
             'https://beep.metid.polimi.it/polimi/login',
-            headers=main_headers, timeout=5, verify=True)
+            headers=main_headers, timeout=5)
         return mainpage
 
     def login(self):
@@ -701,12 +708,17 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
         try:
             form = first_soup.find_all('form')[0]
         except:
+            commonlogger.critical('Something went wront with the login method')
             debug_dump(first_response.text)
-            debug_dump(form.encode())
+            if form:
+                debug_dump(form.encode())
+            else:
+                commonlogger.critical('No login form found')
 
         # If password change prompt is show handle this special case
         if form.find('button', {'name': 'evn_pwd_change'}):
-            logging.warning('Your password is about to expire, change it ASAP')
+            commonlogger.warning('Your password is about to expire, '
+                                 'change it ASAP')
             uri = urlsplit(first_response.url)
             url = f'{uri.scheme}://{uri.netloc}{form["action"]}'
             pwd_change_res = self.session.post(url,
@@ -721,7 +733,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 debug_dump(form.encode())
 
         url = form['action']
-        logging.debug(f'Login url {url}')
+        commonlogger.debug(f'Login url {url}')
 
         payload = {}
         for x in form.find_all('input'):
@@ -879,7 +891,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
     def find_files_and_folders(self, folder_dict):
         folder = Folder(folder_dict)
         if self._use_json_endpoint:
-            logging.debug('Using JSON endpoint method')
+            commonlogger.debug('Using JSON endpoint method')
             query_params_files = {'repositoryId': folder.group_id,
                                   'folderId': 0}
             query_params_folder = {'repositoryId': folder.group_id,
@@ -905,7 +917,7 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                 course_file = CourseFile(elem)
                 folder.files.append(course_file)
         else:
-            logging.debug('Falling back to webscraper method')
+            commonlogger.debug('Falling back to webscraper method')
 
             weird_parameters = {
                 '_20_folderId': folder_dict['folderId'],
@@ -971,19 +983,46 @@ COOKIE_SUPPORT=true; polij_device_category=PERSONAL_COMPUTER; %s" %
                     download_page_tree = etree.HTML(file_download_page.text)
 
                     filename, extension = os.path.splitext(title)
-                    file_dict = {
-                        'extension': extension,
-                        'version': download_page_tree
-                        .xpath(file_version_xpath)[0],
-                        'fileEntryId': parsed_query_str['_20_fileEntryId'][0],
-                        'title': filename,
-                        'groupId': folder_dict['groupId'],
-                        'uuid': download_page_tree.xpath(url_xpath)[0]
-                        .split("/")[-1],
-                        'modifiedDate': date.timestamp()*1000,
-                        'size': beep_size_to_byte_size(raw_size)
-                    }
-                    folder.files.append(CourseFile(file_dict))
+                    file_version = None
+                    try:
+                        file_version = download_page_tree\
+                                .xpath(file_version_xpath)[0]
+                    except IndexError:
+                        commonlogger.warning(f'{filename} is missing its'
+                                             ' version')
+                        file_version = 0
+
+                    file_entry_id = None
+                    try:
+                        file_version = parsed_query_str['_20_fileEntryId'][0]
+                    except KeyError:
+                        commonlogger.warning(f'{filename} is missing its'
+                                             ' entry id')
+                        file_entry_id = 0
+                    except IndexError:
+                        commonlogger.warning(f'{filename} is missing its'
+                                             ' entry id')
+                        file_entry_id = 0
+
+                    try:
+                        file_dict = {
+                            'extension': extension,
+                            'version': file_version,
+                            'fileEntryId': file_entry_id,
+                            'title': filename,
+                            'groupId': folder_dict['groupId'],
+                            'uuid': download_page_tree.xpath(url_xpath)[0]
+                            .split("/")[-1],
+                            'modifiedDate': date.timestamp()*1000,
+                            'size': beep_size_to_byte_size(raw_size)
+                        }
+                        folder.files.append(CourseFile(file_dict))
+                    except IndexError:
+                        # uuid is missing or malformed
+                        commonlogger.error('Can\'t download '
+                                           f'{filename} please proceed to '
+                                           'download it manually')
+                        commonlogger.error(download_page_tree.xpath(url_xpath))
 
         return folder
 

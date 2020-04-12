@@ -49,7 +49,7 @@ If you still have problems, use the debug mode as described
 in the :doc:`debug` page.
 
 If you still have problems, or other errors come up,
-feel free to send an e-mail to dcdrj.pub AT gmail DOT com or contact me on Wire/Telegram @jacotsu
+feel free to send an e-mail to dcdrj.pub AT gmail DOT com or contact me on Telegram @jacotsu
 
 License
 ========

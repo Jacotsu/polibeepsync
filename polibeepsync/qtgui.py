@@ -29,13 +29,14 @@ from polibeepsync.common import (User, Folder, Course, DownloadThread,
 from polibeepsync.cmdlineparser import create_parser
 from polibeepsync.ui_resizable import Ui_Form
 from polibeepsync import filesettings
+from polibeepsync.utils import init_checkbox
 from appdirs import user_config_dir, user_data_dir
 
 from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot,
                             QTimer, QLocale)
 from PySide2.QtGui import (QTextCursor, QCursor)
 from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog, QLabel,
-                               QSystemTrayIcon, qApp, QApplication,
+                               QSystemTrayIcon, QApplication,
                                QMessageBox)
 
 
@@ -86,7 +87,7 @@ class CoursesListModel(QAbstractTableModel):
         if role == Qt.EditRole:
             if index.column() == 2:
                 other_names = [elem.save_folder_name for elem in self.courses]
-                if value not in other_names and value is not "":
+                if value not in other_names and value != "":
                     self.courses[index.row()].save_folder_name = value
                     self.dataChanged.emit(index, index)
                 return True
@@ -124,7 +125,7 @@ class CoursesListModel(QAbstractTableModel):
 
 
 class MainWindow(Ui_Form):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, args=None):
         super(MainWindow, self).__init__(parent)
         self.appname = "poliBeePsync"
         self.settings_fname = 'pbs-settings.ini'
@@ -155,6 +156,7 @@ class MainWindow(Ui_Form):
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
 
         self.loginthread = LoginThread(self.user, self)
+
         self.loginthread.signal_error.sig.connect(self.update_status_bar)
         self.loginthread.signal_ok.sig.connect(self.update_status_bar)
 
@@ -187,22 +189,20 @@ class MainWindow(Ui_Form):
 
         self._window.syncNow.clicked.connect(self.syncfiles)
 
-        if self.settings['SyncNewCourses'] == str(True):
-            self._window.sync_new = Qt.Checked
-        else:
-            self._window.sync_new = Qt.Unchecked
-
         self._window.rootfolder.setText(self.settings['RootFolder'])
         self._window.rootfolder.textChanged.connect(self.rootfolderslot)
 
-        self._window.addSyncNewCourses.setCheckState(self._window.sync_new)
-        self._window.addSyncNewCourses.stateChanged.connect(self.syncnewslot)
+        init_checkbox(self._window.addSyncNewCourses, self.settings,
+                      'SyncNewCourses', state_slot=self.syncnewslot)
+
+        init_checkbox(self._window.startupSync, self.settings,
+                      'SyncOnStartup', state_slot=self.sync_on_startup_slot)
 
         self._window.timerMinutes.setValue(int(self.settings['UpdateEvery']))
         self._window.timerMinutes.valueChanged.connect(self.updateminuteslot)
 
         self._window.changeRootFolder.clicked.connect(self.chooserootdir)
-        self._window.version_label.setText("Current version: {}."
+        self._window.version_label.setText("Current version: {}"
                                            .format(__version__))
         self._window.check_version.clicked.connect(self.checknewversion)
 
@@ -212,6 +212,17 @@ class MainWindow(Ui_Form):
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
         self.trayIcon.activated.connect(self._activate_traymenu)
         self.createTray()
+
+        try:
+            if args.sync_on_startup or \
+               self.settings['SyncOnStartup'] == str(True):
+                self.syncfiles()
+        except KeyError:
+            pass
+        if args.sync_interval:
+            logger.info('Sync interval overridden with '
+                        f'{args.sync_interval} minutes')
+            self.timer.start(1000 * 60 * args.sync_interval)
 
     @Slot()
     def showabout(self, **kwargs):
@@ -260,19 +271,11 @@ class MainWindow(Ui_Form):
         rawdata = requests.get('https://pypi.python.org/pypi/'
                                'poliBeePsync/json')
         latest = json.loads(rawdata.text)['info']['version']
-        self._window.version_label.setTextFormat(Qt.RichText)
-        self._window.version_label.setOpenExternalLinks(True)
-        self._window.version_label.setLocale(QLocale(QLocale.English,
-                                                     QLocale.UnitedStates))
-        self._window.version_label.setScaledContents(True)
-        self._window.version_label.setWordWrap(True)
         if latest != __version__:
-            newtext = """<p>Current version: {}.<br>
-Latest version: {}. </p>
-<p>Visit <a
-href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
-        #how-to-install-upgrade-remove'>here</a> to find out how to upgrade.
-""".format(__version__, latest)
+            newtext = 'Current version: {}. Latest version: {}. '\
+                'Click <a href="https://jacotsu.github.io/polibeepsync/build/'\
+                'html/installation.html">here</a>'\
+                ' to find out how to upgrade'.format(__version__, latest)
         else:
             newtext = "Current version: {} up-to-date.".format(__version__)
         self._window.version_label.setText(newtext)
@@ -338,7 +341,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
                 logger.critical('OSError while calling os.makedirs.',
                                 exc_info=True)
                 logger.critical(f"I couldn't create {path}.\nStart"
-                                " poliBeePsync with --debug "
+                                " poliBeePsync with --log-level=debug "
                                 "error to get more details.")
         self.settings_path = os.path.join(user_config_dir(self.appname),
                                           self.settings_fname)
@@ -346,7 +349,8 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
             # Update every 8 hours
             'UpdateEvery': '480',
             'RootFolder': os.path.join(os.path.expanduser('~'), self.appname),
-            'SyncNewCourses': 'False'
+            'SyncNewCourses': 'False',
+            'SyncOnStartup': 'False'
         }
         self.settings = filesettings.settingsFromFile(self.settings_path,
                                                       defaults)
@@ -371,6 +375,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
                          " predefined directory. Ignore this"
                          "message if you're using poliBeePsync"
                          " for the first time.")
+
     @Slot(str)
     def update_status_bar(self, status):
         self._window.statusbar.showMessage(status)
@@ -379,8 +384,20 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
     def syncnewslot(self, state):
         if state == 2:
             self.settings['SyncNewCourses'] = 'True'
+            logger.info('New courses will now be automatically synced')
         else:
             self.settings['SyncNewCourses'] = 'False'
+            logger.info('New courses will NOT be automatically synced')
+        filesettings.settingsToFile(self.settings, self.settings_path)
+
+    @Slot(int)
+    def sync_on_startup_slot(self, state):
+        if state == 2:
+            self.settings['SyncOnStartup'] = 'True'
+            logger.info('All courses will be synced at startup')
+        else:
+            self.settings['SyncOnStartup'] = 'False'
+            logger.info('No course will be synced at startup')
         filesettings.settingsToFile(self.settings, self.settings_path)
 
     @Slot(int)
@@ -388,11 +405,14 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         self.settings['UpdateEvery'] = str(minutes)
         filesettings.settingsToFile(self.settings, self.settings_path)
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
+        logger.info('All courses will be automatically synced every '
+                     f'{self.settings["UpdateEvery"]} minutes')
 
     @Slot(str)
     def rootfolderslot(self, path):
         self.settings['RootFolder'] = path
         filesettings.settingsToFile(self.settings, self.settings_path)
+        logger.info(f'Root folder set to: {path}')
 
     @Slot()
     def chooserootdir(self):
@@ -427,7 +447,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
                                      self.user.password)
         except OSError:
             logger.critical("I couldn't save data to disk. Run"
-                            " poliBeePsync with option --debug"
+                            " poliBeePsync with option --log-level=debug"
                             " error to get more details.")
             logger.error('OSError raised while trying to write the User'
                          'instance to disk.', exc_info=True)
@@ -443,7 +463,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
             logger.info("Password changed.")
         except OSError:
             logger.critical("I couldn't save data to disk. Run"
-                            " poliBeePsync with option --debug"
+                            " poliBeePsync with option --log-level=debug"
                             " error to get more details.")
             logger.error('OSError raised while trying to write the User'
                          'instance to disk.', exc_info=True)
@@ -522,7 +542,8 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
 
     def createTray(self):
         restoreAction = QAction("&Restore", self, triggered=self.restore_window)
-        quitAction = QAction("&Quit", self, triggered=qApp.quit)
+        quitAction = QAction("&Quit", self,
+                             triggered=QApplication.instance().quit)
         self.trayIconMenu.addAction(restoreAction)
         self.trayIconMenu.addAction(quitAction)
         self.trayIcon.setContextMenu(self.trayIconMenu)
@@ -540,6 +561,7 @@ href='https://jacotsu.github.io/polibeepsync/dirhtml/index.html\
         self._window.hide()
         event.ignore()
 
+
 def main():
     # load options from cmdline
     parser = create_parser()
@@ -556,8 +578,8 @@ def main():
     }
 
     level_name = 'info'
-    if args.debug:
-        level_name = args.debug
+    if args.log_level:
+        level_name = args.log_level
     level = LEVELS.get(level_name, logging.INFO)
 
     # now get the logger used in the common module and set its level to what
@@ -576,7 +598,7 @@ def main():
 
     app = QApplication(sys.argv)
 
-    frame = MainWindow()
+    frame = MainWindow(args=args)
     # args is defined at the top of this module
     if not args.hidden:
         # Need to fix showing wrong window

@@ -29,7 +29,7 @@ class TestCourse:
                          'MAGNI ]',
                          'friendlyURL': 'beep.com',
                          'classPK': 1})
-        assert course.simplify_name(course.name) == "Fisica [Galzerano / "\
+        assert course.simplify_name(course.name) == "Fisica [Galzerano; "\
             "Vittorio Magni]"
 
     def test_nobracketsprofessor(self):

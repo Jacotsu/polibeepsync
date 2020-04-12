@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>polibeepsync package &#8212; PoliBeePsync 0.4.4 documentation</title>
+    <title>polibeepsync package &#8212; PoliBeePsync 0.7.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="How to debug" href="debug.html" />
@@ -39,300 +39,300 @@
 </div>
 <div class="section" id="module-polibeepsync.cmdlineparser">
 <span id="polibeepsync-cmdlineparser-module"></span><h2>polibeepsync.cmdlineparser module<a class="headerlink" href="#module-polibeepsync.cmdlineparser" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="polibeepsync.cmdlineparser.create_parser">
-<code class="sig-prename descclassname">polibeepsync.cmdlineparser.</code><code class="sig-name descname">create_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/cmdlineparser.html#create_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.cmdlineparser.create_parser" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt id="polibeepsync.cmdlineparser.check_positive">
+<code class="sig-prename descclassname">polibeepsync.cmdlineparser.</code><code class="sig-name descname">check_positive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/cmdlineparser.html#check_positive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.cmdlineparser.check_positive" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="polibeepsync.cmdlineparser.main">
-<code class="sig-prename descclassname">polibeepsync.cmdlineparser.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/cmdlineparser.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.cmdlineparser.main" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt id="polibeepsync.cmdlineparser.create_parser">
+<code class="sig-prename descclassname">polibeepsync.cmdlineparser.</code><code class="sig-name descname">create_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/cmdlineparser.html#create_parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.cmdlineparser.create_parser" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-polibeepsync.common">
 <span id="polibeepsync-common-module"></span><h2>polibeepsync.common module<a class="headerlink" href="#module-polibeepsync.common" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.Course">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">Course</code><span class="sig-paren">(</span><em class="sig-param">course_dict</em>, <em class="sig-param">sync=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#Course"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Course" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">Course</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">course_dict</span></em>, <em class="sig-param"><span class="n">sync</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#Course"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Course" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#polibeepsync.common.GenericSet" title="polibeepsync.common.GenericSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">polibeepsync.common.GenericSet</span></code></a></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.Course.documents_url">
 <em class="property">property </em><code class="sig-name descname">documents_url</code><a class="headerlink" href="#polibeepsync.common.Course.documents_url" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.Course.name">
 <em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#polibeepsync.common.Course.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.Course.simplify_name">
-<code class="sig-name descname">simplify_name</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#Course.simplify_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Course.simplify_name" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">simplify_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#Course.simplify_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Course.simplify_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.CourseFile">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">CourseFile</code><span class="sig-paren">(</span><em class="sig-param">file_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#CourseFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.CourseFile" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">CourseFile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#CourseFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.CourseFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.CourseFile.extension">
 <em class="property">property </em><code class="sig-name descname">extension</code><a class="headerlink" href="#polibeepsync.common.CourseFile.extension" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.CourseFile.id">
 <em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#polibeepsync.common.CourseFile.id" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.CourseFile.last_online_edit_time">
 <em class="property">property </em><code class="sig-name descname">last_online_edit_time</code><a class="headerlink" href="#polibeepsync.common.CourseFile.last_online_edit_time" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.CourseFile.name">
 <em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#polibeepsync.common.CourseFile.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.CourseFile.size">
 <em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#polibeepsync.common.CourseFile.size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.CourseFile.url">
 <em class="property">property </em><code class="sig-name descname">url</code><a class="headerlink" href="#polibeepsync.common.CourseFile.url" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.CourseFile.version">
 <em class="property">property </em><code class="sig-name descname">version</code><a class="headerlink" href="#polibeepsync.common.CourseFile.version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.Courses">
 <em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">Courses</code><a class="reference internal" href="_modules/polibeepsync/common.html#Courses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Courses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#polibeepsync.common.GenericSet" title="polibeepsync.common.GenericSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">polibeepsync.common.GenericSet</span></code></a></p>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.CoursesSignal">
 <em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">CoursesSignal</code><a class="reference internal" href="_modules/polibeepsync/common.html#CoursesSignal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.CoursesSignal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QObject</span></code></p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.CoursesSignal.sig">
 <code class="sig-name descname">sig</code><em class="property"> = &lt;PySide2.QtCore.Signal object&gt;</em><a class="headerlink" href="#polibeepsync.common.CoursesSignal.sig" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.CoursesSignal.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.common.CoursesSignal.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.DownloadChunkSignal">
 <em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">DownloadChunkSignal</code><a class="reference internal" href="_modules/polibeepsync/common.html#DownloadChunkSignal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.DownloadChunkSignal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QObject</span></code></p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.DownloadChunkSignal.sig">
 <code class="sig-name descname">sig</code><em class="property"> = &lt;PySide2.QtCore.Signal object&gt;</em><a class="headerlink" href="#polibeepsync.common.DownloadChunkSignal.sig" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.DownloadChunkSignal.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.common.DownloadChunkSignal.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.DownloadThread">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">DownloadThread</code><span class="sig-paren">(</span><em class="sig-param">user</em>, <em class="sig-param">topdir</em>, <em class="sig-param">parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#DownloadThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.DownloadThread" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">DownloadThread</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">user</span></em>, <em class="sig-param"><span class="n">topdir</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#DownloadThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.DownloadThread" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QThread</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.DownloadThread.notify_finished">
 <code class="sig-name descname">notify_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#DownloadThread.notify_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.DownloadThread.notify_finished" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.DownloadThread.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#DownloadThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.DownloadThread.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#DownloadThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.DownloadThread.run" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.DownloadThread.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.common.DownloadThread.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.DownloadThread.sync_course">
-<code class="sig-name descname">sync_course</code><span class="sig-paren">(</span><em class="sig-param">course</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#DownloadThread.sync_course"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.DownloadThread.sync_course" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sync_course</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">course</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#DownloadThread.sync_course"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.DownloadThread.sync_course" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.Folder">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">Folder</code><span class="sig-paren">(</span><em class="sig-param">folder_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#Folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Folder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">Folder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#Folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.Folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.Folder.group_id">
 <em class="property">property </em><code class="sig-name descname">group_id</code><a class="headerlink" href="#polibeepsync.common.Folder.group_id" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.Folder.id">
 <em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#polibeepsync.common.Folder.id" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.Folder.name">
 <em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#polibeepsync.common.Folder.name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.GMT1">
 <em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">GMT1</code><a class="reference internal" href="_modules/polibeepsync/common.html#GMT1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GMT1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">datetime.tzinfo</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.GMT1.dst">
-<code class="sig-name descname">dst</code><span class="sig-paren">(</span><em class="sig-param">dt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GMT1.dst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GMT1.dst" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">dst</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dt</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GMT1.dst"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GMT1.dst" title="Permalink to this definition">¶</a></dt>
 <dd><p>datetime -&gt; DST offset as timedelta positive east of UTC.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.GMT1.tzname">
-<code class="sig-name descname">tzname</code><span class="sig-paren">(</span><em class="sig-param">dt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GMT1.tzname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GMT1.tzname" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">tzname</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dt</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GMT1.tzname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GMT1.tzname" title="Permalink to this definition">¶</a></dt>
 <dd><p>datetime -&gt; string name of time zone.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.GMT1.utcoffset">
-<code class="sig-name descname">utcoffset</code><span class="sig-paren">(</span><em class="sig-param">dt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GMT1.utcoffset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GMT1.utcoffset" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">utcoffset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dt</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GMT1.utcoffset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GMT1.utcoffset" title="Permalink to this definition">¶</a></dt>
 <dd><p>datetime -&gt; timedelta showing offset from UTC, negative values indicating West of UTC</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.GenericSet">
 <em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">GenericSet</code><a class="reference internal" href="_modules/polibeepsync/common.html#GenericSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GenericSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.GenericSet.append">
-<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GenericSet.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GenericSet.append" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GenericSet.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GenericSet.append" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.GenericSet.remove">
-<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">arg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GenericSet.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GenericSet.remove" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#GenericSet.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.GenericSet.remove" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="exception">
+<dl class="py exception">
 <dt id="polibeepsync.common.InvalidLoginError">
 <em class="property">exception </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">InvalidLoginError</code><a class="reference internal" href="_modules/polibeepsync/common.html#InvalidLoginError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.InvalidLoginError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 <p>Exception raised when user code, password or both are wrong.</p>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.LoginThread">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">LoginThread</code><span class="sig-paren">(</span><em class="sig-param">user</em>, <em class="sig-param">parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#LoginThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.LoginThread" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">LoginThread</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">user</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#LoginThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.LoginThread" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QThread</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.LoginThread.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#LoginThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.LoginThread.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#LoginThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.LoginThread.run" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.LoginThread.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.common.LoginThread.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.MySignal">
 <em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">MySignal</code><a class="reference internal" href="_modules/polibeepsync/common.html#MySignal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.MySignal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QObject</span></code></p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.MySignal.sig">
 <code class="sig-name descname">sig</code><em class="property"> = &lt;PySide2.QtCore.Signal object&gt;</em><a class="headerlink" href="#polibeepsync.common.MySignal.sig" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.MySignal.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.common.MySignal.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.QThreadPoolContexted">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">QThreadPoolContexted</code><span class="sig-paren">(</span><em class="sig-param">max_threads=4</em>, <em class="sig-param">wait=True</em>, <em class="sig-param">parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#QThreadPoolContexted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.QThreadPoolContexted" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">QThreadPoolContexted</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_threads</span><span class="o">=</span><span class="default_value">4</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#QThreadPoolContexted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.QThreadPoolContexted" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QThreadPool</span></code></p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.QThreadPoolContexted.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.common.QThreadPoolContexted.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.RefreshCoursesThread">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">RefreshCoursesThread</code><span class="sig-paren">(</span><em class="sig-param">user</em>, <em class="sig-param">parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#RefreshCoursesThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.RefreshCoursesThread" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">RefreshCoursesThread</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">user</span></em>, <em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#RefreshCoursesThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.RefreshCoursesThread" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QThread</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.RefreshCoursesThread.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#RefreshCoursesThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.RefreshCoursesThread.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#RefreshCoursesThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.RefreshCoursesThread.run" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.RefreshCoursesThread.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.common.RefreshCoursesThread.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.SignalLoggingHandler">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">SignalLoggingHandler</code><span class="sig-paren">(</span><em class="sig-param">signal</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#SignalLoggingHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.SignalLoggingHandler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">SignalLoggingHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">signal</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#SignalLoggingHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.SignalLoggingHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Handler</span></code></p>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.User">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param">username</em>, <em class="sig-param">password</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">username</span></em>, <em class="sig-param"><span class="n">password</span></em>, <em class="sig-param"><span class="n">use_json_endpoint</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.download_file">
-<code class="sig-name descname">download_file</code><span class="sig-paren">(</span><em class="sig-param">course</em>, <em class="sig-param">path</em>, <em class="sig-param">coursefile</em>, <em class="sig-param">needsync</em>, <em class="sig-param">downloadsignal</em>, <em class="sig-param">datesignal</em>, <em class="sig-param">chunk_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.download_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.download_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">download_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">course</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">coursefile</span></em>, <em class="sig-param"><span class="n">needsync</span></em>, <em class="sig-param"><span class="n">downloadsignal</span></em>, <em class="sig-param"><span class="n">datesignal</span></em>, <em class="sig-param"><span class="n">chunk_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.download_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.download_file" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.find_files_and_folders">
-<code class="sig-name descname">find_files_and_folders</code><span class="sig-paren">(</span><em class="sig-param">folder_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.find_files_and_folders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.find_files_and_folders" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">find_files_and_folders</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.find_files_and_folders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.find_files_and_folders" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.get_file">
-<code class="sig-name descname">get_file</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">params</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use this method to get a f.</p>
 <p>It will check if the session is expired, and re-login if necessary.
 The f bytes can be accessed with the <code class="xref py py-attr docutils literal notranslate"><span class="pre">content</span></code> attribute</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="s1">&#39;url_to_file&#39;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="s1">&#39;url_to_file&#39;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;outfile&#39;</span><span class="p">,</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
 <span class="gp">... </span>   <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 </pre></div>
@@ -343,17 +343,17 @@ The f bytes can be accessed with the <code class="xref py py-attr docutils liter
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.User.get_files_url">
 <code class="sig-name descname">get_files_url</code><em class="property"> = 'https://beep.metid.polimi.it/api/secure/jsonws/dlapp/get-file-entries'</em><a class="headerlink" href="#polibeepsync.common.User.get_files_url" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.User.get_folders_url">
 <code class="sig-name descname">get_folders_url</code><em class="property"> = 'https://beep.metid.polimi.it/api/secure/jsonws/dlapp/get-folders'</em><a class="headerlink" href="#polibeepsync.common.User.get_folders_url" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.get_online_courses">
 <code class="sig-name descname">get_online_courses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.get_online_courses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_online_courses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the courses available online.</p>
@@ -364,9 +364,9 @@ all courses available online.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.get_page">
-<code class="sig-name descname">get_page</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">params=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.get_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_page" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">params</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.get_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.get_page" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use this method to get a webpage.</p>
 <p>It will check if the session is expired, and relogin if necessary.</p>
 <dl class="simple">
@@ -376,12 +376,12 @@ instance</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.User.gmt1">
 <code class="sig-name descname">gmt1</code><em class="property"> = &lt;polibeepsync.common.GMT1 object&gt;</em><a class="headerlink" href="#polibeepsync.common.User.gmt1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.login">
 <code class="sig-name descname">login</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.login" title="Permalink to this definition">¶</a></dt>
 <dd><p>Try logging in.</p>
@@ -394,26 +394,26 @@ If it fails, <code class="xref py py-attr docutils literal notranslate"><span cl
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.User.loginurl">
 <code class="sig-name descname">loginurl</code><em class="property"> = 'https://beep.metid.polimi.it/polimi/login'</em><a class="headerlink" href="#polibeepsync.common.User.loginurl" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.logout">
 <code class="sig-name descname">logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.logout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.logout" title="Permalink to this definition">¶</a></dt>
 <dd><p>Logout.</p>
 <p>It re-creates a session and sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">logged</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.save_files">
-<code class="sig-name descname">save_files</code><span class="sig-paren">(</span><em class="sig-param">course</em>, <em class="sig-param">needsync</em>, <em class="sig-param">downloadsignal</em>, <em class="sig-param">datesignal</em>, <em class="sig-param">chunk_size=524288</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.save_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.save_files" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">save_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">course</span></em>, <em class="sig-param"><span class="n">needsync</span></em>, <em class="sig-param"><span class="n">downloadsignal</span></em>, <em class="sig-param"><span class="n">datesignal</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">524288</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.save_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.save_files" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.sync_available_courses">
-<code class="sig-name descname">sync_available_courses</code><span class="sig-paren">(</span><em class="sig-param">master_courses</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.sync_available_courses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.sync_available_courses" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sync_available_courses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">master_courses</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.sync_available_courses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.sync_available_courses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sync <code class="xref py py-attr docutils literal notranslate"><span class="pre">available_courses</span></code> to <code class="xref py py-attr docutils literal notranslate"><span class="pre">master_courses</span></code>.</p>
 <p>This function will compare the courses in master_courses; if some of
 them are not present in the available_courses instance attribute, they
@@ -421,7 +421,7 @@ will be added to available_courses; if any course is present in
 self.available_courses but not in master_courses, it will be
 removed from self.available_courses.</p>
 <p>A typical usage would be the following</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s1">&#39;fakeid&#39;</span><span class="p">,</span> <span class="s1">&#39;fakepwd&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="s1">&#39;fakeid&#39;</span><span class="p">,</span> <span class="s1">&#39;fakepwd&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">online</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">get_online_courses</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">sync_available_courses</span><span class="p">(</span><span class="n">online</span><span class="p">)</span>
@@ -433,37 +433,42 @@ removed from self.available_courses.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.common.User.update_course_files">
-<code class="sig-name descname">update_course_files</code><span class="sig-paren">(</span><em class="sig-param">course</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.update_course_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.update_course_files" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">update_course_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">course</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#User.update_course_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.User.update_course_files" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.common.User.user_courses_url">
 <code class="sig-name descname">user_courses_url</code><em class="property"> = 'https://beep.metid.polimi.it/api/secure/jsonws/group/get-user-sites'</em><a class="headerlink" href="#polibeepsync.common.User.user_courses_url" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
+<dt id="polibeepsync.common.beep_size_to_byte_size">
+<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">beep_size_to_byte_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text_size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#beep_size_to_byte_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.beep_size_to_byte_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="polibeepsync.common.find_version">
-<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">find_version</code><span class="sig-paren">(</span><em class="sig-param">*file_paths</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#find_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.find_version" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">find_version</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">file_paths</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#find_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.find_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.common.folder_total_size">
-<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">folder_total_size</code><span class="sig-paren">(</span><em class="sig-param">parentfolder</em>, <em class="sig-param">sizes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#folder_total_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.folder_total_size" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">folder_total_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parentfolder</span></em>, <em class="sig-param"><span class="n">sizes</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#folder_total_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.folder_total_size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.common.func_runnable">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">func_runnable</code><span class="sig-paren">(</span><em class="sig-param">parent</em>, <em class="sig-param">function</em>, <em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#func_runnable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.func_runnable" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">func_runnable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="n">function</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#func_runnable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.func_runnable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QRunnable</span></code></p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.common.need_syncing">
-<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">need_syncing</code><span class="sig-paren">(</span><em class="sig-param">folder</em>, <em class="sig-param">parent_folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#need_syncing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.need_syncing" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">need_syncing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">folder</span></em>, <em class="sig-param"><span class="n">parent_folder</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#need_syncing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.need_syncing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a flat list with files to download</p>
 <p>Each element is a tuple like this
 (f, path)</p>
@@ -473,43 +478,43 @@ path is the absolute path of the folder in which the f should be
 downloaded</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.common.read">
-<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">*names</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">names</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.read" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.common.sizeof_fmt">
-<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">sizeof_fmt</code><span class="sig-paren">(</span><em class="sig-param">num</em>, <em class="sig-param">suffix='B'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#sizeof_fmt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.sizeof_fmt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">sizeof_fmt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span></em>, <em class="sig-param"><span class="n">suffix</span><span class="o">=</span><span class="default_value">'B'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#sizeof_fmt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.sizeof_fmt" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.common.synclocalwithonline">
-<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">synclocalwithonline</code><span class="sig-paren">(</span><em class="sig-param">local</em>, <em class="sig-param">online</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#synclocalwithonline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.synclocalwithonline" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">synclocalwithonline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">local</span></em>, <em class="sig-param"><span class="n">online</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#synclocalwithonline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.synclocalwithonline" title="Permalink to this definition">¶</a></dt>
 <dd><p>Modifies local in order to reflect changes from online</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.common.total_size">
-<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">total_size</code><span class="sig-paren">(</span><em class="sig-param">listoffiles</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#total_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.total_size" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.common.</code><code class="sig-name descname">total_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">listoffiles</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/common.html#total_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.common.total_size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-polibeepsync.filesettings">
 <span id="polibeepsync-filesettings-module"></span><h2>polibeepsync.filesettings module<a class="headerlink" href="#module-polibeepsync.filesettings" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.filesettings.find_version">
-<code class="sig-prename descclassname">polibeepsync.filesettings.</code><code class="sig-name descname">find_version</code><span class="sig-paren">(</span><em class="sig-param">*file_paths</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/filesettings.html#find_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.filesettings.find_version" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.filesettings.</code><code class="sig-name descname">find_version</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">file_paths</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/filesettings.html#find_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.filesettings.find_version" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.filesettings.read">
-<code class="sig-prename descclassname">polibeepsync.filesettings.</code><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">*names</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/filesettings.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.filesettings.read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.filesettings.</code><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">names</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/filesettings.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.filesettings.read" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.filesettings.settingsFromFile">
-<code class="sig-prename descclassname">polibeepsync.filesettings.</code><code class="sig-name descname">settingsFromFile</code><span class="sig-paren">(</span><em class="sig-param">infile</em>, <em class="sig-param">defaults</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/filesettings.html#settingsFromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.filesettings.settingsFromFile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.filesettings.</code><code class="sig-name descname">settingsFromFile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">infile</span></em>, <em class="sig-param"><span class="n">defaults</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/filesettings.html#settingsFromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.filesettings.settingsFromFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a path string <code class="xref py py-attr docutils literal notranslate"><span class="pre">infile</span></code>, load settings and return them as
 dictionary.</p>
 <dl class="simple">
@@ -519,21 +524,21 @@ defaults (dict): a dictionary containing fallback values</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.filesettings.settingsToFile">
-<code class="sig-prename descclassname">polibeepsync.filesettings.</code><code class="sig-name descname">settingsToFile</code><span class="sig-paren">(</span><em class="sig-param">insettings</em>, <em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/filesettings.html#settingsToFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.filesettings.settingsToFile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">polibeepsync.filesettings.</code><code class="sig-name descname">settingsToFile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">insettings</span></em>, <em class="sig-param"><span class="n">filepath</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/filesettings.html#settingsToFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.filesettings.settingsToFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a dict, save to file in the format specified by configparser</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-polibeepsync.icone_rc">
 <span id="polibeepsync-icone-rc-module"></span><h2>polibeepsync.icone_rc module<a class="headerlink" href="#module-polibeepsync.icone_rc" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.icone_rc.qCleanupResources">
 <code class="sig-prename descclassname">polibeepsync.icone_rc.</code><code class="sig-name descname">qCleanupResources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/icone_rc.html#qCleanupResources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.icone_rc.qCleanupResources" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.icone_rc.qInitResources">
 <code class="sig-prename descclassname">polibeepsync.icone_rc.</code><code class="sig-name descname">qInitResources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/icone_rc.html#qInitResources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.icone_rc.qInitResources" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -541,204 +546,209 @@ defaults (dict): a dictionary containing fallback values</p>
 </div>
 <div class="section" id="module-polibeepsync.qtgui">
 <span id="polibeepsync-qtgui-module"></span><h2>polibeepsync.qtgui module<a class="headerlink" href="#module-polibeepsync.qtgui" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.qtgui.CoursesListModel">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.qtgui.</code><code class="sig-name descname">CoursesListModel</code><span class="sig-paren">(</span><em class="sig-param">courses</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.qtgui.</code><code class="sig-name descname">CoursesListModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">courses</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtCore.QAbstractTableModel</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.CoursesListModel.columnCount">
-<code class="sig-name descname">columnCount</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">parent: PySide2.QtCore.QModelIndex = Invalid(PySide2.QtCore.QModelIndex)</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.columnCount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.columnCount" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">columnCount</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">parent</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span> <span class="o">=</span> <span class="default_value">Invalid(PySide2.QtCore.QModelIndex)</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.columnCount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.columnCount" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.CoursesListModel.data">
-<code class="sig-name descname">data</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">index: PySide2.QtCore.QModelIndex</em>, <em class="sig-param">role: int = PySide2.QtCore.Qt.ItemDataRole.DisplayRole</em><span class="sig-paren">)</span> &#x2192; typing.Any<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span></em>, <em class="sig-param"><span class="n">role</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">PySide2.QtCore.Qt.ItemDataRole.DisplayRole</span></em><span class="sig-paren">)</span> &#x2192; typing.Any<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.CoursesListModel.flags">
-<code class="sig-name descname">flags</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">index: PySide2.QtCore.QModelIndex</em><span class="sig-paren">)</span> &#x2192; PySide2.QtCore.Qt.ItemFlags<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.flags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.flags" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">flags</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; PySide2.QtCore.Qt.ItemFlags<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.flags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.flags" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.CoursesListModel.headerData">
-<code class="sig-name descname">headerData</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">section: int</em>, <em class="sig-param">orientation: PySide2.QtCore.Qt.Orientation</em>, <em class="sig-param">role: int = PySide2.QtCore.Qt.ItemDataRole.DisplayRole</em><span class="sig-paren">)</span> &#x2192; typing.Any<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.headerData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.headerData" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">headerData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">section</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">orientation</span><span class="p">:</span> <span class="n">PySide2.QtCore.Qt.Orientation</span></em>, <em class="sig-param"><span class="n">role</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">PySide2.QtCore.Qt.ItemDataRole.DisplayRole</span></em><span class="sig-paren">)</span> &#x2192; typing.Any<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.headerData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.headerData" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.CoursesListModel.insertRows">
-<code class="sig-name descname">insertRows</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">row: int</em>, <em class="sig-param">count: int</em>, <em class="sig-param">parent: PySide2.QtCore.QModelIndex = Invalid(PySide2.QtCore.QModelIndex)</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.insertRows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.insertRows" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">insertRows</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">row</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">count</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">parent</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span> <span class="o">=</span> <span class="default_value">Invalid(PySide2.QtCore.QModelIndex)</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.insertRows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.insertRows" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.CoursesListModel.removeRows">
-<code class="sig-name descname">removeRows</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">row: int</em>, <em class="sig-param">count: int</em>, <em class="sig-param">parent: PySide2.QtCore.QModelIndex = Invalid(PySide2.QtCore.QModelIndex)</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.removeRows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.removeRows" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">removeRows</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">row</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">count</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">parent</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span> <span class="o">=</span> <span class="default_value">Invalid(PySide2.QtCore.QModelIndex)</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.removeRows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.removeRows" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.CoursesListModel.rowCount">
-<code class="sig-name descname">rowCount</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">parent: PySide2.QtCore.QModelIndex = Invalid(PySide2.QtCore.QModelIndex)</em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.rowCount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.rowCount" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">rowCount</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">parent</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span> <span class="o">=</span> <span class="default_value">Invalid(PySide2.QtCore.QModelIndex)</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.rowCount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.rowCount" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.CoursesListModel.setData">
-<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">index: PySide2.QtCore.QModelIndex</em>, <em class="sig-param">value: typing.Any</em>, <em class="sig-param">role: int = PySide2.QtCore.Qt.ItemDataRole.EditRole</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.setData" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span></em>, <em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">typing.Any</span></em>, <em class="sig-param"><span class="n">role</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">PySide2.QtCore.Qt.ItemDataRole.EditRole</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/polibeepsync/qtgui.html#CoursesListModel.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.setData" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.qtgui.CoursesListModel.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.qtgui.CoursesListModel.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.qtgui.MainWindow">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.qtgui.</code><code class="sig-name descname">MainWindow</code><span class="sig-paren">(</span><em class="sig-param">parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.qtgui.</code><code class="sig-name descname">MainWindow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">args</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#polibeepsync.ui_resizable.Ui_Form" title="polibeepsync.ui_resizable.Ui_Form"><code class="xref py py-class docutils literal notranslate"><span class="pre">polibeepsync.ui_resizable.Ui_Form</span></code></a></p>
-<dl class="method">
-<dt id="polibeepsync.qtgui.MainWindow.about_text">
-<code class="sig-name descname">about_text</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.about_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.about_text" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.addtocoursesview">
-<code class="sig-name descname">addtocoursesview</code><span class="sig-paren">(</span><em class="sig-param">addlist</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.addtocoursesview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.addtocoursesview" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">addtocoursesview</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">addlist</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.addtocoursesview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.addtocoursesview" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.checknewversion">
 <code class="sig-name descname">checknewversion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.checknewversion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.checknewversion" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.chooserootdir">
 <code class="sig-name descname">chooserootdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.chooserootdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.chooserootdir" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.closeEvent">
-<code class="sig-name descname">closeEvent</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">event: PySide2.QtGui.QCloseEvent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.closeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.closeEvent" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">closeEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">PySide2.QtGui.QCloseEvent</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.closeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.closeEvent" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.createTray">
 <code class="sig-name descname">createTray</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.createTray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.createTray" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.do_refreshcourses">
 <code class="sig-name descname">do_refreshcourses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.do_refreshcourses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.do_refreshcourses" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.do_syncfiles">
 <code class="sig-name descname">do_syncfiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.do_syncfiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.do_syncfiles" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.dumpUser">
 <code class="sig-name descname">dumpUser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.dumpUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.dumpUser" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.load_data">
 <code class="sig-name descname">load_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.load_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.load_settings">
 <code class="sig-name descname">load_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.load_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.load_settings" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.myStream_message">
-<code class="sig-name descname">myStream_message</code><span class="sig-paren">(</span><em class="sig-param">message</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.myStream_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.myStream_message" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">myStream_message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.myStream_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.myStream_message" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.refreshcourses">
 <code class="sig-name descname">refreshcourses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.refreshcourses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.refreshcourses" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.restore_window">
 <code class="sig-name descname">restore_window</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.restore_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.restore_window" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.rmfromcoursesview">
-<code class="sig-name descname">rmfromcoursesview</code><span class="sig-paren">(</span><em class="sig-param">removelist</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.rmfromcoursesview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.rmfromcoursesview" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">rmfromcoursesview</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">removelist</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.rmfromcoursesview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.rmfromcoursesview" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.rootfolderslot">
-<code class="sig-name descname">rootfolderslot</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.rootfolderslot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.rootfolderslot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">rootfolderslot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.rootfolderslot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.rootfolderslot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.setinizialsizes">
-<code class="sig-name descname">setinizialsizes</code><span class="sig-paren">(</span><em class="sig-param">course</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.setinizialsizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.setinizialsizes" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setinizialsizes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">course</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.setinizialsizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.setinizialsizes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.setpassword">
 <code class="sig-name descname">setpassword</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.setpassword"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.setpassword" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.setusercode">
 <code class="sig-name descname">setusercode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.setusercode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.setusercode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py method">
+<dt id="polibeepsync.qtgui.MainWindow.showabout">
+<code class="sig-name descname">showabout</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.showabout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.showabout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt id="polibeepsync.qtgui.MainWindow.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
+<dt id="polibeepsync.qtgui.MainWindow.sync_on_startup_slot">
+<code class="sig-name descname">sync_on_startup_slot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.sync_on_startup_slot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.sync_on_startup_slot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.syncfiles">
 <code class="sig-name descname">syncfiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.syncfiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.syncfiles" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.syncnewcourses">
-<code class="sig-name descname">syncnewcourses</code><span class="sig-paren">(</span><em class="sig-param">newlist</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.syncnewcourses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.syncnewcourses" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">syncnewcourses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">newlist</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.syncnewcourses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.syncnewcourses" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.syncnewslot">
-<code class="sig-name descname">syncnewslot</code><span class="sig-paren">(</span><em class="sig-param">state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.syncnewslot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.syncnewslot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">syncnewslot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.syncnewslot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.syncnewslot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.testlogin">
 <code class="sig-name descname">testlogin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.testlogin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.testlogin" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.update_course_download">
-<code class="sig-name descname">update_course_download</code><span class="sig-paren">(</span><em class="sig-param">course</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.update_course_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.update_course_download" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">update_course_download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">course</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.update_course_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.update_course_download" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.update_file_localtime">
-<code class="sig-name descname">update_file_localtime</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.update_file_localtime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.update_file_localtime" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">update_file_localtime</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.update_file_localtime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.update_file_localtime" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.update_status_bar">
-<code class="sig-name descname">update_status_bar</code><span class="sig-paren">(</span><em class="sig-param">status</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.update_status_bar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.update_status_bar" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">update_status_bar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.update_status_bar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.update_status_bar" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.qtgui.MainWindow.updateminuteslot">
-<code class="sig-name descname">updateminuteslot</code><span class="sig-paren">(</span><em class="sig-param">minutes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.updateminuteslot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.updateminuteslot" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">updateminuteslot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">minutes</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#MainWindow.updateminuteslot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.MainWindow.updateminuteslot" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="polibeepsync.qtgui.main">
 <code class="sig-prename descclassname">polibeepsync.qtgui.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/qtgui.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.qtgui.main" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -746,91 +756,86 @@ defaults (dict): a dictionary containing fallback values</p>
 </div>
 <div class="section" id="module-polibeepsync.ui_resizable">
 <span id="polibeepsync-ui-resizable-module"></span><h2>polibeepsync.ui_resizable module<a class="headerlink" href="#module-polibeepsync.ui_resizable" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.ui_resizable.CheckBoxDelegate">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.ui_resizable.</code><code class="sig-name descname">CheckBoxDelegate</code><span class="sig-paren">(</span><em class="sig-param">parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.ui_resizable.</code><code class="sig-name descname">CheckBoxDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtWidgets.QStyledItemDelegate</span></code></p>
 <p>A delegate that places a fully functioning QCheckBox in every
 cell of the column to which it’s applied</p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.ui_resizable.CheckBoxDelegate.createEditor">
-<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">parent: PySide2.QtWidgets.QWidget</em>, <em class="sig-param">option: PySide2.QtWidgets.QStyleOptionViewItem</em>, <em class="sig-param">index: PySide2.QtCore.QModelIndex</em><span class="sig-paren">)</span> &#x2192; PySide2.QtWidgets.QWidget<a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">createEditor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">parent</span><span class="p">:</span> <span class="n">PySide2.QtWidgets.QWidget</span></em>, <em class="sig-param"><span class="n">option</span><span class="p">:</span> <span class="n">PySide2.QtWidgets.QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; PySide2.QtWidgets.QWidget<a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.createEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.createEditor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.ui_resizable.CheckBoxDelegate.editorEvent">
-<code class="sig-name descname">editorEvent</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">event: PySide2.QtCore.QEvent</em>, <em class="sig-param">model: PySide2.QtCore.QAbstractItemModel</em>, <em class="sig-param">option: PySide2.QtWidgets.QStyleOptionViewItem</em>, <em class="sig-param">index: PySide2.QtCore.QModelIndex</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.editorEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.editorEvent" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">editorEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">event</span><span class="p">:</span> <span class="n">PySide2.QtCore.QEvent</span></em>, <em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n">PySide2.QtCore.QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">option</span><span class="p">:</span> <span class="n">PySide2.QtWidgets.QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.editorEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.editorEvent" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="polibeepsync.ui_resizable.CheckBoxDelegate.getCheckBoxRect">
-<code class="sig-name descname">getCheckBoxRect</code><span class="sig-paren">(</span><em class="sig-param">option</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.getCheckBoxRect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.getCheckBoxRect" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.ui_resizable.CheckBoxDelegate.paint">
-<code class="sig-name descname">paint</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">painter: PySide2.QtGui.QPainter</em>, <em class="sig-param">option: PySide2.QtWidgets.QStyleOptionViewItem</em>, <em class="sig-param">index: PySide2.QtCore.QModelIndex</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.paint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.paint" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">paint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">painter</span><span class="p">:</span> <span class="n">PySide2.QtGui.QPainter</span></em>, <em class="sig-param"><span class="n">option</span><span class="p">:</span> <span class="n">PySide2.QtWidgets.QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.paint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.paint" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.ui_resizable.CheckBoxDelegate.setModelData">
-<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">editor: PySide2.QtWidgets.QWidget</em>, <em class="sig-param">model: PySide2.QtCore.QAbstractItemModel</em>, <em class="sig-param">index: PySide2.QtCore.QModelIndex</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setModelData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">editor</span><span class="p">:</span> <span class="n">PySide2.QtWidgets.QWidget</span></em>, <em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n">PySide2.QtCore.QAbstractItemModel</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CheckBoxDelegate.setModelData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.setModelData" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.ui_resizable.CheckBoxDelegate.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.ui_resizable.CheckBoxDelegate.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.ui_resizable.CoursesListView">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.ui_resizable.</code><code class="sig-name descname">CoursesListView</code><span class="sig-paren">(</span><em class="sig-param">parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CoursesListView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CoursesListView" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.ui_resizable.</code><code class="sig-name descname">CoursesListView</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#CoursesListView"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.CoursesListView" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtWidgets.QTableView</span></code></p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.ui_resizable.CoursesListView.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.ui_resizable.CoursesListView.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.ui_resizable.ProgressBarDelegate">
-<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.ui_resizable.</code><code class="sig-name descname">ProgressBarDelegate</code><span class="sig-paren">(</span><em class="sig-param">parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#ProgressBarDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.ProgressBarDelegate" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">polibeepsync.ui_resizable.</code><code class="sig-name descname">ProgressBarDelegate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#ProgressBarDelegate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.ProgressBarDelegate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtWidgets.QStyledItemDelegate</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.ui_resizable.ProgressBarDelegate.paint">
-<code class="sig-name descname">paint</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">painter: PySide2.QtGui.QPainter</em>, <em class="sig-param">option: PySide2.QtWidgets.QStyleOptionViewItem</em>, <em class="sig-param">index: PySide2.QtCore.QModelIndex</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#ProgressBarDelegate.paint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.ProgressBarDelegate.paint" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">paint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">painter</span><span class="p">:</span> <span class="n">PySide2.QtGui.QPainter</span></em>, <em class="sig-param"><span class="n">option</span><span class="p">:</span> <span class="n">PySide2.QtWidgets.QStyleOptionViewItem</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">PySide2.QtCore.QModelIndex</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#ProgressBarDelegate.paint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.ProgressBarDelegate.paint" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.ui_resizable.ProgressBarDelegate.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.ui_resizable.ProgressBarDelegate.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="polibeepsync.ui_resizable.Ui_Form">
 <em class="property">class </em><code class="sig-prename descclassname">polibeepsync.ui_resizable.</code><code class="sig-name descname">Ui_Form</code><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#Ui_Form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.Ui_Form" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PySide2.QtWidgets.QMainWindow</span></code></p>
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.ui_resizable.Ui_Form.retranslateUi">
-<code class="sig-name descname">retranslateUi</code><span class="sig-paren">(</span><em class="sig-param">Form</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#Ui_Form.retranslateUi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.Ui_Form.retranslateUi" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">retranslateUi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Form</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#Ui_Form.retranslateUi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.Ui_Form.retranslateUi" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.ui_resizable.Ui_Form.setupUi">
-<code class="sig-name descname">setupUi</code><span class="sig-paren">(</span><em class="sig-param">Form</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#Ui_Form.setupUi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.Ui_Form.setupUi" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">setupUi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Form</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#Ui_Form.setupUi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.Ui_Form.setupUi" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="polibeepsync.ui_resizable.Ui_Form.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#Ui_Form.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.Ui_Form.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/polibeepsync/ui_resizable.html#Ui_Form.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#polibeepsync.ui_resizable.Ui_Form.show" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="polibeepsync.ui_resizable.Ui_Form.staticMetaObject">
 <code class="sig-name descname">staticMetaObject</code><em class="property"> = &lt;PySide2.QtCore.QMetaObject object&gt;</em><a class="headerlink" href="#polibeepsync.ui_resizable.Ui_Form.staticMetaObject" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -895,7 +900,7 @@ cell of the column to which it’s applied</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -910,10 +915,10 @@ cell of the column to which it’s applied</p>
     </div>
 
     <div class="footer">
-      &copy;2019, Davide Olianas, Raffaele Di Campli.
+      &copy;2020, Davide Olianas, Raffaele Di Campli.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

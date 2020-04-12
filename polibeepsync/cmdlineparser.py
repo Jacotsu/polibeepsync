@@ -18,6 +18,20 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
 
+"""
+Thanks
+https://stackoverflow.com/questions/14117415/in-python-using-argparse-allow
+-only-positive-integers
+"""
+
+
+def check_positive(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError(
+            f"{value}: 0 and negative numbers are not allowed")
+    return ivalue
+
 
 def create_parser():
     debug_levels = ['debug', 'info', 'warning', 'error', 'critical']
@@ -26,19 +40,22 @@ def create_parser():
     parser.add_argument('--hidden', action='store_true',
                         help="Don't show the main window, just the icon"
                              " in the system tray")
-    parser.add_argument('--debug', action='store', choices=debug_levels,
-                        help="Show debug information.")
+    parser.add_argument('--log-level', action='store', choices=debug_levels,
+                        help='Choose logging report verbosity')
     parser.add_argument('-s', '--use_theme',
                         action='store_true', default=False,
                         help="Choose Qt theme over gtk")
 
+    parser.add_argument(
+        '--sync-interval',
+        type=check_positive,
+        action='store',
+        help='[Non persistent override] Choose how often (in minutes) the '
+        'courses files should be synced')
+
+    parser.add_argument(
+        '--sync-on-startup',
+        action='store_true',
+        help='[Non persistent override] Synces the courses files on startup')
+
     return parser
-
-
-def main():
-    parser = create_parser()
-    args = parser.parse_args()
-    print(args)
-
-if __name__ == '__main__':
-    main()

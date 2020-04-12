@@ -36,6 +36,7 @@ classifiers = [
     "Programming Language :: Python :: 3.7"
 ]
 
+
 setup(
     name='poliBeePsync',
     version=find_version("polibeepsync/__init__.py"),
@@ -44,18 +45,19 @@ setup(
     author_email="ubuntupk@gmail.com, dcdrj.pub@gmail.com",
     license='GPLv3+',
     install_requires=[
-        "requests",
         "appdirs",
-        "PySide2",
         "beautifulsoup4",
+        "keyring",
         "lxml",
         "pyparsing",
-        "keyring",
+        "PyQt5",
+        "PySide2",
+        "requests",
         "signalslot"
     ],
     python_requires='>=3.7',
     packages=['polibeepsync'],
-    package_data={'': ['new_gui.ui']},
+    package_data={'': ['new_gui.ui', 'beep.pem']},
     include_package_data=True,
     description="Sync files from https://beep.metid.polimi.it "
     "(for students of Politecnico di Milano)",

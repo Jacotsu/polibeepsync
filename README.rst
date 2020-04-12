@@ -65,6 +65,12 @@ Windows
 Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_
 open the downloaded file and follow the installer instructions.
 
+MAC OS
+------
+Download the .app.zip file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_ and then
+drag it from the Downloads to Applications.
+
+
 Manual
 ------
 **Use this only if the other methods don't work**
@@ -75,6 +81,42 @@ Manual
 
 Changelog
 =========
+
+0.7.0 (2020-04-13)
+------------------
+New
+~~~
+- Added support for MAC OS Catalina [DCDRJ]
+- Added more startup options [DCDRJ]
+
+  - `--sync-on-startup`: lets you override your settings file, and sync
+    the course files on application startup
+  - `--sync-interval`: lets you override your settings file sync frequency
+- Added built in backup certificate to mitigate malformed beep ones [DCDRJ]
+
+Fix
+~~~
+- Added missing dependencies to setup.py [DCDRJ]
+- Minor UI improvements [DCDRJ]
+- Minor code cleanup [DCDRJ]
+- Increased info logging [DCDRJ]
+- Fixed bug that hid some logging messages [DCDRJ]
+- Added a default file version (0) to manage files that have None [DCDRJ]
+- Added exception handling for invalid uuids [DCDRJ]
+- Renewed copyright year in documentation [DCDRJ]
+- Changed default professor name separator from `/` to `;` [DCDRJ]
+- Updated documentation [DCDRJ]
+
+0.6.1 (2020-)
+------------------
+New
+~~~
+- Added MAC OS installation instructions to README [DCDRJ]
+
+Fix
+~~~
+- Added missing dependency to setup.py [DCDRJ]
+
 
 0.6.0 (2020-03-10)
 ------------------

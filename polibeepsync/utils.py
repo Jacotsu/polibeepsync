@@ -19,7 +19,7 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 from datetime import datetime
 import logging
 import time
-
+from PySide2.QtCore import Qt
 
 def raw_date_to_datetime(rawdate, gmt):
     day = int(rawdate.split(' ')[1].split('/')[0])
@@ -36,3 +36,20 @@ def debug_dump(data, min_level=logging.DEBUG):
     if logging.getLogger().level <= min_level:
         with open(f'Polybeepsync-dump-{time.time()}', 'wb') as dump:
             dump.write(data)
+
+
+def init_checkbox(qt_checkbox, dictionary, key, state_slot=None):
+    logger = logging.getLogger()
+    try:
+        state = Qt.Checked if dictionary[key] == str(True) else Qt.Unchecked
+        qt_checkbox.setCheckState(state)
+    except KeyError:
+        qt_checkbox.setCheckState(Qt.Unchecked)
+        logger.warning(f'{key} is missing from the dictionary'
+                       'Qt.Unchecked has been set as fallback')
+
+    if state_slot:
+        qt_checkbox.stateChanged.connect(state_slot)
+    else:
+        logger.warning('No state change slot has been '
+                        f'specified {qt_checkbox}')
