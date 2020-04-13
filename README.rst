@@ -46,7 +46,7 @@ This code is in the beta stage. Documentation is under construction
 Installation
 ============
 
-Ubuntu 19.04
+Ubuntu 19.10
 --------------
 ::
 
@@ -106,17 +106,6 @@ Fix
 - Renewed copyright year in documentation [DCDRJ]
 - Changed default professor name separator from `/` to `;` [DCDRJ]
 - Updated documentation [DCDRJ]
-
-0.6.1 (2020-)
-------------------
-New
-~~~
-- Added MAC OS installation instructions to README [DCDRJ]
-
-Fix
-~~~
-- Added missing dependency to setup.py [DCDRJ]
-
 
 0.6.0 (2020-03-10)
 ------------------
