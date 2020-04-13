@@ -36,10 +36,7 @@ build-arch-package:
 build-windows-installer:
 	$(info Building windows installer)
 	mkdir -p packaging/windows
-	# Pretty fragile and will change the python version too if it comes before the
-	# application version
-	sed -i "0,/^version=/s/^version=.*/version=$(VERSION)/" packaging/windows/installer.cfg
-	pynsist packaging/windows/installer.cfg
+	@pyinstaller polibeepsync.spec --distpath packaging/windows
 
 build-python-dists:
 	$(info Building python dists)
