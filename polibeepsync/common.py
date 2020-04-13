@@ -600,14 +600,14 @@ class User():
             response (:class:`requests.Response`): a :class:`requests.Response`
             instance
         """
-        response = self.session.get(url, params=params, timeout=5)
+        response = self.session.get(url, params=params, timeout=10)
         soup = BeautifulSoup(response.text, "lxml")
         login_tag = soup.find('input', attrs={'id': 'login'})
         if response.status_code == 401 or login_tag is not None:
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, params=params, timeout=5)
+            response = self.session.get(url, params=params, timeout=10)
         return response
 
     def get_file(self, url, params=None):
@@ -617,30 +617,30 @@ class User():
         The f bytes can be accessed with the :attr:`content` attribute
 
         >>> user = User('username', 'password')
-        >>> response = user.get_file('url_to_file', timeout=5)
+        >>> response = user.get_file('url_to_file', timeout=10)
         >>> with open('outfile','wb') as f:
         ...    f.write(response.content)
 
         Returns:
             response (requests.Response): a :class:`requests.Response` object
         """
-        response = self.session.get(url, params=params, timeout=5, stream=True)
+        response = self.session.get(url, params=params, timeout=10, stream=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, params=params, timeout=5,
+            response = self.session.get(url, params=params, timeout=10,
                                         stream=True)
         return response
 
     def _login_first_step(self):
-        default_lang_page = self.session.get(self.loginurl, timeout=5)
+        default_lang_page = self.session.get(self.loginurl, timeout=10)
         lang_soup = BeautifulSoup(default_lang_page.text, 'lxml')
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' +
-                             lang_tag['href'], timeout=5)
+                             lang_tag['href'], timeout=10)
         payload = {'login': self.username,
                    'password': self.password,
                    'evn_conferma': ''
@@ -683,7 +683,7 @@ class User():
         }
         mainpage = self.session.get(
             'https://beep.metid.polimi.it/polimi/login',
-            headers=main_headers, timeout=5)
+            headers=main_headers, timeout=10)
         return mainpage
 
     def login(self):
