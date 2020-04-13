@@ -45,6 +45,14 @@ def create_parser():
     parser.add_argument('-s', '--use_theme',
                         action='store_true', default=False,
                         help="Choose Qt theme over gtk")
+    parser.add_argument(
+        '--default-timeout',
+        type=check_positive,
+        action='store',
+        default=10,
+        help='[Non persistent override] Choose how long (in seconds) the '
+        'connection should remain open before assuming that the server'
+        ' is offline')
 
     parser.add_argument(
         '--sync-interval',

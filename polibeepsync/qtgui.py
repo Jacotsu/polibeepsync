@@ -151,6 +151,8 @@ class MainWindow(Ui_Form):
         # load_settings() sets settings_path and settings
         self.load_settings()
         self.load_data()
+        if args.default_timeout:
+            self.user.default_timeout = args.default_timeout
 
         self.timer.timeout.connect(self.syncfiles)
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
@@ -361,8 +363,8 @@ class MainWindow(Ui_Form):
                                    self.data_fname), 'rb') as f:
                 self.user = pickle.load(f)
                 self.user.password = keyring\
-                        .get_password('beep.metid.polimi.it',
-                                      self.user.username)
+                    .get_password('beep.metid.polimi.it',
+                                  self.user.username)
                 logger.info("Data has been loaded successfully.")
         except (EOFError, pickle.PickleError):
             logger.error('Settings corrupted', exc_info=True)

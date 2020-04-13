@@ -566,11 +566,13 @@ class User():
         'get-file-entries'
     gmt1 = GMT1()
 
-    def __init__(self, username, password, use_json_endpoint=False):
+    def __init__(self, username, password,
+                 use_json_endpoint=False, default_timeout=10):
         self.username = username
         self.password = password
         self._use_json_endpoint = use_json_endpoint
         self.session = requests.Session()
+        self.default_timeout = default_timeout
         self.logged = False
         self.courses_url = ""
         self.available_courses = Courses()
@@ -580,7 +582,8 @@ class User():
 
         # We manually load this certficate because sometimes the beep's one
         # is malformed and it's not accepted by openssl
-        self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
+        # ENABLE ONLY IF MALFORMED CERTS ARE SERVED
+        # self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
 
     def logout(self):
         """Logout.
@@ -588,7 +591,8 @@ class User():
         It re-creates a session and sets :attr:`logged` to ``False``."""
         del self.session
         self.session = requests.Session()
-        self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
+        # ENABLE ONLY IF MALFORMED CERTS ARE SERVED
+        #self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
         self.logged = False
 
     def get_page(self, url, params=None):
@@ -600,14 +604,16 @@ class User():
             response (:class:`requests.Response`): a :class:`requests.Response`
             instance
         """
-        response = self.session.get(url, params=params, timeout=10)
+        response = self.session.get(url, params=params,
+                                    timeout=self.default_timeout)
         soup = BeautifulSoup(response.text, "lxml")
         login_tag = soup.find('input', attrs={'id': 'login'})
         if response.status_code == 401 or login_tag is not None:
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, params=params, timeout=10)
+            response = self.session.get(url, params=params,
+                                        timeout=self.default_timeout)
         return response
 
     def get_file(self, url, params=None):
@@ -630,17 +636,19 @@ class User():
             commonlogger.info('The session has expired. Logging-in again...')
             self.logout()
             self.login()
-            response = self.session.get(url, params=params, timeout=10,
+            response = self.session.get(url, params=params,
+                                        timeout=self.default_timeout,
                                         stream=True)
         return response
 
     def _login_first_step(self):
-        default_lang_page = self.session.get(self.loginurl, timeout=10)
+        default_lang_page = self.session.get(self.loginurl,
+                                             timeout=self.default_timeout)
         lang_soup = BeautifulSoup(default_lang_page.text, 'lxml')
         lang_tag = lang_soup.find('a', attrs={'title': 'English'})
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' +
-                             lang_tag['href'], timeout=10)
+                             lang_tag['href'], timeout=self.default_timeout)
         payload = {'login': self.username,
                    'password': self.password,
                    'evn_conferma': ''
@@ -652,7 +660,8 @@ class User():
         login_response = self.session\
             .post('https://aunicalogin.polimi.it:443/aunicalogin/aunicalogin'
                   '/controller/IdentificazioneUnica.do?&jaf_currentWFID=main',
-                  data=payload, headers=login_headers)
+                  data=payload, headers=login_headers,
+                  timeout=self.default_timeout)
         return login_response
 
     def _do_shibboleth(self, first_response):
@@ -672,7 +681,8 @@ class User():
         self.session.post(
             'https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST',
             data=final_request_data,
-            headers=final_headers)
+            headers=final_headers,
+            timeout=self.default_timeout)
         cookies = requests.utils.dict_from_cookiejar(self.session.cookies)
         for key in cookies:
             if key.startswith('_shibsession'):
@@ -683,7 +693,7 @@ class User():
         }
         mainpage = self.session.get(
             'https://beep.metid.polimi.it/polimi/login',
-            headers=main_headers, timeout=10)
+            headers=main_headers, timeout=self.default_timeout)
         return mainpage
 
     def login(self):
@@ -723,7 +733,8 @@ class User():
             url = f'{uri.scheme}://{uri.netloc}{form["action"]}'
             pwd_change_res = self.session.post(url,
                                                data={'evn_continua': ''},
-                                               headers=login_headers)
+                                               headers=login_headers,
+                                               timeout=self.default_timeout)
             first_response = self._do_shibboleth(pwd_change_res)
             first_soup = BeautifulSoup(first_response.text, "lxml")
             try:
@@ -744,7 +755,8 @@ class User():
 
         second_response = self.session.post(url,
                                             data=payload,
-                                            headers=login_headers)
+                                            headers=login_headers,
+                                            timeout=self.default_timeout)
 
         login_soup = BeautifulSoup(second_response.text, "lxml")
         try:
@@ -772,7 +784,8 @@ class User():
 
         parsed_courses = []
         if self._use_json_endpoint:
-            res = self.session.get(self.user_courses_url)
+            res = self.session.get(self.user_courses_url,
+                                   timeout=self.default_timeout)
             parsed_courses = filter(lambda x: x["type"] == 2, res.json())
         else:
             coursespage = self.get_page(self.courses_url)
