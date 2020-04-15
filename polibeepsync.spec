@@ -59,6 +59,10 @@ deletable_files = [
     'dist/PoliBeePsync/shiboken2/docs**'
 ]
 
+hidden_imports=['PySide2.QtXml']
+if sys.platform == 'win32' or sys.platform == 'win64':
+    hidden_imports += ['pywin32', 'wind32timezones']
+
 def read(*names, **kwargs):
     with open(
         os.path.join('.', *names),
@@ -86,8 +90,8 @@ block_cipher = None
 a = Analysis(['polibeepsync/qtgui.py'],
              pathex=['/home/jacotsu/polibeepsync'],
              binaries=[],
-             datas=[],
-             hiddenimports=[],
+             datas=[('polibeepsync/*', 'polibeepsync')],
+             hiddenimports=['PySide2.QtXml'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -142,7 +146,7 @@ elif sys.platform == 'win32' or sys.platform == 'win64' \
               a.datas,
               name='PoliBeePsync',
               debug=False,
-              strip=True,
+              strip=False,
               upx=True,
               runtime_tmpdir=None,
               console=False,
@@ -153,7 +157,7 @@ coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,
-               strip=True,
+               strip=False,
                upx=True,
                upx_exclude=[],
                name='PoliBeePsync')

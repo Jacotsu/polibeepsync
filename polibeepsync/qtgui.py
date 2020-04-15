@@ -32,12 +32,10 @@ from polibeepsync import filesettings
 from polibeepsync.utils import init_checkbox
 from appdirs import user_config_dir, user_data_dir
 
-from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot,
-                            QTimer, QLocale)
+from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot, QTimer)
 from PySide2.QtGui import (QTextCursor, QCursor)
-from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog, QLabel,
-                               QSystemTrayIcon, QApplication,
-                               QMessageBox)
+from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog,
+                               QSystemTrayIcon, QApplication, QMessageBox)
 
 
 __version__ = find_version("__init__.py")
@@ -408,7 +406,7 @@ class MainWindow(Ui_Form):
         filesettings.settingsToFile(self.settings, self.settings_path)
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
         logger.info('All courses will be automatically synced every '
-                     f'{self.settings["UpdateEvery"]} minutes')
+                    f'{self.settings["UpdateEvery"]} minutes')
 
     @Slot(str)
     def rootfolderslot(self, path):
@@ -501,7 +499,7 @@ class MainWindow(Ui_Form):
     @Slot()
     def refreshcourses(self):
         self.status_signal.sig.emit('Searching for online updates...'
-                                'this may take a while.')
+                                    'this may take a while.')
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.signal_ok.sig.connect(self.do_refreshcourses)
@@ -539,11 +537,12 @@ class MainWindow(Ui_Form):
 
     def restore_window(self):
         self._window.setWindowState(self.windowState() & ~Qt.WindowMinimized |
-                                Qt.WindowActive)
+                                    Qt.WindowActive)
         self._window.show()
 
     def createTray(self):
-        restoreAction = QAction("&Restore", self, triggered=self.restore_window)
+        restoreAction = QAction("&Restore", self,
+                                triggered=self.restore_window)
         quitAction = QAction("&Quit", self,
                              triggered=QApplication.instance().quit)
         self.trayIconMenu.addAction(restoreAction)
