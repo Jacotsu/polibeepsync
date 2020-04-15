@@ -1,6 +1,19 @@
 Changelog
 =========
 
+0.7.1 (2020-04-15)
+-------------------
+
+New
+~~~
+- Removed Beep's embedded certificate as it's no longer necessary [DCDRJ]
+- Added timeout flag [DCDRJ]
+
+Fix
+~~~
+- Increased default timeout to 10 seconds to tolerate slow servers [DCDRJ]
+- Greatly reduced window's executable size [DCDRJ]
+
 0.7.0 (2020-04-13)
 ------------------
 New

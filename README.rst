@@ -63,12 +63,12 @@ Arch
 Windows
 --------
 Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_
-open the downloaded file and follow the installer instructions.
+and open the downloaded file.
 
 MAC OS
 ------
-Download the .app.zip file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_ and then
-drag it from the Downloads to Applications.
+Download the .app.zip file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_ and
+then drag it from the Downloads to Applications, `CTRL+Right click` polibeepsync's icon and click `open`.
 
 
 Manual
@@ -81,6 +81,19 @@ Manual
 
 Changelog
 =========
+
+0.7.1 (2020-04-15)
+-------------------
+
+New
+~~~
+- Removed Beep's embedded certificate as it's no longer necessary [DCDRJ]
+- Added timeout flag [DCDRJ]
+
+Fix
+~~~
+- Increased default timeout to 10 seconds to tolerate slow servers [DCDRJ]
+- Greatly reduced window's executable size [DCDRJ]
 
 0.7.0 (2020-04-13)
 ------------------

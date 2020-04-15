@@ -65,7 +65,7 @@ Windows
 Upgrading or installing
 ^^^^^^^^^^^^^^^^^^^^^^^
 Download the exe file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_
-open the downloaded file and follow the installer instructions.
+and open the downloaded file.
 
 
 Removing
@@ -102,7 +102,7 @@ try to install it through the direct method.
 Installing
 ^^^^^^^^^^^^
 Download the .app.zip file from the `latest release <https://github.com/Jacotsu/polibeepsync/releases/latest>`_ and then
-drag it from the Downloads to Applications.
+then drag it from the Downloads to Applications, `CTRL+Right click` polibeepsync's icon and click `open`.
 
 .. image:: _static/img/mac_installing.png
 	:alt: Mac installing.

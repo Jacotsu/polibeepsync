@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>polibeepsync.common &#8212; PoliBeePsync 0.7.0 documentation</title>
+    <title>polibeepsync.common &#8212; PoliBeePsync 0.7.1 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -599,11 +599,13 @@
         <span class="s1">&#39;get-file-entries&#39;</span>
     <span class="n">gmt1</span> <span class="o">=</span> <span class="n">GMT1</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">use_json_endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span>
+                 <span class="n">use_json_endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default_timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">password</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_use_json_endpoint</span> <span class="o">=</span> <span class="n">use_json_endpoint</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span> <span class="o">=</span> <span class="n">default_timeout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logged</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">courses_url</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">available_courses</span> <span class="o">=</span> <span class="n">Courses</span><span class="p">()</span>
@@ -613,7 +615,8 @@
 
         <span class="c1"># We manually load this certficate because sometimes the beep&#39;s one</span>
         <span class="c1"># is malformed and it&#39;s not accepted by openssl</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">verify</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="si">}</span><span class="s1">/beep.pem&#39;</span>
+        <span class="c1"># ENABLE ONLY IF MALFORMED CERTS ARE SERVED</span>
+        <span class="c1"># self.session.verify = f&#39;{os.path.dirname(__file__)}/beep.pem&#39;</span>
 
 <div class="viewcode-block" id="User.logout"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.common.User.logout">[docs]</a>    <span class="k">def</span> <span class="nf">logout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Logout.</span>
@@ -621,7 +624,8 @@
 <span class="sd">        It re-creates a session and sets :attr:`logged` to ``False``.&quot;&quot;&quot;</span>
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">verify</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="si">}</span><span class="s1">/beep.pem&#39;</span>
+        <span class="c1"># ENABLE ONLY IF MALFORMED CERTS ARE SERVED</span>
+        <span class="c1">#self.session.verify = f&#39;{os.path.dirname(__file__)}/beep.pem&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logged</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="User.get_page"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.common.User.get_page">[docs]</a>    <span class="k">def</span> <span class="nf">get_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -633,14 +637,16 @@
 <span class="sd">            response (:class:`requests.Response`): a :class:`requests.Response`</span>
 <span class="sd">            instance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                                    <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
         <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
         <span class="n">login_tag</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;login&#39;</span><span class="p">})</span>
         <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span> <span class="ow">or</span> <span class="n">login_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The session has expired. Logging-in again...&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                                        <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">response</span></div>
 
 <div class="viewcode-block" id="User.get_file"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.common.User.get_file">[docs]</a>    <span class="k">def</span> <span class="nf">get_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -650,30 +656,32 @@
 <span class="sd">        The f bytes can be accessed with the :attr:`content` attribute</span>
 
 <span class="sd">        &gt;&gt;&gt; user = User(&#39;username&#39;, &#39;password&#39;)</span>
-<span class="sd">        &gt;&gt;&gt; response = user.get_file(&#39;url_to_file&#39;, timeout=5)</span>
+<span class="sd">        &gt;&gt;&gt; response = user.get_file(&#39;url_to_file&#39;, timeout=10)</span>
 <span class="sd">        &gt;&gt;&gt; with open(&#39;outfile&#39;,&#39;wb&#39;) as f:</span>
 <span class="sd">        ...    f.write(response.content)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            response (requests.Response): a :class:`requests.Response` object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">history</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># it means that we&#39;ve been redirected to the login page</span>
             <span class="n">commonlogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The session has expired. Logging-in again...&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                                        <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">,</span>
                                         <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">response</span></div>
 
     <span class="k">def</span> <span class="nf">_login_first_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">default_lang_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loginurl</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">default_lang_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loginurl</span><span class="p">,</span>
+                                             <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
         <span class="n">lang_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">default_lang_page</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;lxml&#39;</span><span class="p">)</span>
         <span class="n">lang_tag</span> <span class="o">=</span> <span class="n">lang_soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;English&#39;</span><span class="p">})</span>
         <span class="k">if</span> <span class="n">lang_tag</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;https://aunicalogin.polimi.it&#39;</span> <span class="o">+</span>
-                             <span class="n">lang_tag</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">],</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+                             <span class="n">lang_tag</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">],</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
         <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;login&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
                    <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
                    <span class="s1">&#39;evn_conferma&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span>
@@ -685,7 +693,8 @@
         <span class="n">login_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>\
             <span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;https://aunicalogin.polimi.it:443/aunicalogin/aunicalogin&#39;</span>
                   <span class="s1">&#39;/controller/IdentificazioneUnica.do?&amp;jaf_currentWFID=main&#39;</span><span class="p">,</span>
-                  <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">login_headers</span><span class="p">)</span>
+                  <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">login_headers</span><span class="p">,</span>
+                  <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">login_response</span>
 
     <span class="k">def</span> <span class="nf">_do_shibboleth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_response</span><span class="p">):</span>
@@ -705,7 +714,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
             <span class="s1">&#39;https://beep.metid.polimi.it/Shibboleth.sso/SAML2/POST&#39;</span><span class="p">,</span>
             <span class="n">data</span><span class="o">=</span><span class="n">final_request_data</span><span class="p">,</span>
-            <span class="n">headers</span><span class="o">=</span><span class="n">final_headers</span><span class="p">)</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">final_headers</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
         <span class="n">cookies</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">dict_from_cookiejar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">cookies</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cookies</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_shibsession&#39;</span><span class="p">):</span>
@@ -716,7 +726,7 @@
         <span class="p">}</span>
         <span class="n">mainpage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s1">&#39;https://beep.metid.polimi.it/polimi/login&#39;</span><span class="p">,</span>
-            <span class="n">headers</span><span class="o">=</span><span class="n">main_headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">main_headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mainpage</span>
 
 <div class="viewcode-block" id="User.login"><a class="viewcode-back" href="../../polibeepsync.html#polibeepsync.common.User.login">[docs]</a>    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -756,7 +766,8 @@
             <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">uri</span><span class="o">.</span><span class="n">scheme</span><span class="si">}</span><span class="s1">://</span><span class="si">{</span><span class="n">uri</span><span class="o">.</span><span class="n">netloc</span><span class="si">}{</span><span class="n">form</span><span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
             <span class="n">pwd_change_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span>
                                                <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;evn_continua&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">},</span>
-                                               <span class="n">headers</span><span class="o">=</span><span class="n">login_headers</span><span class="p">)</span>
+                                               <span class="n">headers</span><span class="o">=</span><span class="n">login_headers</span><span class="p">,</span>
+                                               <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
             <span class="n">first_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_shibboleth</span><span class="p">(</span><span class="n">pwd_change_res</span><span class="p">)</span>
             <span class="n">first_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">first_response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
@@ -777,7 +788,8 @@
 
         <span class="n">second_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span>
                                             <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span>
-                                            <span class="n">headers</span><span class="o">=</span><span class="n">login_headers</span><span class="p">)</span>
+                                            <span class="n">headers</span><span class="o">=</span><span class="n">login_headers</span><span class="p">,</span>
+                                            <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
 
         <span class="n">login_soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">second_response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;lxml&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -805,7 +817,8 @@
 
         <span class="n">parsed_courses</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_json_endpoint</span><span class="p">:</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_courses_url</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_courses_url</span><span class="p">,</span>
+                                   <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_timeout</span><span class="p">)</span>
             <span class="n">parsed_courses</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">coursespage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">courses_url</span><span class="p">)</span>
