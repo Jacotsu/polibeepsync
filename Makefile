@@ -73,7 +73,7 @@ upload-AUR: build-arch-package
 
 upload-PPA: build-PPA
 	$(info Uploading to Launchpad)
-	dput ppa:jacotsu/polibeepsync packaging/ubuntu/deb_dist/polibeepsync_$(VERSION)-1_source.changes
+	dput ppa:jacotsu/polibeepsync packaging/ubuntu/deb/polibeepsync_$(VERSION)-1_source.changes
 
 # Cleaning
 
