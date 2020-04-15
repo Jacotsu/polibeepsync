@@ -59,9 +59,9 @@ deletable_files = [
     'dist/PoliBeePsync/shiboken2/docs**'
 ]
 
-hidden_imports=['PySide2.QtXml']
-if sys.platform == 'win32' or sys.platform == 'win64':
-    hidden_imports += ['pywin32', 'wind32timezones']
+hidden_imports = ['PySide2.QtXml']
+if sys.platform in ['win32', 'win64', 'linux']:
+    hidden_imports += ['pywin32', 'win32timezone']
 
 def read(*names, **kwargs):
     with open(
@@ -91,7 +91,7 @@ a = Analysis(['polibeepsync/qtgui.py'],
              pathex=['/home/jacotsu/polibeepsync'],
              binaries=[],
              datas=[('polibeepsync/*', 'polibeepsync')],
-             hiddenimports=['PySide2.QtXml'],
+             hiddenimports=hidden_imports,
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -137,8 +137,7 @@ if sys.platform == 'darwin':
                      'Raffaele Di Campli 2020'
                  },
                  icon='imgs/icons/polibeepsync.icns')
-elif sys.platform == 'win32' or sys.platform == 'win64' \
-        or sys.platform == 'linux':
+elif sys.platform in ['win32', 'win64', 'linux']:
     exe = EXE(pyz,
               a.scripts,
               a.binaries,
