@@ -48,6 +48,8 @@ build-app:
 	$(info Building Mac OS App)
 	@mkdir -p packaging/mac_os
 	@pyinstaller polibeepsync.spec --distpath packaging/mac_os
+	$(info Signing app with self signed certificate)
+	@codesign -s 'jacotsu.github.com' --force packaging/mac_os/PoliBeePsync.app
 
 build-docs:
 	make html -C docs
