@@ -349,7 +349,7 @@ class MainWindow(Ui_Form):
             # Update every 8 hours
             'UpdateEvery': '480',
             'RootFolder': os.path.join(os.path.expanduser('~'), self.appname),
-            'SyncNewCourses': 'False',
+            'SyncNewCourses': 'True',
             'SyncOnStartup': 'False'
         }
         self.settings = filesettings.settingsFromFile(self.settings_path,
