@@ -630,7 +630,8 @@ class User():
         Returns:
             response (requests.Response): a :class:`requests.Response` object
         """
-        response = self.session.get(url, params=params, timeout=10, stream=True)
+        response = self.session.get(url, params=params,
+                                    timeout=self.default_timeout, stream=True)
         if len(response.history) > 0:
             # it means that we've been redirected to the login page
             commonlogger.info('The session has expired. Logging-in again...')
@@ -950,6 +951,8 @@ class User():
                 f"{folder_dict['groupId']}/documenti-e-media",
                 weird_parameters)
             page_tree = etree.HTML(response.text)
+            debug_dump(response.text)
+
             entry_xpath = '//div[contains(@id, "SearchContainer")]//'\
                 'tr[contains(@class, "document-display-style")]'
 
