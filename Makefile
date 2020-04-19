@@ -27,11 +27,9 @@ build-PPA:
 build-arch-package:
 	$(info Building arch package)
 	mkdir -p packaging/arch/build
-	echo not implemented
 	sed -i "s/pkgver=.*/pkgver=$(VERSION)/" packaging/arch/PKGBUILD
 	cd distro_packaging/arch; \
 	makepkg --printsrcinfo > .SRCINFO; \
-	makepkg
 
 build-windows-installer:
 	$(info Building windows installer)
@@ -70,7 +68,7 @@ upload-AUR: build-arch-package
 	$(info Uploading to AUR)
 	cd distro_packaging/arch; \
 	git add PKGBUILD .SRCINFO; \
-	git commit \
+	git commit -m 'Version bump'\
 	git push
 
 upload-PPA: build-PPA

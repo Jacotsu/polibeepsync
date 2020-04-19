@@ -82,6 +82,14 @@ Manual
 Changelog
 =========
 
+0.7.2 (2020-04-19)
+------------------
+
+Fix
+~~~
+- New courses are now synced by default [DCDRJ]
+- Fixed bug that would ignore timeout command line option when downloading files [DCDRJ]
+
 0.7.1 (2020-04-15)
 -------------------
 
