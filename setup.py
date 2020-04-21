@@ -50,7 +50,6 @@ setup(
         "keyring",
         "lxml",
         "pyparsing",
-        "PyQt5",
         "PySide2",
         "requests",
         "signalslot"

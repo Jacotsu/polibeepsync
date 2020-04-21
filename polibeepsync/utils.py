@@ -21,6 +21,7 @@ import logging
 import time
 from PySide2.QtCore import Qt
 
+
 def raw_date_to_datetime(rawdate, gmt):
     day = int(rawdate.split(' ')[1].split('/')[0])
     month = int(rawdate.split(' ')[1].split('/')[1])
@@ -32,8 +33,16 @@ def raw_date_to_datetime(rawdate, gmt):
     return complete_date
 
 
-def debug_dump(data, min_level=logging.DEBUG):
-    if logging.getLogger().level <= min_level:
+def debug_dump(data, logger=logging.getLogger(), min_level=logging.DEBUG):
+    if logger.level <= min_level:
+        with open(f'Polybeepsync-dump-{time.time()}', 'wb') as dump:
+            dump.write(data)
+
+
+def debug_request_response(response, logger=logging.getLogger(),
+                           min_level=logging.DEBUG):
+    if logger.level <= min_level:
+
         with open(f'Polybeepsync-dump-{time.time()}', 'wb') as dump:
             dump.write(data)
 
