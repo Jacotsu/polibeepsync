@@ -19,6 +19,7 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 from datetime import datetime
 import logging
 import time
+import re
 from PySide2.QtCore import Qt
 
 
@@ -26,8 +27,8 @@ def raw_date_to_datetime(rawdate, gmt):
     day = int(rawdate.split(' ')[1].split('/')[0])
     month = int(rawdate.split(' ')[1].split('/')[1])
     year = int('20' + rawdate.split(' ')[1].split('/')[2])
-    hour = int(rawdate.split(' ')[2].split('.')[0])
-    minute = int(rawdate.split(' ')[2].split('.')[1])
+    hour = int(re.split('\.|:', rawdate.split(' ')[2])[0])
+    minute = int(re.split('\.|:', rawdate.split(' ')[2])[1])
     complete_date = datetime(year, month, day, hour, minute,
                              tzinfo=gmt)
     return complete_date
@@ -44,7 +45,7 @@ def debug_request_response(response, logger=logging.getLogger(),
     if logger.level <= min_level:
 
         with open(f'Polybeepsync-dump-{time.time()}', 'wb') as dump:
-            dump.write(data)
+            dump.write(response.text)
 
 
 def init_checkbox(qt_checkbox, dictionary, key, state_slot=None):
@@ -61,4 +62,4 @@ def init_checkbox(qt_checkbox, dictionary, key, state_slot=None):
         qt_checkbox.stateChanged.connect(state_slot)
     else:
         logger.warning('No state change slot has been '
-                        f'specified {qt_checkbox}')
+                       f'specified {qt_checkbox}')
