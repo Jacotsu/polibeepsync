@@ -11,8 +11,6 @@
 
 - [ ] Fix bug where download progress bars update only when clicked
 
-- [ ] Reduce size of windows installer
-
 - [ ] Move from Beautiful soup to simple lxml to remove horrendous code
 
 - [ ] Add plugin system which allows to download material from non beep
@@ -22,9 +20,13 @@
 
 - [ ] Docs version autoupdate
 
+- [ ] Implement graceful failure when a timeout occurs
+
 - [ ] Write tests for invalid returned file dictionaries
 
 - ~~[ ] Bypass BeeP's login api and use directly unicalogin (not possible without serious patching)~~
+
+- [X] Reduce size of windows installer
 
 - [X] Try to package for Mac Os
 
