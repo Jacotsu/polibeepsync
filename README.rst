@@ -79,6 +79,15 @@ Manual
   pip3 install --user polibeepsync
 
 
+Virus Total Scans
+-----------------
+
+Some users have reported that after scanning the windows executable with virus total it was identified malicious by
+2/68 antiviruses. In particular `SecureAge APEX` and `C2AE` which identified the file respectively as a
+`Tool.Agent.Win32.31519` and as a `MALWARE` (UNKNOWN_VERDICT). These are false positives probably caused by the
+standard directory tree navigation code, which is also shared among ramsonware softwares (crackers also use stack
+overflow). If you are not convinced **read the source code** or reverse the executable.
+
 Changelog
 =========
 
