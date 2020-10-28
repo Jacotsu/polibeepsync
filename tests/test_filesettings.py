@@ -27,7 +27,8 @@ def default_settings_dict():
     conf = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'SyncNewCourses': 'False'
+        'SyncNewCourses': 'False',
+        'DefaultTimeout': '10'
     }
     return conf
 
@@ -39,7 +40,8 @@ def default_settings_file(tmpdir):
     conf['General'] = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'SyncNewCourses': 'False'
+        'SyncNewCourses': 'False',
+        'DefaultTimeout': '10'
     }
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
@@ -70,7 +72,8 @@ def test_notallvaluesarepresent(tmpdir, default_settings_dict):
     merge = {
         'UpdateEvery': '50',
         'RootFolder': 'custom',
-        'SyncNewCourses': 'False'
+        'SyncNewCourses': 'False',
+        'DefaultTimeout': '10'
     }
     assert sets == merge
 
@@ -81,7 +84,8 @@ def test_allpresent_someinvalid(tmpdir, default_settings_dict):
     conf.optionxform = lambda option: option
     conf['General'] = {
         'UpdateEvery': '-10',
-        'SyncNewCourses': 'randomtext'
+        'SyncNewCourses': 'randomtext',
+        'DefaultTimeout': 'kk'
     }
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
@@ -90,7 +94,8 @@ def test_allpresent_someinvalid(tmpdir, default_settings_dict):
     nice = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'SyncNewCourses': 'False'
+        'SyncNewCourses': 'False',
+        'DefaultTimeout': '10'
     }
     assert sets == nice
 
@@ -101,7 +106,8 @@ def test_somepresent_allinvalid(tmpdir, default_settings_dict):
     conf.optionxform = lambda option: option
     conf['General'] = {
         'UpdateEvery': 'noatanumer',
-        'SyncNewCourses': 'False'
+        'SyncNewCourses': 'lek',
+        'DefaultTimeout': '-10'
     }
     f = tmpdir.mkdir('fold').join('sets.ini')
     with open(str(f), 'w') as setsfile:
@@ -110,7 +116,8 @@ def test_somepresent_allinvalid(tmpdir, default_settings_dict):
     nice = {
         'UpdateEvery': '60',
         'RootFolder': 'root',
-        'SyncNewCourses': 'False'
+        'SyncNewCourses': 'False',
+        'DefaultTimeout': '10'
     }
     assert sets == nice
 
@@ -150,7 +157,8 @@ def test_savefileexists(tmpdir, default_settings_dict):
     newsettings = {
         'UpdateEvery': '20',
         'RootFolder': 'finalroot',
-        'SyncNewCourses': 'True'
+        'SyncNewCourses': 'True',
+        'DefaultTimeout': '10'
     }
     settingsToFile(newsettings, str(f))
     assert settingsFromFile(str(f), default_settings_dict) == newsettings
