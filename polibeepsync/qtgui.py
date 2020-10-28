@@ -518,15 +518,8 @@ class MainWindow(QMainWindow, Ui_MainForm):
 
     @Slot()
     def sync_files(self):
-        # we delete the already present downloadthread and recreate it
-        # because otherwise it uses the old download folder. I don't know
-        # if there's a cleaner approach
-        del self.downloadthread
-        self.downloadthread = DownloadThread(self.user,
-                                             self.settings['RootFolder'],
-                                             self)
+        self.downloadthread.topdir = self.settings['RootFolder']
         self.downloadthread.dumpuser.sig.connect(self.dumpUser)
-
         self.refreshcoursesthread.finished.connect(self.do_sync_files)
         self.refresh_courses()
 
@@ -543,7 +536,7 @@ class MainWindow(QMainWindow, Ui_MainForm):
 
     def restore_window(self):
         self.setWindowState(self.windowState() & ~Qt.WindowMinimized |
-                                    Qt.WindowActive)
+                            Qt.WindowActive)
         self.show()
 
     def createTray(self):

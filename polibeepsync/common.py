@@ -593,6 +593,12 @@ class User():
         # ENABLE ONLY IF MALFORMED CERTS ARE SERVED
         # self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
         self.session.max_redirects = self.max_redirects
+        cookie_obj = requests.cookies.create_cookie(
+            domain='beep.metid.polimi.it',
+            name='GUEST_LANGUAGE_ID',
+            value='en_GB'
+        )
+        self.session.cookies.set_cookie(cookie_obj)
 
     def logout(self):
         """Logout.
@@ -601,6 +607,13 @@ class User():
         del self.session
         self.session = requests.Session()
         self.session.max_redirects = self.max_redirects
+        cookie_obj = requests.cookies.create_cookie(
+            domain='beep.metid.polimi.it',
+            name='GUEST_LANGUAGE_ID',
+            value='en_GB'
+        )
+        self.session.cookies.set_cookie(cookie_obj)
+
         # ENABLE ONLY IF MALFORMED CERTS ARE SERVED
         #self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
         self.logged = False
@@ -624,6 +637,7 @@ class User():
             self.login()
             response = self.session.get(url, params=params,
                                         timeout=self.default_timeout)
+        response.raise_for_status()
         return response
 
     def get_file(self, url, params=None):
@@ -813,12 +827,13 @@ class User():
         text = self.get_page(url).text
         course_tree = etree.HTML(text)
 
-        info_url_xpath = '//a[@id="persguest"]/@href'
+        info_url_xpath = '//form[@name="ctem_3_fm"]//'\
+            'select[@name="_3_groupId"]//'\
+            'option[normalize-space(text())="This Site"]/@value'
         course_name_xpath = '//div[@id="beep-navigator"]//'\
             'span[@class="site-name-content"]/text()'
-        extracted_url = course_tree.xpath(info_url_xpath)[0]
+        groupId = course_tree.xpath(info_url_xpath)[0]
         name = course_tree.xpath(course_name_xpath)[0]
-        parsed_query_str = parse_qs(extracted_url)
 
         course_dict = {
             # Corresponds to the groupId or the course name
@@ -827,9 +842,9 @@ class User():
             # Course name
             'name': name,
             # Course ID, usually it's the same as group id
-            'classPK': parsed_query_str['_49_groupId'][0],
+            'classPK': groupId,
             # Same as Course ID
-            'groupId': parsed_query_str['_49_groupId'][0],
+            'groupId': groupId,
             # Courses have folderId 0
             'folderId': 0
         }
@@ -985,10 +1000,13 @@ class User():
                 'p_p_id': '20',
                 'p_p_lifecycle': '0'
             }
+
+            commonlogger.debug(folder_dict)
             response = self.get_page(
                 "https://beep.metid.polimi.it/web/"
                 f"{folder_dict['groupId']}/documenti-e-media",
                 weird_parameters)
+
             page_tree = etree.HTML(response.text)
             debug_dump(response.text)
 
@@ -1011,7 +1029,7 @@ class User():
                 date = raw_date_to_datetime(raw_date, self.gmt1)
 
                 if is_folder:
-                    folder_dict = {
+                    folder_dict_sub = {
                         'folderId': entry.xpath(folder_id_xpath)[0],
                         # Don't remove the *1000, this necessary to keep the
                         # timestamp consistent with liferay precision (1/1000s)
@@ -1020,7 +1038,7 @@ class User():
                         'groupId': folder_dict['groupId'],
                     }
 
-                    subfolder = self.find_files_and_folders(folder_dict)
+                    subfolder = self.find_files_and_folders(folder_dict_sub)
                     folder.folders.append(subfolder)
                 else:
                     file_page_xpath = 'td[contains(@class, "col-2")]//span[1]'\
