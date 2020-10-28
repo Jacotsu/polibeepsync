@@ -583,7 +583,16 @@ class AddCoursePopup(QDialog, Ui_AddCoursePopup):
         if friendly_url:
             parent.update_status_bar(f'Added course from {url}')
             logger.info(f'Added course from {url}')
-
+            course_dict = parent.user.scrape_course_main_page(friendly_url)
+            course_dict['ManuallyAdded'] = True
+            course = Course(course_dict, parent.settings['SyncNewCourses'])
+            if course not in parent.user.available_courses:
+                course.save_folder_name = course.simplify_name(course.name)
+                parent.user.available_courses.append(course)
+                parent.addtocoursesview([course])
+            else:
+                parent.update_status_bar(f'{course} already registered')
+                logger.error(f'{course} already registered')
         else:
             parent.update_status_bar(f'Invalid course url {url}')
             logger.error(f'Invalid course url {url}')

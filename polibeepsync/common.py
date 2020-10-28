@@ -71,6 +71,9 @@ class RefreshCoursesThread(QThread):
 
     def run(self):
         most_recent = self.user.get_online_courses()
+        for course in self.user.available_courses:
+            if course.manually_added:
+                most_recent.append(course)
         last = self.user.available_courses
         new = most_recent - last
         removable = last - most_recent
@@ -301,6 +304,10 @@ class Course(GenericSet):
         self.sync = sync
         self.documents = Folder({'name': 'root'})
         self.save_folder_name = ""
+        try:
+            self.manually_added = course_dict['ManuallyAdded']
+        except KeyError:
+            self.manually_added = False
         self.size = 0  # in bytes
         self.downloaded_size = 0  # in bytes
 
@@ -799,6 +806,35 @@ class User():
         for elem in parsed_courses:
             courses.append(Course(elem))
         return courses
+
+    def scrape_course_main_page(self, friendly_url):
+        url = f'https://beep.metid.polimi.it/web/{friendly_url}'
+        commonlogger.debug(f'Downloading page {url}')
+        text = self.get_page(url).text
+        course_tree = etree.HTML(text)
+
+        info_url_xpath = '//a[@id="persguest"]/@href'
+        course_name_xpath = '//div[@id="beep-navigator"]//'\
+            'span[@class="site-name-content"]/text()'
+        extracted_url = course_tree.xpath(info_url_xpath)[0]
+        name = course_tree.xpath(course_name_xpath)[0]
+        parsed_query_str = parse_qs(extracted_url)
+
+        course_dict = {
+            # Corresponds to the groupId or the course name
+            # fortunately the groupId resolving works anyway
+            'friendlyURL': friendly_url,
+            # Course name
+            'name': name,
+            # Course ID, usually it's the same as group id
+            'classPK': parsed_query_str['_49_groupId'][0],
+            # Same as Course ID
+            'groupId': parsed_query_str['_49_groupId'][0],
+            # Courses have folderId 0
+            'folderId': 0
+        }
+        return course_dict
+
 
     def _courses_scraper(self, text):
         """

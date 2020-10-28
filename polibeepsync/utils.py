@@ -74,7 +74,7 @@ def check_course_url(user_obj, course_url):
             # If theres a match and we get a page then it's probably a valid
             # course. We return the friendly url
             if user_obj.get_page(course_url):
-                return match.group(0)
+                return match.group(1)
         except requests.TooManyRedirects:
             pass
 
