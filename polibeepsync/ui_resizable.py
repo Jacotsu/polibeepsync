@@ -11,9 +11,9 @@ from PySide2.QtWidgets import (QApplication,QVBoxLayout, QTabWidget,
                                QStyleOptionProgressBar, QGridLayout, QLabel,
                                QLineEdit, QSpacerItem, QSizePolicy,
                                QPushButton, QSpinBox, QCheckBox, QTextEdit,
-                               QDialogButtonBox)
+                               QDialogButtonBox, QPlainTextEdit)
 from PySide2.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
-                            QMetaObject, QFile)
+                            QMetaObject, QFile, Slot)
 
 from PySide2.QtUiTools import QUiLoader
 
@@ -120,77 +120,3 @@ class CheckBoxDelegate(QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         newValue = not bool(index.data())
         model.setData(index, newValue, Qt.EditRole)
-
-
-class Ui_Form(QMainWindow):
-    def setupUi(self, Form):
-        path = f"{os.path.dirname(__file__)}/new_gui.ui"
-        ui_file = QFile(path)
-        ui_file.open(QFile.ReadOnly)
-
-        loader = QUiLoader()
-        self._window = loader.load(ui_file)
-
-        # Set courses_tab stylesheet so that delegates can inherit it
-        self._window.courses_tab.setStyleSheet(self._window.styleSheet())
-
-        # Need to fix this courses list view
-        self._window.coursesView = CoursesListView(self._window.courses_tab)
-        self._window.courses_layout.addWidget(self._window.coursesView)
-        self._window.coursesView.setObjectName("coursesView")
-        self._window.coursesView2.deleteLater()
-
-        self.icon = QIcon(":/root/imgs/icons/polibeepsync.svg")
-
-        self.retranslateUi(self._window)
-        self._window.tabWidget.setCurrentIndex(0)
-        QMetaObject.connectSlotsByName(self._window)
-
-    def show(self):
-        self._window.show()
-
-    def retranslateUi(self, Form):
-        self._window.label_2.setText(QApplication.translate("Form", "Password",
-                                                            None))
-        self._window.label.setText(QApplication.translate("Form", "User code",
-                                                          None))
-        self._window.trylogin.setText(
-            QApplication.translate("Form", "Try logging in", None))
-        self._window.check_version.setText(
-            QApplication.translate("Form", "Check for new version", None))
-        self._window.statusbar.showMessage(
-            QApplication.translate("Form", "Login successful", None))
-        self._window.label_4.setText(
-            QApplication.translate("Form", "Root folder", None))
-        self._window.changeRootFolder.setText(
-            QApplication.translate("Form", "Change", None))
-        self._window.label_5.setText(QApplication.translate("Form",
-                                                            "Sync every",
-                                                            None))
-        self._window.label_6.setText(QApplication.translate("Form",
-                                                            "minutes", None))
-        self._window.syncNow.setText(QApplication.translate("Form",
-                                                            "Sync now", None))
-        self._window.addSyncNewCourses.setText(QApplication.translate("Form",
-                                                              "Automatically add and sync new available courses",
-                                                              None))
-        self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.settings_tab),
-                                  QApplication.translate("Form",
-                                                         "Settings",
-                                                         None))
-        self._window.refreshCourses.setText(
-            QApplication.translate("Form", "Refresh list", None))
-        self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.courses_tab),
-                                  QApplication.translate("Form", "Courses",
-                                                         None))
-        self._window.about.setText(QApplication.translate("Form", "About", None))
-        self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.status_tab),
-                                  QApplication.translate("Form", "Status",
-                                                         None))
-        #self._window.tabWidget.setTabText(self._window.tabWidget.indexOf(self._window.plugins_tab),
-        #                          QApplication.translate("Form", "Plugins",
-        #                                                 None))
-
-
-
-from polibeepsync import icone_rc

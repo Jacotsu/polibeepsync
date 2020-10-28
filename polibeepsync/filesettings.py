@@ -68,6 +68,13 @@ def settingsFromFile(infile, defaults):
     except ValueError:
         # can't convert to integer
         config['General']['UpdateEvery'] = defaults['UpdateEvery']
+    try:
+        if int(config['General']['DefaultTimeout']) <= 0:
+            config['General']['DefaultTimeout'] = defaults['DefaultTimeout']
+    except ValueError:
+        # can't convert to integer
+        config['General']['DefaultTimeout'] = defaults['DefaultTimeout']
+
     for value in ('SyncNewCourses', ):
         try:
             booleanvalue = config.getboolean('General', value)

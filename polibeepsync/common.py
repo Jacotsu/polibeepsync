@@ -571,6 +571,7 @@ class User():
         self.username = username
         self.password = password
         self._use_json_endpoint = use_json_endpoint
+        self.max_redirects = 5
         self.session = requests.Session()
         self.default_timeout = default_timeout
         self.logged = False
@@ -584,6 +585,7 @@ class User():
         # is malformed and it's not accepted by openssl
         # ENABLE ONLY IF MALFORMED CERTS ARE SERVED
         # self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
+        self.session.max_redirects = self.max_redirects
 
     def logout(self):
         """Logout.
@@ -591,6 +593,7 @@ class User():
         It re-creates a session and sets :attr:`logged` to ``False``."""
         del self.session
         self.session = requests.Session()
+        self.session.max_redirects = self.max_redirects
         # ENABLE ONLY IF MALFORMED CERTS ARE SERVED
         #self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
         self.logged = False

@@ -20,6 +20,7 @@ from datetime import datetime
 import logging
 import time
 import re
+import requests
 from PySide2.QtCore import Qt
 
 
@@ -63,3 +64,18 @@ def init_checkbox(qt_checkbox, dictionary, key, state_slot=None):
     else:
         logger.warning('No state change slot has been '
                        f'specified {qt_checkbox}')
+
+def check_course_url(user_obj, course_url):
+    url_regex = '^(?:https://|http://|)beep.metid.polimi.it/web/([\w\d\-\_]+)'
+    match = re.match(url_regex, course_url)
+
+    if match:
+        try:
+            # If theres a match and we get a page then it's probably a valid
+            # course. We return the friendly url
+            if user_obj.get_page(course_url):
+                return match.group(0)
+        except requests.TooManyRedirects:
+            pass
+
+    return False

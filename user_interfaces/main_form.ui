@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Di Campli Raffaele</author>
- <class>Form</class>
- <widget class="QMainWindow" name="Form">
+ <class>MainForm</class>
+ <widget class="QMainWindow" name="MainForm">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -650,7 +650,7 @@ QProgressBar::chunk:horizontal {
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -684,6 +684,13 @@ QProgressBar::chunk:horizontal {
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="AddCourse">
+              <property name="text">
+               <string>Add Course</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
@@ -699,7 +706,7 @@ QProgressBar::chunk:horizontal {
            </layout>
           </item>
           <item>
-           <widget class="QTableWidget" name="coursesView2">
+           <widget class="QTableWidget" name="coursesView">
             <property name="minimumSize">
              <size>
               <width>758</width>
@@ -1050,13 +1057,60 @@ QProgressBar::chunk:horizontal {
               <property name="text">
                <string>minutes</string>
               </property>
-              <property name="buddy">
-               <cstring>timerMinutes</cstring>
-              </property>
              </widget>
             </item>
             <item>
              <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Default connection timeout</string>
+              </property>
+              <property name="buddy">
+               <cstring>timeout</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="timeout">
+              <property name="buttonSymbols">
+               <enum>QAbstractSpinBox::PlusMinus</enum>
+              </property>
+              <property name="suffix">
+               <string/>
+              </property>
+              <property name="maximum">
+               <number>300</number>
+              </property>
+              <property name="value">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>seconds</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_6">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -1157,30 +1211,260 @@ QProgressBar::chunk:horizontal {
   <tabstop>trylogin</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>refreshCourses</tabstop>
-  <tabstop>coursesView2</tabstop>
+  <tabstop>AddCourse</tabstop>
+  <tabstop>coursesView</tabstop>
   <tabstop>check_version</tabstop>
+  <tabstop>about</tabstop>
   <tabstop>status</tabstop>
+  <tabstop>rootfolder</tabstop>
+  <tabstop>changeRootFolder</tabstop>
   <tabstop>timerMinutes</tabstop>
+  <tabstop>addSyncNewCourses</tabstop>
+  <tabstop>startupSync</tabstop>
  </tabstops>
  <resources>
   <include location="../uglytheme.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>trylogin</sender>
-   <signal>pressed()</signal>
-   <receiver>statusbar</receiver>
-   <slot>clearMessage()</slot>
+   <sender>userCode</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainForm</receiver>
+   <slot>set_usercode()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>71</x>
-     <y>129</y>
+     <x>109</x>
+     <y>23</y>
     </hint>
     <hint type="destinationlabel">
-     <x>399</x>
-     <y>563</y>
+     <x>225</x>
+     <y>22</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>password</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainForm</receiver>
+   <slot>set_password()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>157</x>
+     <y>57</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>370</x>
+     <y>52</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>syncNow</sender>
+   <signal>clicked()</signal>
+   <receiver>MainForm</receiver>
+   <slot>sync_files()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>697</x>
+     <y>26</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>633</x>
+     <y>22</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>trylogin</sender>
+   <signal>clicked()</signal>
+   <receiver>MainForm</receiver>
+   <slot>test_login()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>678</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>634</x>
+     <y>55</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>refreshCourses</sender>
+   <signal>clicked()</signal>
+   <receiver>MainForm</receiver>
+   <slot>refresh_courses()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>78</x>
+     <y>119</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>90</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>about</sender>
+   <signal>clicked()</signal>
+   <receiver>MainForm</receiver>
+   <slot>show_about()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>731</x>
+     <y>119</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>722</x>
+     <y>72</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_version</sender>
+   <signal>clicked()</signal>
+   <receiver>MainForm</receiver>
+   <slot>check_new_version()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>184</x>
+     <y>118</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>204</x>
+     <y>66</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>changeRootFolder</sender>
+   <signal>clicked()</signal>
+   <receiver>MainForm</receiver>
+   <slot>choose_rootdir()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>692</x>
+     <y>127</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>697</x>
+     <y>570</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>timerMinutes</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainForm</receiver>
+   <slot>updated_minutes(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>93</x>
+     <y>148</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>576</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>timeout</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainForm</receiver>
+   <slot>updated_default_timeout(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>237</x>
+     <y>164</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>273</x>
+     <y>574</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rootfolder</sender>
+   <signal>textEdited(QString)</signal>
+   <receiver>MainForm</receiver>
+   <slot>updated_root_folder(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>483</x>
+     <y>122</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>484</x>
+     <y>575</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AddCourse</sender>
+   <signal>clicked()</signal>
+   <receiver>MainForm</receiver>
+   <slot>show_add_course_popup()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>215</x>
+     <y>123</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>221</x>
+     <y>572</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>startupSync</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>MainForm</receiver>
+   <slot>sync_on_startup(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>35</x>
+     <y>220</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>48</x>
+     <y>69</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>addSyncNewCourses</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>MainForm</receiver>
+   <slot>sync_new(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>45</x>
+     <y>190</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>51</x>
+     <y>575</y>
     </hint>
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>show_add_course_popup()</slot>
+  <slot>set_usercode()</slot>
+  <slot>set_password()</slot>
+  <slot>test_login()</slot>
+  <slot>refresh_courses()</slot>
+  <slot>sync_files()</slot>
+  <slot>updated_minutes(int)</slot>
+  <slot>choose_rootdir()</slot>
+  <slot>check_new_version()</slot>
+  <slot>show_about()</slot>
+  <slot>updated_default_timeout(int)</slot>
+  <slot>updated_root_folder(QString)</slot>
+  <slot>sync_on_startup(int)</slot>
+  <slot>sync_new(int)</slot>
+ </slots>
 </ui>

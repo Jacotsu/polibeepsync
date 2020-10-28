@@ -23,19 +23,21 @@ import sys
 import logging
 import json
 import keyring
+from appdirs import user_config_dir, user_data_dir
+from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot, QTimer)
+from PySide2.QtGui import (QTextCursor, QCursor, QIcon)
+from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog,
+                               QMainWindow, QSystemTrayIcon, QApplication,
+                               QMessageBox, QSizePolicy, QDialog)
 from polibeepsync.common import (User, Folder, Course, DownloadThread,
                                  LoginThread, find_version, MySignal,
                                  RefreshCoursesThread, SignalLoggingHandler)
 from polibeepsync.cmdlineparser import create_parser
-from polibeepsync.ui_resizable import Ui_Form
+from polibeepsync.ui_resizable import CoursesListView
 from polibeepsync import filesettings
-from polibeepsync.utils import init_checkbox
-from appdirs import user_config_dir, user_data_dir
-
-from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot, QTimer)
-from PySide2.QtGui import (QTextCursor, QCursor)
-from PySide2.QtWidgets import (QWidget, QMenu, QAction, QFileDialog,
-                               QSystemTrayIcon, QApplication, QMessageBox)
+from polibeepsync.utils import init_checkbox, check_course_url
+from polibeepsync.ui.ui_main_form import Ui_MainForm
+from polibeepsync.ui.ui_add_course_popup import Ui_AddCoursePopup
 
 
 __version__ = find_version("__init__.py")
@@ -122,101 +124,77 @@ class CoursesListModel(QAbstractTableModel):
                 return "Download %"
 
 
-class MainWindow(Ui_Form):
+class MainWindow(QMainWindow, Ui_MainForm):
     def __init__(self, parent=None, args=None):
-        super(MainWindow, self).__init__(parent)
+        super().__init__(parent)
         self.appname = "poliBeePsync"
         self.settings_fname = 'pbs-settings.ini'
         self.data_fname = 'pbs.data'
-        self.setupUi(self)
-        self.w = QWidget()
+        self.settings_path = None
+        self.settings = None
+        self.icon = QIcon(":/root/imgs/icons/polibeepsync.svg")
 
         self.status_signal = MySignal()
-        self.status_signal.sig.connect(self.update_status_bar)
-
         self.logging_signal = MySignal()
-        self.logging_signal.sig.connect(self.myStream_message)
+
         logging_console_hdl = SignalLoggingHandler(self.logging_signal)
         logger.addHandler(logging_console_hdl)
         commonlogger.addHandler(logging_console_hdl)
 
-        self.timer = QTimer(self)
-
-        # settings_path is a string containing the path to settings
-        self.settings_path = None
-        # settings is a dictionary of settings
-        self.settings = None
         # load_settings() sets settings_path and settings
         self.load_settings()
         self.load_data()
         if args.default_timeout:
             self.user.default_timeout = args.default_timeout
 
-        self.timer.timeout.connect(self.syncfiles)
-        self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
+        self.setupUi(self)
 
+        self.w = QWidget()
+        self.timer = QTimer(self)
         self.loginthread = LoginThread(self.user, self)
-
-        self.loginthread.signal_error.sig.connect(self.update_status_bar)
-        self.loginthread.signal_ok.sig.connect(self.update_status_bar)
-
         self.refreshcoursesthread = RefreshCoursesThread(self.user, self)
-        self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
-        self.refreshcoursesthread.newcourses.sig.connect(self.addtocoursesview)
-        self.refreshcoursesthread.newcourses.sig.connect(self.syncnewcourses)
-        self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
-
         self.downloadthread = DownloadThread(self.user,
                                              self.settings['RootFolder'],
                                              self)
-        self.downloadthread.dumpuser.sig.connect(self.dumpUser)
-        self.downloadthread.download_signal.connect(
-            self.update_course_download)
-        self.downloadthread.initial_sizes.connect(self.setinizialsizes)
-        self.downloadthread.date_signal.connect(self.update_file_localtime)
 
-        self._window.userCode.setText(str(self.user.username))
-        self._window.userCode.editingFinished.connect(self.setusercode)
-        self._window.password.setText(self.user.password)
-        self._window.password.editingFinished.connect(self.setpassword)
-        self._window.trylogin.clicked.connect(self.testlogin)
+        self.add_course_popup = AddCoursePopup(self)
 
-        self._window.courses_model = CoursesListModel(self.user.
-                                                      available_courses)
-        self._window.coursesView.setModel(self._window.courses_model)
+        self.userCode.setText(str(self.user.username))
+        self.password.setText(self.user.password)
+        self.courses_model = CoursesListModel(self.user.available_courses)
+
+        self.coursesView.deleteLater()
+        self.coursesView = CoursesListView(self.courses_tab)
+        self.coursesView.setStyleSheet(self.styleSheet())
+        self.courses_layout.addWidget(self.coursesView)
+        self.coursesView.setObjectName("coursesView")
+
+        self.coursesView.setModel(self.courses_model)
+
         self._resizeview()
-        self._window.refreshCourses.clicked.connect(self.refreshcourses)
 
-        self._window.syncNow.clicked.connect(self.syncfiles)
+        self.rootfolder.setText(self.settings['RootFolder'])
 
-        self._window.rootfolder.setText(self.settings['RootFolder'])
-        self._window.rootfolder.textChanged.connect(self.rootfolderslot)
+        init_checkbox(self.addSyncNewCourses, self.settings, 'SyncNewCourses')
 
-        init_checkbox(self._window.addSyncNewCourses, self.settings,
-                      'SyncNewCourses', state_slot=self.syncnewslot)
+        init_checkbox(self.startupSync, self.settings, 'SyncOnStartup')
 
-        init_checkbox(self._window.startupSync, self.settings,
-                      'SyncOnStartup', state_slot=self.sync_on_startup_slot)
+        self.timerMinutes.setValue(int(self.settings['UpdateEvery']))
+        self.timeout.setValue(int(self.settings['DefaultTimeout']))
 
-        self._window.timerMinutes.setValue(int(self.settings['UpdateEvery']))
-        self._window.timerMinutes.valueChanged.connect(self.updateminuteslot)
-
-        self._window.changeRootFolder.clicked.connect(self.chooserootdir)
-        self._window.version_label.setText("Current version: {}"
-                                           .format(__version__))
-        self._window.check_version.clicked.connect(self.checknewversion)
-
-        self._window.about.clicked.connect(self.showabout)
+        self.version_label.setText(f"Current version: {__version__}")
 
         self.trayIconMenu = QMenu()
         self.trayIcon = QSystemTrayIcon(self.icon, self.w)
-        self.trayIcon.activated.connect(self._activate_traymenu)
         self.createTray()
+
+        self.__connect_signals()
+        self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
 
         try:
             if args.sync_on_startup or \
                self.settings['SyncOnStartup'] == str(True):
-                self.syncfiles()
+                self.sync_files()
         except KeyError:
             pass
         if args.sync_interval:
@@ -225,8 +203,33 @@ class MainWindow(Ui_Form):
             self.timer.start(1000 * 60 * args.sync_interval)
 
     @Slot()
-    def showabout(self, **kwargs):
-        msgBox = QMessageBox(self._window)
+    def show_add_course_popup(self):
+        self.add_course_popup.show()
+
+    def __connect_signals(self):
+        self.status_signal.sig.connect(self.update_status_bar)
+        self.logging_signal.sig.connect(self.myStream_message)
+        self.timer.timeout.connect(self.sync_files)
+
+        self.loginthread.signal_error.sig.connect(self.update_status_bar)
+        self.loginthread.signal_ok.sig.connect(self.update_status_bar)
+
+        self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
+        self.refreshcoursesthread.newcourses.sig.connect(self.addtocoursesview)
+        self.refreshcoursesthread.newcourses.sig.connect(self.syncnewcourses)
+        self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
+
+        self.downloadthread.dumpuser.sig.connect(self.dumpUser)
+        self.downloadthread.download_signal.connect(
+            self.update_course_download)
+        self.downloadthread.initial_sizes.connect(self.setinizialsizes)
+        self.downloadthread.date_signal.connect(self.update_file_localtime)
+
+        self.trayIcon.activated.connect(self._activate_traymenu)
+
+    @Slot()
+    def show_about(self, **kwargs):
+        msgBox = QMessageBox(self)
         msgBox.setTextFormat(Qt.RichText)
         msgBox.setWindowTitle('About poliBeePSync')
         text = """
@@ -263,11 +266,11 @@ class MainWindow(Ui_Form):
 
     @Slot()
     def _resizeview(self, **kwargs):
-        self._window.coursesView.setColumnWidth(3, 160)
-        self._window.coursesView.resizeColumnToContents(1)
-        self._window.coursesView.setColumnWidth(0, 320)
+        self.coursesView.setColumnWidth(3, 160)
+        self.coursesView.resizeColumnToContents(1)
+        self.coursesView.setColumnWidth(0, 320)
 
-    def checknewversion(self):
+    def check_new_version(self):
         rawdata = requests.get('https://pypi.python.org/pypi/'
                                'poliBeePsync/json')
         latest = json.loads(rawdata.text)['info']['version']
@@ -278,7 +281,7 @@ class MainWindow(Ui_Form):
                 ' to find out how to upgrade'.format(__version__, latest)
         else:
             newtext = "Current version: {} up-to-date.".format(__version__)
-        self._window.version_label.setText(newtext)
+        self.version_label.setText(newtext)
 
     def _update_time(self, folder, file, path_list):
         logger.debug(f'inside {folder.name}')
@@ -311,9 +314,9 @@ class MainWindow(Ui_Form):
         if course in self.user.available_courses:
             updating = self.user.available_courses[course.name]
             updating.downloaded_size = course.downloaded_size
-            row = self._window.courses_model.courses.index(updating)
-            where = self._window.courses_model.index(row, 3)
-            self._window.courses_model.dataChanged.emit(where, where)
+            row = self.courses_model.courses.index(updating)
+            where = self.courses_model.index(row, 3)
+            self.courses_model.dataChanged.emit(where, where)
 
     @Slot(Course)
     def setinizialsizes(self, course, **kwargs):
@@ -321,9 +324,9 @@ class MainWindow(Ui_Form):
             updating = self.user.available_courses[course.name]
             updating.downloaded_size = course.downloaded_size
             updating.size = course.size
-            row = self._window.courses_model.courses.index(updating)
-            where = self._window.courses_model.index(row, 3)
-            self._window.courses_model.dataChanged.emit(where, where)
+            row = self.courses_model.courses.index(updating)
+            where = self.courses_model.index(row, 3)
+            self.courses_model.dataChanged.emit(where, where)
             self.dumpUser()
 
     @Slot(list)
@@ -350,7 +353,8 @@ class MainWindow(Ui_Form):
             'UpdateEvery': '480',
             'RootFolder': os.path.join(os.path.expanduser('~'), self.appname),
             'SyncNewCourses': 'True',
-            'SyncOnStartup': 'False'
+            'SyncOnStartup': 'False',
+            'DefaultTimeout': '10'
         }
         self.settings = filesettings.settingsFromFile(self.settings_path,
                                                       defaults)
@@ -378,10 +382,10 @@ class MainWindow(Ui_Form):
 
     @Slot(str)
     def update_status_bar(self, status):
-        self._window.statusbar.showMessage(status)
+        self.statusbar.showMessage(status)
 
     @Slot(int)
-    def syncnewslot(self, state):
+    def sync_new(self, state):
         if state == 2:
             self.settings['SyncNewCourses'] = 'True'
             logger.info('New courses will now be automatically synced')
@@ -391,7 +395,7 @@ class MainWindow(Ui_Form):
         filesettings.settingsToFile(self.settings, self.settings_path)
 
     @Slot(int)
-    def sync_on_startup_slot(self, state):
+    def sync_on_startup(self, state):
         if state == 2:
             self.settings['SyncOnStartup'] = 'True'
             logger.info('All courses will be synced at startup')
@@ -401,43 +405,45 @@ class MainWindow(Ui_Form):
         filesettings.settingsToFile(self.settings, self.settings_path)
 
     @Slot(int)
-    def updateminuteslot(self, minutes):
+    def updated_minutes(self, minutes):
         self.settings['UpdateEvery'] = str(minutes)
         filesettings.settingsToFile(self.settings, self.settings_path)
         self.timer.start(1000 * 60 * int(self.settings['UpdateEvery']))
         logger.info('All courses will be automatically synced every '
                     f'{self.settings["UpdateEvery"]} minutes')
 
+    @Slot(int)
+    def updated_default_timeout(self, seconds):
+        self.settings['DefaultTimeout'] = str(seconds)
+        filesettings.settingsToFile(self.settings, self.settings_path)
+        self.user.default_timeout = seconds
+        logger.info(f'Connection timeout set to {seconds} seconds')
+
     @Slot(str)
-    def rootfolderslot(self, path):
+    def updated_root_folder(self, path):
         self.settings['RootFolder'] = path
         filesettings.settingsToFile(self.settings, self.settings_path)
         logger.info(f'Root folder set to: {path}')
 
     @Slot()
-    def chooserootdir(self):
+    def choose_rootdir(self):
         currentdir = self.settings['RootFolder']
         flags = QFileDialog.DontResolveSymlinks | QFileDialog.ShowDirsOnly
         newroot = QFileDialog.getExistingDirectory(None,
                                                    "Open Directory",
                                                    currentdir, flags)
         if newroot != "" and str(newroot) != currentdir:
+            logger.info(f'Root folder set to: {newroot}')
             self.settings['RootFolder'] = str(newroot)
             filesettings.settingsToFile(self.settings, self.settings_path)
-            self._window.rootfolder.setText(newroot)
-            # we delete the already present downloadthread and recreate it
-            # because otherwise it uses the old download folder. I don't know
-            # if there's a cleaner approach
-            del self.downloadthread
-            self.downloadthread = DownloadThread(self.user,
-                                                 self.settings['RootFolder'],
-                                                 self)
+            self.rootfolder.setText(newroot)
+            self.downloadthread.topdir = self.settings['RootFolder']
             self.downloadthread.dumpuser.sig.connect(self.dumpUser)
             self.dumpUser()
 
     @Slot()
-    def setusercode(self):
-        newcode = self._window.userCode.text()
+    def set_usercode(self):
+        newcode = self.userCode.text()
         try:
             if len(newcode) == 8:
                 self.user.username = newcode
@@ -453,8 +459,8 @@ class MainWindow(Ui_Form):
                          'instance to disk.', exc_info=True)
 
     @Slot()
-    def setpassword(self):
-        newpass = self._window.password.text()
+    def set_password(self):
+        newpass = self.password.text()
         self.user.password = newpass
         try:
             keyring.set_password('beep.metid.polimi.it',
@@ -469,7 +475,7 @@ class MainWindow(Ui_Form):
                          'instance to disk.', exc_info=True)
 
     @Slot()
-    def testlogin(self):
+    def test_login(self):
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
             self.loginthread.start()
@@ -478,13 +484,13 @@ class MainWindow(Ui_Form):
     @Slot(list)
     def addtocoursesview(self, addlist):
         for elem in addlist:
-            self._window.courses_model.insertRows(0, 1, elem)
+            self.courses_model.insertRows(0, 1, elem)
 
     @Slot(list)
     def rmfromcoursesview(self, removelist):
         for elem in removelist:
-            index = self._window.courses_model.courses.index(elem)
-            self._window.courses_model.removeRows(index, 1)
+            index = self.courses_model.courses.index(elem)
+            self.courses_model.removeRows(index, 1)
 
     @Slot()
     def dumpUser(self):
@@ -497,21 +503,21 @@ class MainWindow(Ui_Form):
             self.user.password = tmp_pw
 
     @Slot()
-    def refreshcourses(self):
+    def refresh_courses(self):
         self.status_signal.sig.emit('Searching for online updates...'
                                     'this may take a while.')
         if not self.loginthread.isRunning():
             self.loginthread.exiting = False
-            self.loginthread.signal_ok.sig.connect(self.do_refreshcourses)
+            self.loginthread.signal_ok.sig.connect(self.do_refresh_courses)
             self.loginthread.start()
 
-    def do_refreshcourses(self):
-        self.loginthread.signal_ok.sig.disconnect(self.do_refreshcourses)
+    def do_refresh_courses(self):
+        self.loginthread.signal_ok.sig.disconnect(self.do_refresh_courses)
         if not self.refreshcoursesthread.isRunning():
             self.refreshcoursesthread.start()
 
     @Slot()
-    def syncfiles(self):
+    def sync_files(self):
         # we delete the already present downloadthread and recreate it
         # because otherwise it uses the old download folder. I don't know
         # if there's a cleaner approach
@@ -521,24 +527,24 @@ class MainWindow(Ui_Form):
                                              self)
         self.downloadthread.dumpuser.sig.connect(self.dumpUser)
 
-        self.refreshcoursesthread.finished.connect(self.do_syncfiles)
-        self.refreshcourses()
+        self.refreshcoursesthread.finished.connect(self.do_sync_files)
+        self.refresh_courses()
 
     @Slot()
-    def do_syncfiles(self):
-        self.refreshcoursesthread.finished.disconnect(self.do_syncfiles)
+    def do_sync_files(self):
+        self.refreshcoursesthread.finished.disconnect(self.do_sync_files)
         self.status_signal.sig.emit('Started syncing.')
         self.downloadthread.start()
 
     @Slot(str)
     def myStream_message(self, message):
-        self._window.status.moveCursor(QTextCursor.End)
-        self._window.status.insertPlainText(message + "\n")
+        self.status.moveCursor(QTextCursor.End)
+        self.status.insertPlainText(message + "\n")
 
     def restore_window(self):
-        self._window.setWindowState(self.windowState() & ~Qt.WindowMinimized |
+        self.setWindowState(self.windowState() & ~Qt.WindowMinimized |
                                     Qt.WindowActive)
-        self._window.show()
+        self.show()
 
     def createTray(self):
         restoreAction = QAction("&Restore", self,
@@ -559,8 +565,36 @@ class MainWindow(Ui_Form):
             self.trayIconMenu.popup(QCursor.pos())
 
     def closeEvent(self, event):
-        self._window.hide()
+        self.hide()
         event.ignore()
+
+
+class AddCoursePopup(QDialog, Ui_AddCoursePopup):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+
+    @Slot()
+    def accept(self):
+        url = self.CourseUrl.toPlainText()
+        parent = self.parent()
+        logger.debug(f'Inserted course url {url}')
+        friendly_url = check_course_url(parent.user, url)
+        if friendly_url:
+            parent.update_status_bar(f'Added course from {url}')
+            logger.info(f'Added course from {url}')
+
+        else:
+            parent.update_status_bar(f'Invalid course url {url}')
+            logger.error(f'Invalid course url {url}')
+
+        self.CourseUrl.clear()
+        self.hide()
+
+    @Slot()
+    def reject(self):
+        self.CourseUrl.clear()
+        self.hide()
 
 
 def main():
