@@ -1178,9 +1178,23 @@ def sizeof_fmt(num, suffix='B'):
 
 
 class SignalLoggingHandler(logging.Handler):
-    def __init__(self, signal):
+    def __init__(self, signal, forward_file_descriptor=None):
         super(SignalLoggingHandler, self).__init__()
 
+        if forward_file_descriptor:
+            self.forward_fd = forward_file_descriptor
+
         def sig_emit(record):
-            signal.sig.emit(record.msg)
+            if isinstance(record, str):
+                signal.sig.emit(record)
+            else:
+                signal.sig.emit(record.msg)
         self.emit = sig_emit
+
+    def write(self, message):
+        if self.forward_fd:
+            self.forward_fd.write(message)
+        self.emit(message)
+
+    def flush(self):
+        self.forward_fd.flush()

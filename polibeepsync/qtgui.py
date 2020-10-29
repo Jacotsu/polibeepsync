@@ -137,7 +137,11 @@ class MainWindow(QMainWindow, Ui_MainForm):
         self.status_signal = MySignal()
         self.logging_signal = MySignal()
 
-        logging_console_hdl = SignalLoggingHandler(self.logging_signal)
+        logging_console_hdl = SignalLoggingHandler(
+            self.logging_signal, sys.stderr
+        )
+        sys.stderr = logging_console_hdl
+
         logger.addHandler(logging_console_hdl)
         commonlogger.addHandler(logging_console_hdl)
 
