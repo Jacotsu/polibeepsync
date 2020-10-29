@@ -21,7 +21,7 @@ from lxml import etree
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timedelta, tzinfo
 from functools import partial
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse, parse_qs
 import requests
 from urllib.parse import urlsplit
 from polibeepsync.utils import raw_date_to_datetime, debug_dump
@@ -827,13 +827,16 @@ class User():
         text = self.get_page(url).text
         course_tree = etree.HTML(text)
 
-        info_url_xpath = '//form[@name="ctem_3_fm"]//'\
-            'select[@name="_3_groupId"]//'\
-            'option[normalize-space(text())="This Site"]/@value'
-        course_name_xpath = '//div[@id="beep-navigator"]//'\
-            'span[@class="site-name-content"]/text()'
-        groupId = course_tree.xpath(info_url_xpath)[0]
-        name = course_tree.xpath(course_name_xpath)[0]
+        info_a_xpath = '//div[@id="heading"]//a[@class="logo custom-logo"]'
+        course_name_xpath = 'img/@alt'
+        course_url_xpath = '@href'
+
+        info_anchor = course_tree.xpath(info_a_xpath)[0]
+        course_full_url = info_anchor.xpath(course_url_xpath)[0]
+        name = info_anchor.xpath(course_name_xpath)[0]
+
+        parse_course_url = urlparse(course_full_url)
+        groupId = parse_qs(parse_course_url.query)['_49_groupId'][0]
 
         course_dict = {
             # Corresponds to the groupId or the course name
