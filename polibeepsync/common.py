@@ -578,7 +578,7 @@ class User():
         self.username = username
         self.password = password
         self._use_json_endpoint = use_json_endpoint
-        self.max_redirects = 5
+        self.max_redirects = 10
         self.session = requests.Session()
         self.default_timeout = default_timeout
         self.logged = False
