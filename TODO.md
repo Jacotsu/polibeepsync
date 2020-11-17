@@ -1,5 +1,6 @@
 ## To Do
 
+- [ ] Write make rule for interface files autoregeneration
 
 - [ ] Use qsettings for gui status persistency
 
@@ -16,13 +17,13 @@
 - [ ] Add plugin system which allows to download material from non beep
       teachers' website
 
-- [ ] Update docs to explain new command line options
-
-- [ ] Docs version autoupdate
-
 - [ ] Implement graceful failure when a timeout occurs
 
 - [ ] Write tests for invalid returned file dictionaries
+
+- [ ] Document how to reset the software
+
+- [ ] Document how to update the graphical interface
 
 - ~~[ ] Bypass BeeP's login api and use directly unicalogin (not possible without serious patching)~~
 
@@ -49,3 +50,7 @@
 - [X] Implement multithreaded download
 
 - [X] Fix bug where syncs downloaded size exceeds actual size
+
+- [X] Update docs to explain new command line options
+
+- [X] Docs version autoupdate
