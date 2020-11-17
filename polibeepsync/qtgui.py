@@ -637,6 +637,8 @@ def main():
     logger.addHandler(handler)
     commonlogger.addHandler(handler)
 
+    # Fixes PyQt5 startup hang on Os X big sur
+    os.environ["QT_MAC_WANTS_LAYER"] = "1"
     app = QApplication(sys.argv)
 
     frame = MainWindow(args=args)
