@@ -8,7 +8,7 @@ Linux
 ------
 For removal and upgrading consult your package manager manual
 
-Ubuntu 19.10
+Ubuntu 20.10
 ^^^^^^^^^^^^
 .. code-block:: bash
 
@@ -40,6 +40,22 @@ activate the virtual environment
 
     cd ~/polibeepsync-venv
     source bin/activate
+
+
+Database deletion
+^^^^^^^^^^^^^^^^^
+
+.. note::
+
+    This operation is safe and will only delete the internal database and **NOT** the already downloaded files.
+    But keep in mind that the files will be **REDOWNLOADED** so any changes to them will be **LOST**.
+
+Open a terminal and type the following command
+
+.. code:: bash
+
+    rm ~/.local/share/poliBeePsync/pbs.data
+
 
 Removing
 ^^^^^^^^^^^^^
@@ -79,8 +95,18 @@ Start > Search > polibeepsync > right click > uninstall
 Removing leftover data
 ^^^^^^^^^^^^^^^^^^^^^^^
 The next step is removing the folders in which settings and data are saved.
-Open your user folder, make hidden files and folders visible, open
-``AppData\Local`` and remove the folder named ``poliBeePsync``.
+Remove the following folder ``C:\Users\%USERNAME%\AppData\Local\poliBeePsync\``.
+
+Database deletion
+^^^^^^^^^^^^^^^^^
+
+.. note::
+
+    This operation is safe and will only delete the internal database and **NOT** the already downloaded files.
+    But keep in mind that the files will be **REDOWNLOADED** so any changes to them will be **LOST**.
+
+Remove the following file ``C:\Users\%USERNAME%\AppData\Local\poliBeePsync\poliBeePsync\pbs.data``
+
 
 Start the application automatically at boot (Windows)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -99,7 +125,7 @@ start automatically.
 
 Mac Os
 -------
-The App has been tested and built for Mac Os Catalina, if the app doesn't work
+The App has been tested and built for Mac Os Big Sur, if the app doesn't work
 try to install it through the direct method.
 
 Installing
@@ -123,9 +149,26 @@ Drag the app file from the Applications directory to the bin
 
 Removing leftover data
 ^^^^^^^^^^^^^^^^^^^^^^^
-Delete the following folder:
+Open a terminal and type the following command
 
-- `/Users/$YOUR_USERNAME/Library/Application Support/poliBeePsync`
+.. code:: bash
+
+    rm -rf /Users/$USER/Library/Application Support/poliBeePsync
+
+Database deletion
+^^^^^^^^^^^^^^^^^
+
+.. note::
+
+    This operation is safe and will only delete the internal database and **NOT** the already downloaded files.
+    But keep in mind that the files will be **REDOWNLOADED** so any changes to them will be **LOST**.
+
+Open a terminal and type the following command
+
+.. code:: bash
+
+    rm /Users/$USER/Library/Application Support/poliBeePsync/pbs.data
+
 
 Direct installation
 -------------------
