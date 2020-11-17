@@ -1,11 +1,7 @@
-PySide2>=5.11.0
-appdirs>=1.4.0
-beautifulsoup4>=4.3.2
+.
 behave>=1.2.4
 cov-core>=1.15.0
 coverage>=3.7.1
-keyring>=18.0.0
-lxml
 pluggy
 py>=1.5.4
 pyflakes>=0.8.1
@@ -13,7 +9,6 @@ pyinstaller
 pyparsing>=2.0.3
 pytest-cov>=1.8.1
 pytest>=3.6.3
-requests>=2.3.0
 signalslot
 stdeb
 twine
