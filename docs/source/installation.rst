@@ -1,3 +1,6 @@
+.. toctree::
+  :maxdepth: 1
+
 Installing, Upgrading or Removing
 =================================
 

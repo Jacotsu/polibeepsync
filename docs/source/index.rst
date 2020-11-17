@@ -7,6 +7,7 @@ What is poliBeePsync?
 
   installation
   quickstart
+  user_interface
   developing
 
 
