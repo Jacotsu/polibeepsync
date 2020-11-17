@@ -31,7 +31,7 @@ polibeepsync.filesettings module
 polibeepsync.icone\_rc module
 -----------------------------
 
-.. automodule:: polibeepsync.icone_rc
+.. automodule:: polibeepsync.ui.uglytheme_rc
     :members:
     :undoc-members:
     :show-inheritance:

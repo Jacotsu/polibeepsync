@@ -46,3 +46,18 @@ In a terminal
 
     source ~/polibeepsync-venv/bin/activate
     polibeepsync --log-level DEBUG_LEVEL
+
+
+How to enable QT5 verbose logging
+=================================
+
+In some cases it may be useful to get a log file of the underlying QT5 framework, especially when there are
+problems with the graphicals interface that are not shown in the normal debug log.
+To enable thee verbose logging mode you have to set the following environment variable
+:code:`QT_LOGGING_RULES="*.debug=true"`.
+
+To start polibeepsync in full verbose logging mode use the following command
+
+.. code:: bash
+
+    QT_LOGGING_RULES="*.debug=true" polibeepsync --log-level debug
