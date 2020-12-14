@@ -28,6 +28,7 @@ from polibeepsync.utils import raw_date_to_datetime, debug_dump
 import os
 import logging
 import re
+from uuid import UUID
 from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
 from pyparsing import (Word, alphanums, alphas8bit, alphas, nums, Group,
@@ -300,16 +301,51 @@ class Course(GenericSet):
                            f'sync={sync}')
         super(Course, self).__init__()
         self._course_dict = course_dict
-
-        self.sync = sync
         self.documents = Folder({'name': 'root'})
-        self.save_folder_name = ""
-        try:
-            self.manually_added = course_dict['ManuallyAdded']
-        except KeyError:
-            self.manually_added = False
-        self.size = 0  # in bytes
-        self.downloaded_size = 0  # in bytes
+
+    @property
+    def manually_added(self):
+        return self._course_dict['ManuallyAdded']
+
+    @manually_added.setter
+    def manually_added(self, val: bool):
+        self._course_dict['ManuallyAdded'] = val
+
+    @property
+    def save_folder_name(self):
+        return self._course_dict['saveFolderName']
+
+    @save_folder_name.setter
+    def save_folder_name(self, save: bool):
+        self._course_dict['saveFolderName'] = save
+
+    @property
+    def sync(self):
+        return self._course_dict['sync']
+
+    @sync.setter
+    def sync(self, do_sync: bool):
+        self._course_dict['sync'] = do_sync
+
+    @property
+    def size(self):
+        # in bytes
+        return self._course_dict['size']
+
+    @size.setter
+    def size(self, new_size):
+        # in bytes
+        self._course_dict['size'] = new_size
+
+    @property
+    def downloaded_size(self):
+        # in bytes
+        return self._course_dict['downloadedSize']
+
+    @downloaded_size.setter
+    def downloaded_size(self, new_size):
+        # in bytes
+        self._course_dict['downloadedSize'] = new_size
 
     @property
     def documents_url(self):
@@ -380,12 +416,29 @@ class Course(GenericSet):
 
 class CourseFile():
     def __init__(self, file_dict):
-        self._file_dict = file_dict
-        self.local_creation_time = None
         self.gmt1 = GMT1()
-        self.sync = True
+        self._file_dict = file_dict
         self.save_folder_name = self._file_dict['title']
+
+        self.local_creation_time = None
+        self.sync = True
         self.downloaded_size = 0
+
+    @property
+    def sync(self):
+        return self._file_dict['sync']
+
+    @sync.setter
+    def sync(self, val: bool):
+        self._file_dict['sync'] = val
+
+    @property
+    def local_creation_time(self):
+        return self._file_dict['localCreationTime']
+
+    @local_creation_time.setter
+    def local_creation_time(self, time):
+        self._file_dict['localCreationTime'] = time
 
     @property
     def extension(self):
@@ -413,6 +466,15 @@ class CourseFile():
         # Beep's timestamp is an epoch with millisecond resolution
         return datetime.fromtimestamp(self._file_dict["modifiedDate"]/1000,
                                       self.gmt1)
+
+    @property
+    def downloaded_size(self):
+        # in bytes
+        return self._file_dict["downloadedSize"]
+
+    @downloaded_size.setter
+    def downloaded_size(self, val):
+        self._file_dict["downloadedSize"] = val
 
     @property
     def size(self):
@@ -778,10 +840,12 @@ class User():
             except KeyError:
                 pass
 
+        # 30 s as minimum timeout time because if the password is about
+        # to expire, beep's login response becomes significantly slower
         second_response = self.session.post(url,
                                             data=payload,
                                             headers=login_headers,
-                                            timeout=self.default_timeout)
+                                            timeout=30 + self.default_timeout)
 
         login_soup = BeautifulSoup(second_response.text, "lxml")
         try:
@@ -903,7 +967,8 @@ class User():
                     # Same as Course ID
                     'groupId': parsed_query_str['_29_groupId'][0],
                     # Courses have folderId 0
-                    'folderId': 0
+                    'folderId': 0,
+                    'ManuallyAdded': False
                 }
                 temporary_courses.append(course_dict)
             except ParseException:
@@ -1082,13 +1147,14 @@ class User():
 
                     try:
                         file_dict = {
-                            'extension': extension,
+                            'extension': extension.replace('.', ''),
                             'version': file_version,
                             'fileEntryId': file_entry_id,
                             'title': filename,
                             'groupId': folder_dict['groupId'],
-                            'uuid': download_page_tree.xpath(url_xpath)[0]
-                            .split("/")[-1],
+                            'uuid': UUID(
+                                download_page_tree.xpath(url_xpath)[0]
+                                .split("/")[-1]),
                             'modifiedDate': date.timestamp()*1000,
                             'size': beep_size_to_byte_size(raw_size)
                         }
