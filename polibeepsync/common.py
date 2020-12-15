@@ -28,7 +28,6 @@ from polibeepsync.utils import raw_date_to_datetime, debug_dump
 import os
 import logging
 import re
-from uuid import UUID
 from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
 from pyparsing import (Word, alphanums, alphas8bit, alphas, nums, Group,
@@ -297,7 +296,7 @@ class Courses(GenericSet):
 class Course(GenericSet):
     def __init__(self, course_dict, sync=False):
         commonlogger.debug(f'Creating course with name={course_dict["name"]},'
-                           f' documents_url={course_dict["friendlyURL"]}, '
+                           f' documents_url={course_dict["friendlyUrl"]}, '
                            f'sync={sync}')
         super(Course, self).__init__()
         self._course_dict = course_dict
@@ -316,7 +315,7 @@ class Course(GenericSet):
         return self._course_dict['saveFolderName']
 
     @save_folder_name.setter
-    def save_folder_name(self, save: bool):
+    def save_folder_name(self, save: str):
         self._course_dict['saveFolderName'] = save
 
     @property
@@ -343,14 +342,14 @@ class Course(GenericSet):
         return self._course_dict['downloadedSize']
 
     @downloaded_size.setter
-    def downloaded_size(self, new_size):
+    def downloaded_size(self, new_size: int):
         # in bytes
         self._course_dict['downloadedSize'] = new_size
 
     @property
     def documents_url(self):
         return 'https://beep.metid.polimi.it/web/' \
-            f'{self._course_dict["friendlyURL"]}/documenti-e-media'
+            f'{self._course_dict["friendlyUrl"]}/documenti-e-media'
 
     @property
     def name(self):
@@ -840,12 +839,12 @@ class User():
             except KeyError:
                 pass
 
-        # 30 s as minimum timeout time because if the password is about
+        # 1m as minimum timeout time because if the password is about
         # to expire, beep's login response becomes significantly slower
         second_response = self.session.post(url,
                                             data=payload,
                                             headers=login_headers,
-                                            timeout=30 + self.default_timeout)
+                                            timeout=60 + self.default_timeout)
 
         login_soup = BeautifulSoup(second_response.text, "lxml")
         try:
@@ -905,7 +904,7 @@ class User():
         course_dict = {
             # Corresponds to the groupId or the course name
             # fortunately the groupId resolving works anyway
-            'friendlyURL': friendly_url,
+            'friendlyUrl': friendly_url,
             # Course name
             'name': name,
             # Course ID, usually it's the same as group id
@@ -913,7 +912,10 @@ class User():
             # Same as Course ID
             'groupId': groupId,
             # Courses have folderId 0
-            'folderId': 0
+            'folderId': 0,
+            'ManuallyAdded': False,
+            'size': 0,
+            'downloadedSize': 0
         }
         return course_dict
 
@@ -923,7 +925,7 @@ class User():
         This function scrapes the main beep page to look for newcourses
         the returned dictionaries have the following structure:
             - name: The name of the course
-            - friendlyURL: The URL of the course
+            - friendlyUrl: The URL of the course
             - classPK: The unique groupID assigned from liferay
         :return: A list of dictionaries with the scraped courses
         :rtype: List
@@ -959,7 +961,7 @@ class User():
                 course_dict = {
                     # Corresponds to the groupId or the course name
                     # fortunately the groupId resolving works anyway
-                    'friendlyURL': parsed_query_str['_29_groupId'][0],
+                    'friendlyUrl': parsed_query_str['_29_groupId'][0],
                     # Course name
                     'name': course[0],
                     # Course ID, usually it's the same as group id
@@ -968,7 +970,10 @@ class User():
                     'groupId': parsed_query_str['_29_groupId'][0],
                     # Courses have folderId 0
                     'folderId': 0,
-                    'ManuallyAdded': False
+                    'ManuallyAdded': False,
+                    'size': 0,
+                    'downloadedSize': 0,
+                    'sync': False
                 }
                 temporary_courses.append(course_dict)
             except ParseException:
@@ -1152,9 +1157,8 @@ class User():
                             'fileEntryId': file_entry_id,
                             'title': filename,
                             'groupId': folder_dict['groupId'],
-                            'uuid': UUID(
-                                download_page_tree.xpath(url_xpath)[0]
-                                .split("/")[-1]),
+                            'uuid': download_page_tree.xpath(url_xpath)[0]
+                                .split("/")[-1],
                             'modifiedDate': date.timestamp()*1000,
                             'size': beep_size_to_byte_size(raw_size)
                         }
