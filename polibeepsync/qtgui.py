@@ -23,6 +23,7 @@ import sys
 import logging
 import json
 import keyring
+from packaging import version
 from appdirs import user_config_dir, user_data_dir
 from PySide2.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot, QTimer)
 from PySide2.QtGui import (QTextCursor, QCursor, QIcon)
@@ -38,6 +39,7 @@ from polibeepsync import filesettings
 from polibeepsync.utils import init_checkbox, check_course_url
 from polibeepsync.ui.ui_main_form import Ui_MainForm
 from polibeepsync.ui.ui_add_course_popup import Ui_AddCoursePopup
+from polibeepsync.database_manager import DatabaseManager
 
 
 __version__ = find_version("__init__.py")
@@ -129,10 +131,11 @@ class MainWindow(QMainWindow, Ui_MainForm):
         super().__init__(parent)
         self.appname = "poliBeePsync"
         self.settings_fname = 'pbs-settings.ini'
-        self.data_fname = 'pbs.data'
+        self.data_fname = 'pbs.sqlite3'
         self.settings_path = None
         self.settings = None
         self.icon = QIcon(":/root/imgs/icons/polibeepsync.svg")
+        self.db_mgr = None
 
         self.status_signal = MySignal()
         self.logging_signal = MySignal()
@@ -278,7 +281,7 @@ class MainWindow(QMainWindow, Ui_MainForm):
         rawdata = requests.get('https://pypi.python.org/pypi/'
                                'poliBeePsync/json')
         latest = json.loads(rawdata.text)['info']['version']
-        if latest != __version__:
+        if version.parse(latest) > version.parse(__version__)
             newtext = 'Current version: {}. Latest version: {}. '\
                 'Click <a href="https://jacotsu.github.io/polibeepsync/build/'\
                 'html/installation.html">here</a>'\
@@ -364,25 +367,19 @@ class MainWindow(QMainWindow, Ui_MainForm):
                                                       defaults)
 
     def load_data(self):
+        self.db_mgr = DatabaseManager(
+            os.path.join(user_data_dir(self.appname), self.data_fname)
+        )
         try:
-            with open(os.path.join(user_data_dir(self.appname),
-                                   self.data_fname), 'rb') as f:
-                self.user = pickle.load(f)
-                self.user.password = keyring\
-                    .get_password('beep.metid.polimi.it',
-                                  self.user.username)
-                logger.info("Data has been loaded successfully.")
-        except (EOFError, pickle.PickleError):
-            logger.error('Settings corrupted', exc_info=True)
+            username = self.db_mgr.get_key('username')
+            self.user = User(
+                username,
+                keyring.get_password('beep.metid.polimi.it', username)
+            )
+            self.user.available_courses = self.db_mgr.get_courses()
+            logger.info("Data has been loaded successfully.")
+        except LookupError:
             self.user = User('', '')
-
-        except FileNotFoundError:
-            logger.error('Settings file not found.')
-            self.user = User('', '')
-            logger.error("I couldn't find data in the"
-                         " predefined directory. Ignore this"
-                         "message if you're using poliBeePsync"
-                         " for the first time.")
 
     @Slot(str)
     def update_status_bar(self, status):
@@ -451,6 +448,7 @@ class MainWindow(QMainWindow, Ui_MainForm):
         try:
             if len(newcode) == 8:
                 self.user.username = newcode
+                self.db_mgr.set_key('username', newcode)
                 logger.info(f'User code changed to {newcode}.')
                 keyring.set_password('beep.metid.polimi.it',
                                      self.user.username,
@@ -498,13 +496,7 @@ class MainWindow(QMainWindow, Ui_MainForm):
 
     @Slot()
     def dumpUser(self):
-        # we don't use the message...
-        with open(os.path.join(user_data_dir(self.appname),
-                               self.data_fname), 'wb') as f:
-            tmp_pw = self.user.password
-            self.user.password = ''
-            pickle.dump(self.user, f)
-            self.user.password = tmp_pw
+        self.db_mgr.store_courses(self.user.available_courses)
 
     @Slot()
     def refresh_courses(self):
@@ -539,15 +531,18 @@ class MainWindow(QMainWindow, Ui_MainForm):
         self.status.insertPlainText(message + "\n")
 
     def restore_window(self):
-        self.setWindowState(self.windowState() & ~Qt.WindowMinimized |
-                            Qt.WindowActive)
+        self.setWindowState(
+            self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
+        )
         self.show()
 
     def createTray(self):
-        restoreAction = QAction("&Restore", self,
-                                triggered=self.restore_window)
-        quitAction = QAction("&Quit", self,
-                             triggered=QApplication.instance().quit)
+        restoreAction = QAction(
+            "&Restore", self, triggered=self.restore_window
+        )
+        quitAction = QAction(
+            "&Quit", self, triggered=QApplication.instance().quit
+        )
         self.trayIconMenu.addAction(restoreAction)
         self.trayIconMenu.addAction(quitAction)
         self.trayIcon.setContextMenu(self.trayIconMenu)
