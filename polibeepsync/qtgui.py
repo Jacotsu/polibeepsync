@@ -281,7 +281,7 @@ class MainWindow(QMainWindow, Ui_MainForm):
         rawdata = requests.get('https://pypi.python.org/pypi/'
                                'poliBeePsync/json')
         latest = json.loads(rawdata.text)['info']['version']
-        if version.parse(latest) > version.parse(__version__)
+        if version.parse(latest) > version.parse(__version__):
             newtext = 'Current version: {}. Latest version: {}. '\
                 'Click <a href="https://jacotsu.github.io/polibeepsync/build/'\
                 'html/installation.html">here</a>'\
