@@ -300,7 +300,6 @@ class DatabaseManager:
                     sqlite3.connect(self._db_path, self.__max_timeout)
                 )
                 conn.row_factory = sqlite3.Row
-
             data = conn.execute(GET_FOLDER_CHILD_FILES, folder._folder_dict)
             return [CourseFile(dict(file_dict)) for file_dict in data]
 

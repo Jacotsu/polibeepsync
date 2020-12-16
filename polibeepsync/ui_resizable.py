@@ -53,8 +53,7 @@ class ProgressBarDelegate(QStyledItemDelegate):
             if self.parent():
                 progressBar.setStyleSheet(self.parent().styleSheet())
 
-            dw = index.data()[0]
-            tot = index.data()[1]
+            dw, tot = index.data()
             if tot != 0:
                 progressBar.setValue(round(dw/tot*100, 2))
             else:

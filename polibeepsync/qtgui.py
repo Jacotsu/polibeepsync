@@ -45,6 +45,7 @@ from polibeepsync.database_manager import DatabaseManager
 __version__ = find_version("__init__.py")
 logger = logging.getLogger("polibeepsync.qtgui")
 commonlogger = logging.getLogger("polibeepsync.common")
+database_logger = logging.getLogger("polibeepsync.database")
 
 
 class CoursesListModel(QAbstractTableModel):
@@ -114,15 +115,13 @@ class CoursesListModel(QAbstractTableModel):
 
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            if col == 0:
-                return "Name"
-            elif col == 1:
-                return "Sync"
-            elif col == 2:
-                return "Save as"
-            elif col == 3:
-                return "Download %"
-
+            headers_list = [
+                "Name",
+                "Sync",
+                "Save as",
+                "Download %"
+            ]
+            return headers_list[col]
 
 class MainWindow(QMainWindow, Ui_MainForm):
     def __init__(self, parent=None, args=None):
@@ -145,6 +144,7 @@ class MainWindow(QMainWindow, Ui_MainForm):
 
         logger.addHandler(logging_console_hdl)
         commonlogger.addHandler(logging_console_hdl)
+        database_logger.addHandler(logging_console_hdl)
 
         # load_settings() sets settings_path and settings
         self.load_settings()
@@ -222,14 +222,15 @@ class MainWindow(QMainWindow, Ui_MainForm):
 
         self.refreshcoursesthread.dumpuser.sig.connect(self.dumpUser)
         self.refreshcoursesthread.newcourses.sig.connect(self.addtocoursesview)
-        self.refreshcoursesthread.newcourses.sig.connect(self.syncnewcourses)
+        self.refreshcoursesthread.newcourses.sig\
+            .connect(self.sync_new_courses)
         self.refreshcoursesthread.removable.sig.connect(self.rmfromcoursesview)
 
         self.downloadthread.dumpuser.sig.connect(self.dumpUser)
         self.downloadthread.download_signal.connect(
-            self.update_course_download)
-        self.downloadthread.initial_sizes.connect(self.setinizialsizes)
-        self.downloadthread.date_signal.connect(self.update_file_localtime)
+            self.update_course_downloaded_sizes)
+        self.downloadthread.initial_sizes\
+            .connect(self.update_course_downloaded_sizes)
 
         self.trayIcon.activated.connect(self._activate_traymenu)
 
@@ -289,49 +290,14 @@ class MainWindow(QMainWindow, Ui_MainForm):
             newtext = "Current version: {} up-to-date.".format(__version__)
         self.version_label.setText(newtext)
 
-    def _update_time(self, folder, file, path_list):
-        logger.debug(f'inside {folder.name}')
-        for path in path_list:
-            logger.debug(f'namegoto: {path}')
-            folder_dict = {'name': path}
-            fakefolder = Folder(folder_dict)
-            logger.debug(f'contained folders:  {folder.folders}')
-            ind = folder.folders.index(fakefolder)
-            goto = folder.folders[ind]
-            self._update_time(goto, file, path_list)
-
-        if file in folder.files:
-            ind = folder.files.index(file)
-            thisfile = folder.files[ind]
-            thisfile.local_creation_time = file.local_creation_time
-
-    @Slot(tuple)
-    def update_file_localtime(self, data, **kwargs):
-        course, coursefile, path = data
-        rootpath = os.path.join(self.settings['RootFolder'],
-                                course.save_folder_name)
-        if path.startswith(rootpath):
-            partial = path[len(rootpath):]
-        path_list = filter(None, partial.split(os.path.sep))
-        self._update_time(course.documents, coursefile, path_list)
-
     @Slot(Course)
-    def update_course_download(self, course, **kwargs):
-        if course in self.user.available_courses:
-            updating = self.user.available_courses[course.name]
-            updating.downloaded_size = course.downloaded_size
-            row = self.courses_model.courses.index(updating)
-            where = self.courses_model.index(row, 3)
-            self.courses_model.dataChanged.emit(where, where)
-
-    @Slot(Course)
-    def setinizialsizes(self, course, **kwargs):
+    def update_course_downloaded_sizes(self, course, **kwargs):
         row = self.courses_model.courses.index(course)
         where = self.courses_model.index(row, 3)
         self.courses_model.dataChanged.emit(where, where)
 
     @Slot(list)
-    def syncnewcourses(self, newlist):
+    def sync_new_courses(self, newlist):
         if self.settings['SyncNewCourses'] == 'True':
             for elem in newlist:
                 elem.sync = True
@@ -362,7 +328,8 @@ class MainWindow(QMainWindow, Ui_MainForm):
 
     def load_data(self):
         self.db_mgr = DatabaseManager(
-            os.path.join(user_data_dir(self.appname), self.data_fname)
+            os.path.join(user_data_dir(self.appname), self.data_fname),
+            os.path.join(user_data_dir(self.appname), 'pbs.data')
         )
         try:
             username = self.db_mgr.get_key('username')
@@ -516,8 +483,7 @@ class MainWindow(QMainWindow, Ui_MainForm):
 
     @Slot(str)
     def myStream_message(self, message):
-        self.status.moveCursor(QTextCursor.End)
-        self.status.insertPlainText(message + "\n")
+        self.status.appendPlainText(f'{message}')
 
     def restore_window(self):
         self.setWindowState(
@@ -610,6 +576,7 @@ def main():
     # now get the logger used in the common module and set its level to what
     # we get from sys.argv
     commonlogger.setLevel(level)
+    database_logger.setLevel(level)
     logger.setLevel(level)
 
     formatter = logging.Formatter('[%(levelname)s] %(name)s %(message)s')
@@ -620,6 +587,7 @@ def main():
 
     logger.addHandler(handler)
     commonlogger.addHandler(handler)
+    database_logger.addHandler(handler)
 
     # Fixes PyQt5 startup hang on Os X big sur
     os.environ["QT_MAC_WANTS_LAYER"] = "1"

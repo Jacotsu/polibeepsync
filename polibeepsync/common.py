@@ -19,6 +19,7 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 from lxml import etree
 from urllib.parse import urlparse, parse_qs, quote_plus
 from datetime import datetime, timedelta, tzinfo
+from dateutil.parser import parse
 from functools import partial
 from urllib.parse import unquote, urlparse, parse_qs
 import requests
@@ -32,6 +33,7 @@ from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
 from pyparsing import (Word, alphanums, alphas8bit, alphas, nums, Group,
                        OneOrMore, ParseException, ZeroOrMore, Suppress)
 from signalslot import Signal as sSignal
+from polibeepsync.std_dicts import std_file_dict
 
 
 commonlogger = logging.getLogger("polibeepsync.common")
@@ -47,7 +49,7 @@ class InvalidLoginError(Exception):
 
 # --- Custom Threads --- #
 class QThreadPoolContexted(QThreadPool):
-    def __init__(self, max_threads=8, wait=True, parent=None):
+    def __init__(self, max_threads=4, wait=True, parent=None):
         super(QThreadPoolContexted, self).__init__(parent)
         self.wait = wait
         self.setMaxThreadCount(max_threads)
@@ -189,7 +191,6 @@ class DownloadThread(QThread):
             commonlogger.info('****DOWNLOADED SIZE setting to '
                               f'{sizeof_fmt(course.downloaded_size)}')
             self.initial_sizes.emit(course=course)
-
             self.user.save_files(course, needsync, self.download_signal)
             # adesso ogni f di syncthese ha la data di download
             # aggiornata, ma deve essere scritto su f
@@ -409,12 +410,7 @@ class Course(GenericSet):
 class CourseFile():
     def __init__(self, file_dict):
         self.gmt1 = GMT1()
-        self._file_dict = file_dict
-        self.save_folder_name = self._file_dict['title']
-
-        self.local_creation_time = None
-        self.sync = True
-        self.downloaded_size = 0
+        self._file_dict = {**std_file_dict, **file_dict}
 
     @property
     def sync(self):
@@ -426,11 +422,16 @@ class CourseFile():
 
     @property
     def local_creation_time(self):
-        return self._file_dict['localCreationTime']
+        if self._file_dict["localCreationTime"]:
+            return datetime.fromtimestamp(
+                self._file_dict["localCreationTime"]/1000, self.gmt1
+            )
+        else:
+            return None
 
     @local_creation_time.setter
-    def local_creation_time(self, time):
-        self._file_dict['localCreationTime'] = time
+    def local_creation_time(self, time: 'datetime'):
+        self._file_dict['localCreationTime'] = time.timestamp()*1000
 
     @property
     def extension(self):
@@ -592,9 +593,14 @@ def need_syncing(folder, parent_folder):
         commonlogger.debug(f)
         if f.local_creation_time is None:
             commonlogger.debug(f'Nessun tempo di creazione locale: {f}')
+
+            print(f'nessun tempo di creazione locale {f}')
+            print('----------------------------------------------------')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
-            commonlogger.info('File locale non aggiornato: {f} '
+            print(f'{f.local_creation_time} < {f.last_online_edit_time}')
+            print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            commonlogger.info(f'File locale non aggiornato: {f} '
                               f'{f.local_creation_time} '
                               f'{f.last_online_edit_time}')
             syncthese.append((f, parent_folder))
@@ -1091,7 +1097,7 @@ class User():
             except requests.exceptions.HTTPError:
                 commonlogger.warning(
                     f'The course "{folder_dict["name"]}" doesn\'t have a'
-                    'documents and media folder, so it won\'t be downloaded'
+                    ' documents and media folder, so it won\'t be downloaded'
                 )
                 return folder
 
@@ -1156,21 +1162,26 @@ class User():
                     # Pragma: public
                     # Content-Disposition: attachment; filename="170829 AM1 ELN risultati.pdf"
                     # Vary: Accept-Encoding
-                    file_info = self.get_headers(
-                        'https://beep.metid.polimi.it/documents/'
-                        f'{folder_dict["groupId"]}/{uuid}')
-                    size = file_info.headers['Content-Length']
-                    try:
-                        complete_filename = re.search(
-                            '(?<=filename=\")(.*)(?=\")|'
-                            '(?<=filename\\*=UTF-8\'\')(.*)',
-                            file_info.headers['Content-Disposition']
-                        ).group()
-                    except AttributeError:
-                        print('https://beep.metid.polimi.it/documents/'
-                              f'{folder_dict["groupId"]}/{uuid}' )
-                        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-
+                    file_info = ''
+                    complete_filename = ''
+                    size = 0
+                    last_online_edit_time = 0
+                    for _ in range(5):
+                        file_info = self.get_headers(
+                            'https://beep.metid.polimi.it/documents/'
+                            f'{folder_dict["groupId"]}/{uuid}')
+                        try:
+                            size = file_info.headers['Content-Length']
+                            complete_filename = re.search(
+                                '(?<=filename=\")(.*)(?=\")|'
+                                '(?<=filename\\*=UTF-8\'\')(.*)',
+                                file_info.headers['Content-Disposition']
+                            ).group()
+                            last_online_edit_time = \
+                                parse(file_info.headers['Last-Modified'])
+                            break
+                        except KeyError:
+                            pass
                     filename, _, extension = complete_filename.rpartition('.')
                     file_version = None
                     try:
@@ -1197,8 +1208,10 @@ class User():
                             'title': filename,
                             'groupId': folder_dict['groupId'],
                             'uuid': uuid,
-                            'modifiedDate': date.timestamp()*1000,
-                            'size': int(size)
+                            'modifiedDate': last_online_edit_time
+                            .timestamp()*1000,
+                            'size': int(size),
+                            'localCreationTime': None
                         }
                         folder.files.append(CourseFile(file_dict))
                     except IndexError:
