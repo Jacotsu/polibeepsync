@@ -52,6 +52,8 @@ class QThreadPoolContexted(QThreadPool):
         super(QThreadPoolContexted, self).__init__(parent)
         self.wait = wait
         self.setMaxThreadCount(max_threads)
+        # wait at most 5 minutes
+        self.expiryTimeout = 300000
 
     def __enter__(self):
         return self
@@ -91,7 +93,6 @@ class RefreshCoursesThread(QThread):
         self.user.sync_available_courses(most_recent)
         self.newcourses.sig.emit(new)
         self.removable.sig.emit(removable)
-        commonlogger.debug('User object changed')
         self.dumpuser.sig.emit('')
 
 
@@ -153,7 +154,6 @@ class DownloadThread(QThread):
         self.date_signal = sSignal(args=['data'])
 
     def run(self):
-        self.setPriority(QThread.HighPriority)
         self.start_download_s.sig.emit('')
 
     def notify_finished(self):
@@ -167,13 +167,23 @@ class DownloadThread(QThread):
                 if course.sync:
                     commonlogger.debug(f'Syncing {course}')
                     TExec.start(func_runnable(self, self.sync_course, course),
-                                QThread.HighPriority)
+                                QThread.LowPriority)
+        self.dumpuser.sig.emit('')
         self.notify_finished()
 
     @Slot()
     def _work(self):
-        with QThreadPoolContexted(wait=False, parent=self) as TExec:
-            TExec.start(func_runnable(self, self._threaded_syncer))
+        # We disable multithreading while debugging
+        if commonlogger.getEffectiveLevel() == logging.DEBUG:
+            for course in self.user.available_courses:
+                if course.sync:
+                    commonlogger.debug(f'Syncing {course}')
+                    self.sync_course(course)
+            self.dumpuser.sig.emit('')
+            self.notify_finished()
+        else:
+            with QThreadPoolContexted(wait=False, parent=self) as TExec:
+                TExec.start(func_runnable(self, self._threaded_syncer))
 
     def sync_course(self, course):
         try:
@@ -201,7 +211,6 @@ class DownloadThread(QThread):
             # adesso ogni f di syncthese ha la data di download
             # aggiornata, ma deve essere scritto su f
             commonlogger.info(f'Synced files for {course.name}')
-            self.dumpuser.sig.emit('')
         except InvalidLoginError:
             self.user.logout()
             commonlogger.info('Login failed.', exc_info=True)
@@ -407,7 +416,8 @@ class Course(GenericSet):
             return False
 
     def __eq__(self, other):
-        if self._course_dict['classPK'] == other._course_dict['classPK']:
+        if int(self._course_dict['classPK']) ==\
+           int(other._course_dict['classPK']):
             return True
         else:
             return False
@@ -679,6 +689,30 @@ class User():
         #self.session.verify = f'{os.path.dirname(__file__)}/beep.pem'
         self.logged = False
 
+    def get_headers(self, url, params=None):
+        """Use this method to get a webpage headers.
+
+        It will check if the session is expired, and relogin if necessary.
+
+        Returns:
+            response (:class:`requests.Response`): a :class:`requests.Response`
+            instance
+        """
+        response = self.session.head(
+            url, params=params, headers={'Accept-Encoding': 'identity'},
+            timeout=self.default_timeout)
+        soup = BeautifulSoup(response.text, "lxml")
+        login_tag = soup.find('input', attrs={'id': 'login'})
+        if response.status_code == 401 or login_tag is not None:
+            commonlogger.info('The session has expired. Logging-in again...')
+            self.logout()
+            self.login()
+            response = self.session.get(url, params=params,
+                                        timeout=self.default_timeout)
+        response.raise_for_status()
+        return response
+
+
     def get_page(self, url, params=None):
         """Use this method to get a webpage.
 
@@ -915,7 +949,8 @@ class User():
             'folderId': 0,
             'ManuallyAdded': False,
             'size': 0,
-            'downloadedSize': 0
+            'downloadedSize': 0,
+            'sync': False
         }
         return course_dict
 
@@ -1073,12 +1108,18 @@ class User():
                 'p_p_id': '20',
                 'p_p_lifecycle': '0'
             }
-
             commonlogger.debug(folder_dict)
-            response = self.get_page(
-                "https://beep.metid.polimi.it/web/"
-                f"{folder_dict['groupId']}/documenti-e-media",
-                weird_parameters)
+            try:
+                response = self.get_page(
+                    "https://beep.metid.polimi.it/web/"
+                    f"{folder_dict['groupId']}/documenti-e-media",
+                    weird_parameters)
+            except requests.exceptions.HTTPError:
+                commonlogger.warning(
+                    f'The course "{folder_dict["name"]}" doesn\'t have a'
+                    'documents and media folder, so it won\'t be downloaded'
+                )
+                return folder
 
             page_tree = etree.HTML(response.text)
             debug_dump(response.text)
@@ -1150,6 +1191,24 @@ class User():
                                              ' entry id')
                         file_entry_id = 0
 
+                    uuid = download_page_tree.xpath(url_xpath)[0]\
+                        .split("/")[-1]
+
+                    # Server: nginx/1.10.3
+                    # Date: Wed, 16 Dec 2020 10:38:28 GMT
+                    # Content-Type: application/pdf
+                    # Content-Length: 43228
+                    # Connection: keep-alive
+                    # Last-Modified: Sun, 10 Sep 2017 17:49:11 GMT
+                    # Cache-Control: public
+                    # Pragma: public
+                    # Content-Disposition: attachment; filename="170829 AM1 ELN risultati.pdf"
+                    # Vary: Accept-Encoding
+                    file_headers = self.get_headers(
+                        'https://beep.metid.polimi.it/documents/'
+                        f'{folder_dict["groupId"]}/{uuid}')
+                    size = file_headers.headers['Content-Length']
+
                     try:
                         file_dict = {
                             'extension': extension.replace('.', ''),
@@ -1157,10 +1216,9 @@ class User():
                             'fileEntryId': file_entry_id,
                             'title': filename,
                             'groupId': folder_dict['groupId'],
-                            'uuid': download_page_tree.xpath(url_xpath)[0]
-                                .split("/")[-1],
+                            'uuid': uuid,
                             'modifiedDate': date.timestamp()*1000,
-                            'size': beep_size_to_byte_size(raw_size)
+                            'size': int(size)
                         }
                         folder.files.append(CourseFile(file_dict))
                     except IndexError:
@@ -1192,11 +1250,10 @@ class User():
         with open(complete_name, 'wb') as f:
             commonlogger.info('writing into {}'.format(complete_name))
             for chunk in result.iter_content(chunk_size):
-                if chunk:
-                    f.write(chunk)
-                    course.downloaded_size += len(chunk)
-                    coursefile.downloaded_size += len(chunk)
-                    downloadsignal.emit(course=course)
+                bytes_written = f.write(chunk)
+                course.downloaded_size += bytes_written
+                coursefile.downloaded_size += bytes_written
+                downloadsignal.emit(course=course)
             coursefile.local_creation_time = datetime.now(self.gmt1)
             # we emit another signal here so that we can save to f
             # the updated local creation time
