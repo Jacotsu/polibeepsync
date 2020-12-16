@@ -159,13 +159,13 @@ GET_ALL_COURSES = '''
 GET_COURSE_ROOT_FOLDERS = '''
     SELECT *
     FROM course_folders
-    WHERE groupId = :groupId AND NOT parentFolderId;
+    WHERE groupId = :groupId AND parentFolderId IS NULL;
 '''
 
 GET_COURSE_ROOT_FILES = '''
     SELECT *
     FROM course_files
-    WHERE groupId = :groupId AND NOT parentFolderId;
+    WHERE groupId = :groupId AND parentFolderId IS NULL;
 '''
 
 GET_FOLDER_CHILD_FILES = '''
