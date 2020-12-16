@@ -23,7 +23,7 @@ from functools import partial
 from urllib.parse import unquote, urlparse, parse_qs
 import requests
 from urllib.parse import urlsplit
-from polibeepsync.utils import raw_date_to_datetime, debug_dump, fps_limiter
+from polibeepsync.utils import raw_date_to_datetime, debug_dump
 import os
 import logging
 import re
@@ -1160,9 +1160,18 @@ class User():
                         'https://beep.metid.polimi.it/documents/'
                         f'{folder_dict["groupId"]}/{uuid}')
                     size = file_info.headers['Content-Length']
+                    try:
+                        complete_filename = re.search(
+                            '(?<=filename=\")(.*)(?=\")|'
+                            '(?<=filename\\*=UTF-8\'\')(.*)',
+                            file_info.headers['Content-Disposition']
+                        ).group()
+                    except AttributeError:
+                        print('https://beep.metid.polimi.it/documents/'
+                              f'{folder_dict["groupId"]}/{uuid}' )
+                        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
-
-                    filename, extension = os.path.splitext(title)
+                    filename, _, extension = complete_filename.rpartition('.')
                     file_version = None
                     try:
                         file_version = download_page_tree\
@@ -1182,7 +1191,7 @@ class User():
 
                     try:
                         file_dict = {
-                            'extension': extension.replace('.', ''),
+                            'extension': extension,
                             'version': file_version,
                             'fileEntryId': file_entry_id,
                             'title': filename,
@@ -1213,10 +1222,7 @@ class User():
                       chunk_size):
         result = self.get_file(coursefile.url)
         commonlogger.debug(coursefile.url)
-        complete_basename = re.search(
-            '(?<=filename=\")(.*)(?=\")',
-            result.headers['Content-Disposition']
-        ).group()
+        complete_basename = f'{coursefile.name}.{coursefile.extension}'
         complete_name = os.path.join(path, unquote(complete_basename))
         os.makedirs(path, exist_ok=True)
         with open(complete_name, 'wb') as f:
@@ -1225,8 +1231,7 @@ class User():
                 bytes_written = f.write(chunk)
                 course.downloaded_size += bytes_written
                 coursefile.downloaded_size += bytes_written
-                if fps_limiter(60, 'download_signal'):
-                    downloadsignal.emit(course=course)
+                downloadsignal.emit(course=course)
             coursefile.local_creation_time = datetime.now(self.gmt1)
 
 # --- Utils ---#
