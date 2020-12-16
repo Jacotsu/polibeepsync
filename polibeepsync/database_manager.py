@@ -4,34 +4,18 @@ import logging
 import threading
 from uuid import UUID
 from appdirs import user_config_dir, user_data_dir
+from contextlib import ExitStack
 from polibeepsync.queries import *
 from polibeepsync.common import Course, Courses, Folder, CourseFile
 
 database_logger = logging.getLogger("polibeepsync.database")
 
 
-class MultithreadConnectionManager:
-    def __init__(self, database_path):
-        self._db_path = database_path
-        self._conn = {}
-
-    def __enter__(self):
-        try:
-            return self._conn[threading.get_ident()]
-        except KeyError:
-            self._conn[threading.get_ident()] = sqlite3.connect(self._db_path)
-            self._conn[threading.get_ident()].row_factory = sqlite3.Row
-            return self._conn[threading.get_ident()]
-
-    def __exit__(self, type, value, traceback):
-        self._conn[threading.get_ident()].commit()
-        # self._conn[threading.get_ident()].close()
-
-
 class DatabaseManager:
     def __init__(self, database_path, import_course_file_path=None):
         self.__database_version = 1
-        self.conn_mgr = MultithreadConnectionManager(database_path)
+        self._db_path = database_path
+        self.__max_timeout = 120
 
         # check if we have to update the database schema
         if self.version < self.__database_version:
@@ -63,7 +47,7 @@ class DatabaseManager:
             CREATE_FILES_DATA_INDEX,
             CREATE_FOLDERS_DATA_INDEX
         ]
-        with self.conn_mgr as conn:
+        with sqlite3.connect(self._db_path, self.__max_timeout) as conn:
             for query in pragmas + tables_creation + indexes_creation:
                 database_logger.debug(query)
                 conn.executescript(query)
@@ -111,7 +95,7 @@ class DatabaseManager:
 
     @property
     def version(self) -> int:
-        with self.conn_mgr as conn:
+        with sqlite3.connect(self._db_path, self.__max_timeout) as conn:
             cur = conn.execute(GET_DB_VERSION)
             data = cur.fetchone()
             return data[0]
@@ -119,7 +103,7 @@ class DatabaseManager:
     @version.setter
     def version(self, new_version: int):
         if new_version > self.version:
-            with self.conn_mgr as conn:
+            with sqlite3.connect(self._db_path, self.__max_timeout) as conn:
                 # SQLITE can't bind parameters to pragmas
                 # https://stackoverflow.com/questions/39985599/
                 # parameter-binding-not-working-for-sqlite-pragma-table-info
@@ -128,46 +112,71 @@ class DatabaseManager:
             raise ValueError('You cannot downgrade the database version')
 
     def store_course(self, course: 'Course'):
-        with self.conn_mgr as conn:
-            conn.execute(STORE_COURSE_DATA, course._course_dict)
-        for fold in course.documents.folders:
-            self.store_folder(fold)
-        for fil in course.documents.files:
-            self.store_file(fil)
+        with sqlite3.connect(self._db_path, self.__max_timeout) as conn:
+            conn.execute(
+                STORE_COURSE_DATA,
+                course._course_dict,
+                connection=conn
+            )
+            for fold in course.documents.folders:
+                self.store_folder(fold, connection=conn)
+            for fil in course.documents.files:
+                self.store_file(fil, connection=conn)
 
     def store_file(
         self,
         course_file: 'CourseFile',
-        parent_folder: 'Folder'=None
+        parent_folder: 'Folder'=None,
+        connection=None
     ):
-        with self.conn_mgr as conn:
+        with ExitStack() as stack:
+            if connection:
+                conn = connection
+            else:
+                conn = stack.enter_context(
+                    sqlite3.connect(self._db_path, self.__max_timeout)
+                )
             file_dict = course_file._file_dict
-            if parent_folder:
-                file_dict['parentFolderId'] = parent_folder\
-                    ._folder_dict['folderId']
+            file_dict['parentFolderId'] = \
+                parent_folder.id if parent_folder else None
             conn.execute(STORE_FILE_DATA, course_file._file_dict)
 
-    def store_folder(self, folder: 'Folder', parent_folder: 'Folder'=None):
-        with self.conn_mgr as conn:
+    def store_folder(
+        self,
+        folder: 'Folder',
+        parent_folder: 'Folder'=None,
+        connection=None
+    ):
+        with ExitStack() as stack:
+            if connection:
+                conn = connection
+            else:
+                conn = stack.enter_context(
+                    sqlite3.connect(self._db_path, self.__max_timeout)
+                )
             folder_dict = folder._folder_dict
-            if parent_folder:
-                folder_dict['parentFolderId'] = folder_dict['folderId']
+            folder_dict['parentFolderId'] = \
+                parent_folder.id if parent_folder else None
+
             conn.execute(STORE_FOLDER_DATA, folder_dict)
 
-        for fil in folder.files:
-            self.store_file(fil)
+            for fil in folder.files:
+                self.store_file(fil, folder, connection=conn)
 
-        for fold in folder.folders:
-            self.store_folder(fold, folder)
+            for fold in folder.folders:
+                self.store_folder(fold, folder, connection=conn)
 
     def get_courses(self) -> 'Courses':
-        with self.conn_mgr as conn:
+        with sqlite3.connect(self._db_path, self.__max_timeout) as conn:
+            conn.row_factory = sqlite3.Row
             courses_data = conn.execute(GET_ALL_COURSES)
             courses = Courses()
             for course_dict in courses_data:
-                course = Course(course_dict)
-                course.documents.files = self.get_course_root_files(course)
-                course.documents.folders = self.get_course_root_folders(course)
+                course = Course(dict(course_dict))
+                course.documents.files = \
+                    self.get_course_root_files(course, conn)
+                course.documents.folders = \
+                    self.get_course_root_folders(course, conn)
                 courses.append(course)
             return courses
 
@@ -175,41 +184,91 @@ class DatabaseManager:
         for course in courses:
             self.store_course(course)
 
-    def get_course_root_files(self, course: 'Course'):
-        with self.conn_mgr as conn:
-            data = conn.execute(GET_COURSE_ROOT_FILES, course._course_dict)
-        return [CourseFile(fil) for fil in data]
+    def get_course_root_files(self, course: 'Course', connection=None):
+        with ExitStack() as stack:
+            if connection:
+                conn = connection
+            else:
+                conn = stack.enter_context(
+                    sqlite3.connect(self._db_path, self.__max_timeout)
+                )
+                conn.row_factory = sqlite3.Row
 
-    def get_course_root_folders(self, course: 'Course'):
-        with self.conn_mgr as conn:
-            data = conn.execute(GET_COURSE_ROOT_FOLDERS, course._course_dict)
+            data = conn.execute(
+                GET_COURSE_ROOT_FILES,
+                {'groupId': course._course_dict['groupId']}
+            )
+            return [CourseFile(dict(fil)) for fil in data]
+
+    def get_course_root_folders(self, course: 'Course', connection=None):
+        with ExitStack() as stack:
+            if connection:
+                conn = connection
+            else:
+                conn = stack.enter_context(
+                    sqlite3.connect(self._db_path, self.__max_timeout)
+                )
+                conn.row_factory = sqlite3.Row
+
+            data = conn.execute(
+                GET_COURSE_ROOT_FOLDERS,
+                {'groupId': course._course_dict['groupId']}
+            )
             folders = []
             for fol in data:
-                folder = Folder(fol)
-                folder.folders = self.get_child_folders(folder)
-                folder.files = self.get_child_files(folder)
-        return folders
+                folder = Folder(dict(fol))
+                folder.folders = self.get_child_folders(
+                    folder,
+                    connection=conn
+                )
+                folder.files = self.get_child_files(
+                    folder,
+                    connection=conn
+                )
+            return folders
 
-    def get_child_folders(self, folder: 'Folder'):
-        with self.conn_mgr as conn:
+    def get_child_folders(self, folder: 'Folder', connection=None):
+        with ExitStack() as stack:
+            if connection:
+                conn = connection
+            else:
+                conn = stack.enter_context(
+                    sqlite3.connect(self._db_path, self.__max_timeout)
+                )
+                conn.row_factory = sqlite3.Row
+
             data = conn.execute(GET_FOLDER_CHILD_FOLDERS, folder._folder_dict)
-            folder_list = [Folder(folder_dict) for folder_dict in data]
+            folder_list = [Folder(dict(folder_dict)) for folder_dict in data]
             for folder in folder_list:
-                folder.files = self.get_child_files(folder)
-                folder.folders = self.get_child_folders(folder)
-        return folder_list
+                folder.files = self.get_child_files(
+                    folder,
+                    connection=conn
+                )
+                folder.folders = self.get_child_folders(
+                    folder,
+                    connection=conn
+                )
+            return folder_list
 
-    def get_child_files(self, folder: 'Folder'):
-        with self.conn_mgr as conn:
+    def get_child_files(self, folder: 'Folder', connection=None):
+        with ExitStack() as stack:
+            if connection:
+                conn = connection
+            else:
+                conn = stack.enter_context(
+                    sqlite3.connect(self._db_path, self.__max_timeout)
+                )
+                conn.row_factory = sqlite3.Row
+
             data = conn.execute(GET_FOLDER_CHILD_FILES, folder._folder_dict)
-        return [CourseFile(file_dict) for file_dict in data]
+            return [CourseFile(dict(file_dict)) for file_dict in data]
 
     def set_key(self, key, value):
-        with self.conn_mgr as conn:
+        with sqlite3.connect(self._db_path, self.__max_timeout) as conn:
             conn.execute(SET_KEY, {'key': key, 'value': value})
 
     def get_key(self, key):
-        with self.conn_mgr as conn:
+        with sqlite3.connect(self._db_path, self.__max_timeout) as conn:
             cur = conn.execute(GET_KEY, (key,))
             data = cur.fetchone()
             if data:
