@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from bs4 import BeautifulSoup
 from lxml import etree
 from urllib.parse import urlparse, parse_qs, quote_plus
 from datetime import datetime, timedelta, tzinfo
@@ -191,9 +190,7 @@ class DownloadThread(QThread):
                               f'{sizeof_fmt(course.downloaded_size)}')
             self.initial_sizes.emit(course=course)
 
-            self.user.save_files(course, needsync,
-                                 self.download_signal,
-                                 self.date_signal)
+            self.user.save_files(course, needsync, self.download_signal)
             # adesso ogni f di syncthese ha la data di download
             # aggiornata, ma deve essere scritto su f
             commonlogger.info(f'Synced files for {course.name}')
@@ -1055,8 +1052,7 @@ class User():
                 query_params_folder['parentFolderId'] = folder_dict['folderId']
 
             subfolders_dict = self.get_page(self.get_folders_url,
-                                            params=query_params_folder)\
-                .json()
+                                            params=query_params_folder).json()
 
             files_dict = self.get_page(self.get_files_url,
                                        params=query_params_files).json()
@@ -1205,17 +1201,16 @@ class User():
 
         return folder
 
-    def save_files(self, course, needsync, downloadsignal, datesignal,
+    def save_files(self, course, needsync, downloadsignal,
                    chunk_size=512 * 1024):
         with QThreadPoolContexted(wait=False) as TExec:
             for coursefile, path in needsync:
                 TExec.start(func_runnable(self, self.download_file, course,
                                           path, coursefile, needsync,
-                                          downloadsignal, datesignal,
-                                          chunk_size))
+                                          downloadsignal, chunk_size))
 
     def download_file(self, course, path, coursefile, needsync, downloadsignal,
-                      datesignal, chunk_size):
+                      chunk_size):
         result = self.get_file(coursefile.url)
         commonlogger.debug(coursefile.url)
         complete_basename = re.search(
@@ -1233,10 +1228,6 @@ class User():
                 if fps_limiter(60, 'download_signal'):
                     downloadsignal.emit(course=course)
             coursefile.local_creation_time = datetime.now(self.gmt1)
-            # we emit another signal here so that we can save to f
-            # the updated local creation time
-            datesignal.emit(data=(course, coursefile, path))
-
 
 # --- Utils ---#
 class func_runnable(QRunnable):

@@ -6,26 +6,28 @@
 
 - [ ] Fix interface hanging when downloading a lot of files
 
-- [ ] Use sqlite for settings and synced files tracking
-
 - [ ] Fix bug that crashes the app when incorrect credentials are used
 
 - [ ] Fix bug where download progress bars update only when clicked
 
-- [ ] Move from Beautiful soup to simple lxml to remove horrendous code
-
 - [ ] Add plugin system which allows to download material from non beep
       teachers' website
 
-- [ ] Implement graceful failure when a timeout occurs
-
 - [ ] Write tests for invalid returned file dictionaries
 
-- [ ] Document how to reset the software
-
-- [ ] Document how to update the graphical interface
+- [ ] Write tests for the sqlite backend
 
 - ~~[ ] Bypass BeeP's login api and use directly unicalogin (not possible without serious patching)~~
+
+- [X] Document how to reset the software
+
+- [X] Document how to update the graphical interface
+
+- [X] Implement graceful failure when a timeout occurs (most timeouts don't occur anymore)
+
+- [X] Use sqlite for settings and synced files tracking
+
+- [X] Move from Beautiful soup to simple lxml to remove horrendous code
 
 - [X] Reduce size of windows installer
 

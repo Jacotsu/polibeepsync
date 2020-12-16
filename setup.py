@@ -46,7 +46,6 @@ setup(
     license='GPLv3+',
     install_requires=[
         "appdirs>=1.4.0",
-        "beautifulsoup4>=4.3.2",
         "keyring>=18.0.0",
         "lxml",
         "pyparsing>=2.0.3",
