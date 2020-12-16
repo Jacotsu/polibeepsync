@@ -2,6 +2,7 @@ import sqlite3
 import pickle
 import logging
 import threading
+import os
 from uuid import UUID
 from appdirs import user_config_dir, user_data_dir
 from contextlib import ExitStack
@@ -27,6 +28,9 @@ class DatabaseManager:
                 self.__import_serialized_user(pickle.load(f, fix_imports=False))
                 database_logger.info("Old database has been imported "
                                      "successfully.")
+                os.rename(
+                    import_course_file_path, import_course_file_path + '.bak'
+                )
         except (EOFError, pickle.PickleError):
             database_logger.error('Can\' import old database, it\'s corrupted',
                                   exc_info=True)
@@ -57,11 +61,23 @@ class DatabaseManager:
         for course in pickled_user.available_courses:
             # Make the internal dict representation compatible with the
             # database
-            course._course_dict['saveFolderName'] = course.save_folder_name
-            course._course_dict['ManuallyAdded'] = course.manually_added
-            course._course_dict['sync'] = course.sync
-            course._course_dict['size'] = course.size
-            course._course_dict['downloadedSize'] = course.downloaded_size
+
+            std_course_dict = {
+                'friendlyUrl': '',
+                'name': '',
+                'classPK': 0,
+                'groupId': 0,
+                'folderId': 0,
+                'ManuallyAdded': False,
+                'size': 0,
+                'downloadedSize': 0,
+                'sync': False,
+                'saveFolderName': course.simplify_name(
+                    course._course_dict['name']
+                )
+            }
+
+            course._course_dict = {**std_course_dict, **course._course_dict}
 
             def update_file_dict(
                 fil: 'CourseFile',
@@ -69,9 +85,22 @@ class DatabaseManager:
             ):
                 fil._file_dict['parentFolderId'] =\
                     parent_folder.id if parent_folder else None
-                fil._file_dict['sync'] = fil.sync
-                fil._file_dict['downloadedSize'] = fil.downloaded_size
-                fil._file_dict['localCreationTime'] = fil.local_creation_time
+
+                std_file_dict = {
+                    'extension': '',
+                    'version': 0,
+                    'fileEntryId': '',
+                    'title': '',
+                    'groupId': 0,
+                    'uuid': '',
+                    'modifiedDate': 0,
+                    'size': 0,
+                    'downloadedSize': 0,
+                    'sync': True,
+                    'localCreationTime': 0
+                }
+                fil._file_dict = {**std_file_dict, **fil._file_dict}
+                fil._file_dict['extension'].replace('.', '')
 
             def update_folders_dicts(
                 folder: 'Folder',
@@ -79,6 +108,17 @@ class DatabaseManager:
             ):
                 folder._folder_dict['parentFolderId'] =\
                     parent_folder.id if parent_folder else None
+
+                std_folder_dict = {
+                    'folderId': 0,
+                    'lastPostDate': 0,
+                    'name': '',
+                    'groupId': 0,
+                }
+                folder._folder_dict = {
+                    **std_folder_dict, **folder._folder_dict
+                }
+
                 for fil in folder.files:
                     update_file_dict(fil, folder)
 
