@@ -9,10 +9,9 @@ INIT_PRAGMAS = '''
 
 CREATE_FILES_DATA_TABLE = '''
     CREATE TABLE IF NOT EXISTS course_files (
-        fileInternalId INTEGER PRIMARY KEY AUTOINCREMENT,
         extension TEXT NOT NULL,
         version INTEGER DEFAULT 0,
-        fileEntryId INTEGER UNIQUE,
+        fileEntryId INTEGER PRIMARY KEY,
         parentFolderId INTEGER,
         groupId INTEGER NOT NULL,
         title TEXT NOT NULL,
@@ -35,8 +34,7 @@ CREATE_FILES_DATA_TABLE = '''
 # folder_id == -1 means that the folder doesn't exist on BeeP
 CREATE_FOLDERS_DATA_TABLE = '''
     CREATE TABLE IF NOT EXISTS course_folders (
-        folderInternalId INTEGER PRIMARY KEY AUTOINCREMENT,
-        folderId INTEGER NOT NULL UNIQUE,
+        folderId INTEGER PRIMARY KEY,
         lastPostDate INTEGER DEFAULT 0 CHECK(lastPostDate >= 0),
         name TEXT NOT NULL,
         parentFolderId INTEGER,
@@ -48,10 +46,9 @@ CREATE_FOLDERS_DATA_TABLE = '''
 
 CREATE_COURSES_DATA_TABLE = '''
      CREATE TABLE IF NOT EXISTS courses (
-        courseInternalId INTEGER PRIMARY KEY AUTOINCREMENT,
         friendlyUrl TEXT,
         name TEXT,
-        classPK INTEGER NOT NULL,
+        classPK INTEGER PRIMARY KEY,
         groupId INTEGER NOT NULL,
         folderId INTEGER,
         saveFolderName TEXT,
@@ -95,7 +92,9 @@ STORE_FILE_DATA = '''
         uuid,
         size,
         downloadedSize,
-        parentFolderId
+        parentFolderId,
+        localCreationTime,
+        sync
         )
     VALUES (
         :extension,
@@ -103,13 +102,13 @@ STORE_FILE_DATA = '''
         :fileEntryId,
         :title,
         :groupId,
-        :uuid,
         :modifiedDate,
-        :localCreationTime
-        :sync
-        :downloadedSize,
+        :uuid,
         :size,
-        :parentFolderId);
+        :downloadedSize,
+        :parentFolderId,
+        :localCreationTime,
+        :sync);
 '''
 
 STORE_FOLDER_DATA = '''
@@ -144,12 +143,12 @@ STORE_COURSE_DATA = '''
         :name,
         :classPK,
         :groupId,
-        :saveFolderName,
         :folderId,
+        :saveFolderName,
         :ManuallyAdded,
         :sync,
-        :size,
-        :downloadedSize);
+        :downloadedSize,
+        :size);
 '''
 
 GET_ALL_COURSES = '''
@@ -160,13 +159,13 @@ GET_ALL_COURSES = '''
 GET_COURSE_ROOT_FOLDERS = '''
     SELECT *
     FROM course_folders
-    WHERE classPK = :classPK AND NOT parentFolderId;
+    WHERE groupId = :groupId AND NOT parentFolderId;
 '''
 
 GET_COURSE_ROOT_FILES = '''
     SELECT *
     FROM course_files
-    WHERE classPK = :classPK AND NOT parentFolderId;
+    WHERE groupId = :groupId AND NOT parentFolderId;
 '''
 
 GET_FOLDER_CHILD_FILES = '''

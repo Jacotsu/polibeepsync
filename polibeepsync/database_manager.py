@@ -116,8 +116,8 @@ class DatabaseManager:
             conn.execute(
                 STORE_COURSE_DATA,
                 course._course_dict,
-                connection=conn
             )
+            conn.commit()
             for fold in course.documents.folders:
                 self.store_folder(fold, connection=conn)
             for fil in course.documents.files:
@@ -159,6 +159,7 @@ class DatabaseManager:
                 parent_folder.id if parent_folder else None
 
             conn.execute(STORE_FOLDER_DATA, folder_dict)
+            conn.commit()
 
             for fil in folder.files:
                 self.store_file(fil, folder, connection=conn)

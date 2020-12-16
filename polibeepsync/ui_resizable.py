@@ -17,6 +17,9 @@ from PySide2.QtCore import (QEvent, Qt, QPoint, QRect, QLocale, QSize,
 
 from PySide2.QtUiTools import QUiLoader
 
+from polibeepsync.utils import fps_limiter
+
+FPS = 60
 
 class CoursesListView(QTableView):
     def __init__(self, parent=None):
@@ -37,31 +40,32 @@ class ProgressBarDelegate(QStyledItemDelegate):
         QStyledItemDelegate.__init__(self, parent)
 
     def paint(self, painter, option, index):
-        progressBar = QProgressBar()
+        if fps_limiter(FPS, 'progress_bars'):
+            progressBar = QProgressBar()
 
-        progressBar.setAlignment(Qt.AlignCenter)
-        progressBar.setTextVisible(True)
+            progressBar.setAlignment(Qt.AlignCenter)
+            progressBar.setTextVisible(True)
 
-        progressBar.resize(option.rect.size())
-        progressBar.setMinimum(0)
-        progressBar.setMaximum(100)
+            progressBar.resize(option.rect.size())
+            progressBar.setMinimum(0)
+            progressBar.setMaximum(100)
 
-        if self.parent():
-            progressBar.setStyleSheet(self.parent().styleSheet())
+            if self.parent():
+                progressBar.setStyleSheet(self.parent().styleSheet())
 
-        dw = index.data()[0]
-        tot = index.data()[1]
-        if tot != 0:
-            progressBar.setValue(round(dw/tot*100, 2))
-        else:
-            progressBar.setValue(0)
-        progressBar.setFormat("{}/{} MB".format(round(dw/(
-            1024*1024), 2), round(tot/(1024*1024), 2)))
+            dw = index.data()[0]
+            tot = index.data()[1]
+            if tot != 0:
+                progressBar.setValue(round(dw/tot*100, 2))
+            else:
+                progressBar.setValue(0)
+            progressBar.setFormat("{}/{} MB".format(round(dw/(
+                1024*1024), 2), round(tot/(1024*1024), 2)))
 
-        painter.save()
-        painter.translate(option.rect.topLeft())
-        progressBar.render(painter, QPoint(0, 0))
-        painter.restore()
+            painter.save()
+            painter.translate(option.rect.topLeft())
+            progressBar.render(painter, QPoint(0, 0))
+            painter.restore()
 
 
 class CheckBoxDelegate(QStyledItemDelegate):
@@ -77,32 +81,33 @@ class CheckBoxDelegate(QStyledItemDelegate):
         return None
 
     def paint(self, painter, option, index):
-        checked = bool(index.data())
-        checkbox = QCheckBox()
+        if fps_limiter(FPS, 'checkboxes'):
+            checked = bool(index.data())
+            checkbox = QCheckBox()
 
-        if (index.flags() & Qt.ItemIsEditable) > 0:
-            checkbox.setEnabled(True)
-        else:
-            checkbox.setEnabled(False)
+            if (index.flags() & Qt.ItemIsEditable) > 0:
+                checkbox.setEnabled(True)
+            else:
+                checkbox.setEnabled(False)
 
-        # Implement tristate checkboxe for folder nodes
-        if checked:
-            checkbox.setCheckState(Qt.Checked)
-        else:
-            checkbox.setCheckState(Qt.Unchecked)
+            # Implement tristate checkboxe for folder nodes
+            if checked:
+                checkbox.setCheckState(Qt.Checked)
+            else:
+                checkbox.setCheckState(Qt.Unchecked)
 
-        if self.parent():
-            checkbox.setStyleSheet(self.parent().styleSheet())
+            if self.parent():
+                checkbox.setStyleSheet(self.parent().styleSheet())
 
-        width = option.widget.columnWidth(1)
-        height = option.widget.rowHeight(0)
+            width = option.widget.columnWidth(1)
+            height = option.widget.rowHeight(0)
 
-        painter.save()
-        painter.translate(option.rect.topLeft())
-        checkbox.rect = option.rect
-        checkbox.setFixedSize(width, height)
-        checkbox.render(painter, QPoint(0, 0))
-        painter.restore()
+            painter.save()
+            painter.translate(option.rect.topLeft())
+            checkbox.rect = option.rect
+            checkbox.setFixedSize(width, height)
+            checkbox.render(painter, QPoint(0, 0))
+            painter.restore()
 
     def editorEvent(self, event, model, option, index):
         if index.flags() & Qt.ItemIsEditable:

@@ -18,13 +18,13 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 
 from bs4 import BeautifulSoup
 from lxml import etree
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote_plus
 from datetime import datetime, timedelta, tzinfo
 from functools import partial
 from urllib.parse import unquote, urlparse, parse_qs
 import requests
 from urllib.parse import urlsplit
-from polibeepsync.utils import raw_date_to_datetime, debug_dump
+from polibeepsync.utils import raw_date_to_datetime, debug_dump, fps_limiter
 import os
 import logging
 import re
@@ -48,12 +48,10 @@ class InvalidLoginError(Exception):
 
 # --- Custom Threads --- #
 class QThreadPoolContexted(QThreadPool):
-    def __init__(self, max_threads=4, wait=True, parent=None):
+    def __init__(self, max_threads=8, wait=True, parent=None):
         super(QThreadPoolContexted, self).__init__(parent)
         self.wait = wait
         self.setMaxThreadCount(max_threads)
-        # wait at most 5 minutes
-        self.expiryTimeout = 300000
 
     def __enter__(self):
         return self
@@ -99,43 +97,32 @@ class RefreshCoursesThread(QThread):
 class LoginThread(QThread):
     def __init__(self, user, parent=None):
         super(LoginThread, self).__init__(parent)
-        self.exiting = False
         self.signal_ok = MySignal()
         self.signal_error = MySignal()
         self.user = user
 
     def run(self):
-        while not self.exiting:
-            try:
-                commonlogger.info('Logging in.')
-                self.user.logout()
-                self.user.login()
-                if self.user.logged is True:
-                    commonlogger.info('Successful login.')
-                    self.signal_ok.sig.emit('Successful login')
-                    self.exiting = True
-            except (InvalidLoginError, requests.exceptions.MissingSchema):
-                self.user.logout()
-                self.exiting = True
-                commonlogger.error('Login failed.', exc_info=True)
-                self.signal_error.sig.emit('Login failed')
-            except requests.exceptions.SSLError as ssl_error:
-                self.user.logout()
-                self.exiting = True
-                commonlogger.error(f'Connection SSL error: {ssl_error}',
-                                   exc_info=True)
-                self.signal_error.sig.emit('Connection SSL error')
-            except requests.ConnectionError as conn_err:
-                self.user.logout()
-                self.exiting = True
-                commonlogger.error(f'Connection error: {conn_err}',
-                                   exc_info=True)
-                self.signal_error.sig.emit('Connection error')
-            except requests.Timeout:
-                self.user.logout()
-                self.exiting = True
-                commonlogger.error(f'Connection timeout error.', exc_info=True)
-                self.signal_error.sig.emit('Connection timeout error')
+        try:
+            commonlogger.info('Logging in.')
+            self.user.logout()
+            self.user.login()
+            if self.user.logged is True:
+                commonlogger.info('Successful login.')
+                self.signal_ok.sig.emit('Successful login')
+        except (InvalidLoginError, requests.exceptions.MissingSchema):
+            commonlogger.error('Login failed.', exc_info=True)
+            self.signal_error.sig.emit('Login failed')
+        except requests.exceptions.SSLError as ssl_error:
+            commonlogger.error(f'Connection SSL error: {ssl_error}',
+                               exc_info=True)
+            self.signal_error.sig.emit('Connection SSL error')
+        except requests.ConnectionError as conn_err:
+            commonlogger.error(f'Connection error: {conn_err}',
+                               exc_info=True)
+            self.signal_error.sig.emit('Connection error')
+        except requests.Timeout:
+            commonlogger.error(f'Connection timeout error.', exc_info=True)
+            self.signal_error.sig.emit('Connection timeout error')
 
 
 class DownloadThread(QThread):
@@ -157,6 +144,7 @@ class DownloadThread(QThread):
         self.start_download_s.sig.emit('')
 
     def notify_finished(self):
+        self.dumpuser.sig.emit('')
         commonlogger.info('Syncing finished')
         if self.status_signal:
             self.status_signal.sig.emit('Syncing finished')
@@ -168,7 +156,6 @@ class DownloadThread(QThread):
                     commonlogger.debug(f'Syncing {course}')
                     TExec.start(func_runnable(self, self.sync_course, course),
                                 QThread.LowPriority)
-        self.dumpuser.sig.emit('')
         self.notify_finished()
 
     @Slot()
@@ -179,7 +166,6 @@ class DownloadThread(QThread):
                 if course.sync:
                     commonlogger.debug(f'Syncing {course}')
                     self.sync_course(course)
-            self.dumpuser.sig.emit('')
             self.notify_finished()
         else:
             with QThreadPoolContexted(wait=False, parent=self) as TExec:
@@ -558,16 +544,6 @@ def folder_total_size(parentfolder, sizes):
         # viene passata sempre la stessa dimensione della cartella più in alto
     return sizes
 
-
-def beep_size_to_byte_size(text_size):
-    # regex = re.search('(?<=\\()(.*?)(?=\\))', text_size)
-    # size = regex.group(0)
-    size = re.sub('[^0-9\\.,]', '', text_size)
-    size = int(float(size.strip().replace(".", "").
-                     replace(",", ".")) * 1024)
-    return size
-
-
 def synclocalwithonline(local, online):
     """Modifies local in order to reflect changes from online"""
     for f in online.files:
@@ -698,17 +674,21 @@ class User():
             response (:class:`requests.Response`): a :class:`requests.Response`
             instance
         """
+        headers = {'Accept-Encoding': 'identity'}
         response = self.session.head(
-            url, params=params, headers={'Accept-Encoding': 'identity'},
+            url, params=params, headers=headers,
             timeout=self.default_timeout)
-        soup = BeautifulSoup(response.text, "lxml")
-        login_tag = soup.find('input', attrs={'id': 'login'})
-        if response.status_code == 401 or login_tag is not None:
+        response_tree = etree.HTML(response.text)
+        if response_tree and (response.status_code == 401 or\
+           response_tree.xpath('//input[contains(@id, "login")]')):
             commonlogger.info('The session has expired. Logging-in again...')
-            self.logout()
             self.login()
-            response = self.session.get(url, params=params,
-                                        timeout=self.default_timeout)
+            response = self.session.head(
+                url,
+                params=params,
+                headers=headers,
+                timeout=self.default_timeout
+            )
         response.raise_for_status()
         return response
 
@@ -724,11 +704,10 @@ class User():
         """
         response = self.session.get(url, params=params,
                                     timeout=self.default_timeout)
-        soup = BeautifulSoup(response.text, "lxml")
-        login_tag = soup.find('input', attrs={'id': 'login'})
-        if response.status_code == 401 or login_tag is not None:
+        response_tree = etree.HTML(response.text)
+        if response.status_code == 401 or\
+           response_tree.xpath('//input[contains(@id, "login")]'):
             commonlogger.info('The session has expired. Logging-in again...')
-            self.logout()
             self.login()
             response = self.session.get(url, params=params,
                                         timeout=self.default_timeout)
@@ -764,11 +743,13 @@ class User():
     def _login_first_step(self):
         default_lang_page = self.session.get(self.loginurl,
                                              timeout=self.default_timeout)
-        lang_soup = BeautifulSoup(default_lang_page.text, 'lxml')
-        lang_tag = lang_soup.find('a', attrs={'title': 'English'})
+        response_tree = etree.HTML(default_lang_page.text)
+        lang_tag = response_tree\
+            .xpath('//a[contains(@title, "English")]/@href')
+
         if lang_tag:
             self.session.get('https://aunicalogin.polimi.it' +
-                             lang_tag['href'], timeout=self.default_timeout)
+                             lang_tag[0], timeout=self.default_timeout)
         payload = {'login': self.username,
                    'password': self.password,
                    'evn_conferma': ''
@@ -785,12 +766,12 @@ class User():
         return login_response
 
     def _do_shibboleth(self, first_response):
-        hidden_fields = BeautifulSoup(first_response.text, 'lxml').find_all(
-            'input', attrs={'type': 'hidden'})
-        # The SAML response wants '+' replaced by %2B
-        relay_state = hidden_fields[0].attrs['value']
-        saml_response = hidden_fields[1].attrs['value'].replace('+',
-                                                                '%2B')
+        first_response_tree = etree.HTML(first_response.text)
+        hidden_inputs = first_response_tree.xpath(
+            '//input[contains(@type, "hidden")]/@value'
+        )
+        relay_state = hidden_inputs[0]
+        saml_response = quote_plus(hidden_inputs[1])
         final_request_data = f'RelayState={relay_state}&'\
             f'SAMLResponse={saml_response}'
         final_headers = {
@@ -830,13 +811,11 @@ class User():
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:34.0)'
                           'Gecko/20100101 Firefox/34.0',
         }
-
         # switch to english version if we're on the italian site
         first_response = self._login_first_step()
-        first_soup = BeautifulSoup(first_response.text, "lxml")
-        form = None
+        response_tree = etree.HTML(first_response.text)
         try:
-            form = first_soup.find_all('form')[0]
+            form = response_tree.xpath('//form')[0]
         except:
             commonlogger.critical('Something went wront with the login method')
             debug_dump(first_response.text)
@@ -846,7 +825,7 @@ class User():
                 commonlogger.critical('No login form found')
 
         # If password change prompt is show handle this special case
-        if form.find('button', {'name': 'evn_pwd_change'}):
+        if form.xpath('button[contains(@name, "evn_pwd_change")]'):
             commonlogger.warning('Your password is about to expire, '
                                  'change it ASAP')
             uri = urlsplit(first_response.url)
@@ -856,21 +835,22 @@ class User():
                                                headers=login_headers,
                                                timeout=self.default_timeout)
             first_response = self._do_shibboleth(pwd_change_res)
-            first_soup = BeautifulSoup(first_response.text, "lxml")
+            response_tree = etree.HTML(first_response.text)
+            form = None
             try:
-                form = first_soup.find_all('form')[0]
+                form = response_tree.xpath('//form')[0]
             except:
                 debug_dump(first_response.text)
                 debug_dump(form.encode())
 
-        url = form['action']
+        url = form.xpath('@action')[0]
         commonlogger.debug(f'Login url {url}')
 
         payload = {}
-        for x in form.find_all('input'):
+        for x in form.xpath('//input'):
             try:
-                payload[x['name']] = x['value']
-            except KeyError:
+                payload[x.xpath('@name')[0]] = x.xpath('@value')[0]
+            except IndexError:
                 pass
 
         # 1m as minimum timeout time because if the password is about
@@ -880,21 +860,19 @@ class User():
                                             headers=login_headers,
                                             timeout=60 + self.default_timeout)
 
-        login_soup = BeautifulSoup(second_response.text, "lxml")
         try:
-            parenttag = login_soup.find_all('table')[3]
-            parenttag.find('td',
-                           text='\n\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\
-\t\tCode: 14 - Identificazione fallita\n\t\t\t\t\t\n\t\t\t\t')
+            login_tree = etree.HTML(second_response.text)
+            parenttag = login_tree.xpath('table')[3]
+            if parenttag.xpath('td[contains(text(), '
+                                   '"Code: 14 - Identificazione fallita")]'):
+                self.logged = False
+                raise InvalidLoginError
         except IndexError:
             # Usercode and password are ok
             # continue with Shibboleth
             mainpage = self._do_shibboleth(first_response)
             self.courses_url = mainpage.url
             self.logged = True
-        else:
-            self.logged = False
-            raise InvalidLoginError
 
     def get_online_courses(self):
         """Return the courses available online.
@@ -1169,6 +1147,25 @@ class User():
                     file_download_page = self.get_page(parsed_link.geturl())
                     download_page_tree = etree.HTML(file_download_page.text)
 
+
+                    uuid = download_page_tree.xpath(url_xpath)[0]\
+                        .split("/")[-1]
+                    # Server: nginx/1.10.3
+                    # Date: Wed, 16 Dec 2020 10:38:28 GMT
+                    # Content-Type: application/pdf
+                    # Content-Length: 43228
+                    # Connection: keep-alive
+                    # Last-Modified: Sun, 10 Sep 2017 17:49:11 GMT
+                    # Cache-Control: public
+                    # Pragma: public
+                    # Content-Disposition: attachment; filename="170829 AM1 ELN risultati.pdf"
+                    # Vary: Accept-Encoding
+                    file_info = self.get_headers(
+                        'https://beep.metid.polimi.it/documents/'
+                        f'{folder_dict["groupId"]}/{uuid}')
+                    size = file_info.headers['Content-Length']
+
+
                     filename, extension = os.path.splitext(title)
                     file_version = None
                     try:
@@ -1182,32 +1179,10 @@ class User():
                     file_entry_id = None
                     try:
                         file_version = parsed_query_str['_20_fileEntryId'][0]
-                    except KeyError:
+                    except (KeyError, IndexError):
                         commonlogger.warning(f'{filename} is missing its'
                                              ' entry id')
                         file_entry_id = 0
-                    except IndexError:
-                        commonlogger.warning(f'{filename} is missing its'
-                                             ' entry id')
-                        file_entry_id = 0
-
-                    uuid = download_page_tree.xpath(url_xpath)[0]\
-                        .split("/")[-1]
-
-                    # Server: nginx/1.10.3
-                    # Date: Wed, 16 Dec 2020 10:38:28 GMT
-                    # Content-Type: application/pdf
-                    # Content-Length: 43228
-                    # Connection: keep-alive
-                    # Last-Modified: Sun, 10 Sep 2017 17:49:11 GMT
-                    # Cache-Control: public
-                    # Pragma: public
-                    # Content-Disposition: attachment; filename="170829 AM1 ELN risultati.pdf"
-                    # Vary: Accept-Encoding
-                    file_headers = self.get_headers(
-                        'https://beep.metid.polimi.it/documents/'
-                        f'{folder_dict["groupId"]}/{uuid}')
-                    size = file_headers.headers['Content-Length']
 
                     try:
                         file_dict = {
@@ -1243,8 +1218,10 @@ class User():
                       datesignal, chunk_size):
         result = self.get_file(coursefile.url)
         commonlogger.debug(coursefile.url)
-        complete_basename = result.headers['Content-Disposition'] \
-            .split("; ")[1].split("=")[1].strip('"')
+        complete_basename = re.search(
+            '(?<=filename=\")(.*)(?=\")',
+            result.headers['Content-Disposition']
+        ).group()
         complete_name = os.path.join(path, unquote(complete_basename))
         os.makedirs(path, exist_ok=True)
         with open(complete_name, 'wb') as f:
@@ -1253,7 +1230,8 @@ class User():
                 bytes_written = f.write(chunk)
                 course.downloaded_size += bytes_written
                 coursefile.downloaded_size += bytes_written
-                downloadsignal.emit(course=course)
+                if fps_limiter(60, 'download_signal'):
+                    downloadsignal.emit(course=course)
             coursefile.local_creation_time = datetime.now(self.gmt1)
             # we emit another signal here so that we can save to f
             # the updated local creation time

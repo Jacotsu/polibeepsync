@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import time
 import re
@@ -79,3 +79,25 @@ def check_course_url(user_obj, course_url):
             pass
 
     return False
+
+
+def static_vars(**kwargs):
+    def decorate(func):
+        for k in kwargs:
+            setattr(func, k, kwargs[k])
+        return func
+    return decorate
+
+
+@static_vars(last_times={})
+def fps_limiter(target_fps, key):
+    try:
+        time_delta = timedelta(milliseconds=1/target_fps)
+        current_time = datetime.now()
+        if current_time - fps_limiter.last_times[key] > time_delta:
+            return True
+        else:
+            return False
+    except KeyError:
+        fps_limiter.last_times[key] = current_time
+        return True

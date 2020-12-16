@@ -75,44 +75,42 @@ class CoursesListModel(QAbstractTableModel):
         return True
 
     def flags(self, index):
-        if index.column() == 2:
-            flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
-            return flags
-        elif index.column() == 1:
-            flags = Qt.ItemIsEditable | Qt.ItemIsEnabled | \
-                Qt.ItemIsSelectable | Qt.ItemIsUserCheckable
-            return flags
-        else:
+        try:
+            flags_dict = {
+                1: Qt.ItemIsEditable | Qt.ItemIsEnabled |
+                Qt.ItemIsSelectable | Qt.ItemIsUserCheckable,
+                2: Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+            }
+            return flags_dict[index.column()]
+        except KeyError:
             return Qt.ItemIsEnabled
 
     def setData(self, index, value, role=Qt.EditRole):
         if role == Qt.EditRole:
-            if index.column() == 2:
+            column = index.column()
+            if column == 2:
                 other_names = [elem.save_folder_name for elem in self.courses]
                 if value not in other_names and value != "":
                     self.courses[index.row()].save_folder_name = value
                     self.dataChanged.emit(index, index)
-                return True
-            elif index.column() == 1:
+            elif column == 1:
                 self.courses[index.row()].sync = value
                 self.dataChanged.emit(index, index)
-                return True
+            return True
         return False
 
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
-            if index.column() == 0:
-                return self.courses[index.row()].name
-            if index.column() == 1:
-                return self.courses[index.row()].sync
-            if index.column() == 2:
-                return self.courses[index.row()].save_folder_name
-            if index.column() == 3:
-                dw = self.courses[index.row()].downloaded_size
-                total = self.courses[index.row()].size
-                return (dw, total)
-        elif role == Qt.CheckStateRole:
-            return None
+            course = self.courses[index.row()]
+            dw = course.downloaded_size
+            total = course.size
+            data_array = [
+                course.name,
+                course.sync,
+                course.save_folder_name,
+                (dw, total)
+            ]
+            return data_array[index.column()]
 
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
@@ -208,6 +206,7 @@ class MainWindow(QMainWindow, Ui_MainForm):
             logger.info('Sync interval overridden with '
                         f'{args.sync_interval} minutes')
             self.timer.start(1000 * 60 * args.sync_interval)
+        self.user.login()
 
     @Slot()
     def show_add_course_popup(self):
@@ -327,14 +326,9 @@ class MainWindow(QMainWindow, Ui_MainForm):
 
     @Slot(Course)
     def setinizialsizes(self, course, **kwargs):
-        if course in self.user.available_courses:
-            updating = self.user.available_courses[course.name]
-            updating.downloaded_size = course.downloaded_size
-            updating.size = course.size
-            row = self.courses_model.courses.index(updating)
-            where = self.courses_model.index(row, 3)
-            self.courses_model.dataChanged.emit(where, where)
-            self.dumpUser()
+        row = self.courses_model.courses.index(course)
+        where = self.courses_model.index(row, 3)
+        self.courses_model.dataChanged.emit(where, where)
 
     @Slot(list)
     def syncnewcourses(self, newlist):
@@ -439,8 +433,6 @@ class MainWindow(QMainWindow, Ui_MainForm):
             filesettings.settingsToFile(self.settings, self.settings_path)
             self.rootfolder.setText(newroot)
             self.downloadthread.topdir = self.settings['RootFolder']
-            self.downloadthread.dumpuser.sig.connect(self.dumpUser)
-            self.dumpUser()
 
     @Slot()
     def set_usercode(self):
@@ -479,7 +471,6 @@ class MainWindow(QMainWindow, Ui_MainForm):
     @Slot()
     def test_login(self):
         if not self.loginthread.isRunning():
-            self.loginthread.exiting = False
             self.loginthread.start()
             self.status_signal.sig.emit("Logging in, please wait.")
 
@@ -503,7 +494,6 @@ class MainWindow(QMainWindow, Ui_MainForm):
         self.status_signal.sig.emit('Searching for online updates...'
                                     'this may take a while.')
         if not self.loginthread.isRunning():
-            self.loginthread.exiting = False
             self.loginthread.signal_ok.sig.connect(self.do_refresh_courses)
             self.loginthread.start()
 
@@ -515,7 +505,6 @@ class MainWindow(QMainWindow, Ui_MainForm):
     @Slot()
     def sync_files(self):
         self.downloadthread.topdir = self.settings['RootFolder']
-        self.downloadthread.dumpuser.sig.connect(self.dumpUser)
         self.refreshcoursesthread.finished.connect(self.do_sync_files)
         self.refresh_courses()
 
@@ -642,7 +631,9 @@ def main():
         # Need to fix showing wrong window
         frame.show()
 
-    sys.exit(app.exec_())
+    exit_code = app.exec_()
+    frame.dumpUser()
+    sys.exit(exit_code)
 
 
 if __name__ == '__main__':
