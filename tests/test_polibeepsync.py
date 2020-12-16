@@ -27,7 +27,7 @@ class TestCourse:
     def test_multiprofessor(self):
         course = Course({'name': '[2017-18] - FISICA [ GALZERANO / VITTORIO '
                          'MAGNI ]',
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
         assert course.simplify_name(course.name) == "Fisica [Galzerano; "\
             "Vittorio Magni]"
@@ -35,7 +35,7 @@ class TestCourse:
     def test_nobracketsprofessor(self):
         course = Course({'name': '[2017-18] - ANALISI MATEMATICA 1 - E. '
                          'MALUTA',
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
         assert course.simplify_name(course.name) == "Analisi Matematica 1 "\
                 "[E. Maluta]"
@@ -43,21 +43,21 @@ class TestCourse:
     def test_simplifynamewithsquarebrackets(self):
         course = Course({'name': '[2014-15] - OTTICA FISICA E TECNOLOGIE '
                          'OTTICHE [ C.I. ] [ INGEGNERIA FISICA ]',
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
         assert course.simplify_name(course.name) == "Ottica Fisica E "\
         "Tecnologie Ottiche [C.I.]"
 
     def test_simplifysimplename(self):
         course = Course({'name': '[2014-15] - SOME STUFF [ A PROFESSOR ]',
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
 
         assert course.simplify_name(course.name) == "Some Stuff [A Professor]"
 
     def test_simplifycoursewithoutyear(self):
         course = Course({'name': 'RETI LOGICHE [ FABRIZIO FERRANDI ]',
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
 
         assert course.simplify_name(course.name) == "Reti Logiche [Fabrizio "\
@@ -66,7 +66,7 @@ class TestCourse:
     def test_simplifycoursewithaccents(self):
         course = Course({'name': "[2017-18] - PROBABILITÀ E STATISTICA PER "
                          "L'INFORMATICA [ GIUSEPPINA GUATTERI ]",
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
 
         assert course.simplify_name(course.name) == "Probabilità E Statistica"\
@@ -76,7 +76,7 @@ class TestCourse:
         course = Course({'name': "[2018-19] - SISTEMI INFORMATIVI (PER IL "
                          "SETTORE DELL'INFORMAZIONE) [ MONICA VITALI ] "
                          "classe-694572",
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
 
         assert course.simplify_name(course.name) == "Sistemi Informativi "\
@@ -84,7 +84,7 @@ class TestCourse:
 
     def test_cannotsimplifyname(self):
         course = Course({'name': 'Metid',
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
 
         assert course.simplify_name(course.name) == "Metid"
@@ -92,7 +92,7 @@ class TestCourse:
     def test_simplify_mems(self):
         course = Course({'name': '[2014-15] - MICRO ELECTRO MECHANICAL '
                          'SYSTEMS (MEMS) [ ALBERTO CORIGLIANO ]',
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
 
         assert course.simplify_name(course.name) == "Micro Electro Mechanical"\
@@ -101,7 +101,7 @@ class TestCourse:
     def test_simplify_name_with_student_number(self):
         course = Course({'name': '[2019-20] -088775 - DYNAMICS OF MECHANICAL '
                          'SYSTEMS [ STEFANO BRUNI ]',
-                         'friendlyURL': 'beep.com',
+                         'friendlyUrl': 'beep.com',
                          'classPK': 1})
 
         assert course.simplify_name(course.name) == "Dynamics Of Mechanical "\
@@ -153,9 +153,9 @@ class TestCourse:
         d.size = COMMON_SIZE
         e.size = COMMON_SIZE
         f.size = COMMON_SIZE
-        top = Folder({'name': 'top', 'friendlyURL': 'url'})
-        middle = Folder({'name': 'middle', 'friendlyURL': 'url'})
-        bottom = Folder({'name': 'bottom', 'friendlyURL': 'url'})
+        top = Folder({'name': 'top', 'friendlyUrl': 'url'})
+        middle = Folder({'name': 'middle', 'friendlyUrl': 'url'})
+        bottom = Folder({'name': 'bottom', 'friendlyUrl': 'url'})
         top.files.append(a)
         middle.files.append(b)
         middle.files.append(c)
@@ -171,15 +171,15 @@ class TestCourse:
         clean_list = [
             Course({'name': '[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO '
                     'MARIO GIOVANNI VEGNI ]',
-                    'friendlyURL': 'beep.com',
+                    'friendlyUrl': 'beep.com',
                     'classPK': 122035314}),
             Course({'name': '[2016-17] - GEOMETRIA E ALGEBRA LINEARE '
                     '[ PAOLO DULIO ]',
-                    'friendlyURL': 'beep.com',
+                    'friendlyUrl': 'beep.com',
                     'classPK': 115041662}),
             Course({'name': '[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA '
                     'LEONARDO LACAITA ]',
-                    'friendlyURL': 'beep.com',
+                    'friendlyUrl': 'beep.com',
                     'classPK': 115292440})
                 ]
         clean_courses = Courses()
@@ -200,15 +200,15 @@ class TestCourse:
         clean_list = [
             Course({'name': '[2016-17] - ANALISI MATEMATICA 1 [ FEDERICO '
                     'MARIO GIOVANNI VEGNI ]',
-                    'friendlyURL': 'beep.com',
+                    'friendlyUrl': 'beep.com',
                     'classPK': 122035314}),
             Course({'name': '[2016-17] - GEOMETRIA E ALGEBRA LINEARE [ PAOLO '
                     'DULIO ]',
-                    'friendlyURL': 'beep.com',
+                    'friendlyUrl': 'beep.com',
                     'classPK': 115041662}),
             Course({'name': '[2017-18] - DISPOSITIVI ELETTRONICI [ ANDREA '
                     'LEONARDO LACAITA ]',
-                    'friendlyURL': 'beep.com',
+                    'friendlyUrl': 'beep.com',
                     'classPK': 115292440})
         ]
         clean_courses = Courses()
@@ -243,10 +243,10 @@ class TestCourse:
                         'uuid': '50-ddf-kek',
                         'size': 19})
         offline_metal = Course({'name': 'metalli',
-                                'friendlyURL': 'beep.com',
+                                'friendlyUrl': 'beep.com',
                                 'classPK': 1})
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
 
         offline_metal.append(a, b, c)
@@ -268,10 +268,10 @@ class TestCourse:
                         'size': 111})
 
         offline_metal = Course({'name': 'metalli',
-                                'friendlyURL': 'beep.com',
+                                'friendlyUrl': 'beep.com',
                                 'classPK': 1})
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
 
         offline_metal.append(a, b)
@@ -280,10 +280,10 @@ class TestCourse:
 
     def test_inequality(self):
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         other = Course({'name': 'mthing',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 2})
 
         assert metal != other
@@ -294,7 +294,7 @@ class TestCourse:
                         'uuid': '50-ddf-kek',
                         'size': 1990})
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
 
         metal.append(a)
@@ -307,7 +307,7 @@ class TestCourse:
                             'uuid': '50-ddf-kek',
                             'size': 1990})
             metal = Course({'name': 'metalli',
-                            'friendlyURL': 'beep.com',
+                            'friendlyUrl': 'beep.com',
                             'classPK': 1})
 
             metal.append(a)
@@ -315,7 +315,7 @@ class TestCourse:
 
     def test__repr__(self):
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
 
         assert repr(metal) == "Course metalli"
@@ -326,7 +326,7 @@ class TestCourse:
                               'uuid': '50-ddf-kek',
                               'size': 1990})
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
 
         metal.append(onefile)
@@ -338,14 +338,14 @@ class TestCourse:
                               'uuid': '50-ddf-kek',
                               'size': 1990})
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
 
         assert onefile not in metal
 
     def test__init__(self):
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
 
         assert hasattr(metal, 'elements')
@@ -354,17 +354,17 @@ class TestCourse:
 class TestCourses:
     def test_difference(self):
         polim = Course({'name': 'polimeri',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         offline_polim = Course({'name': 'polimeri',
-                                'friendlyURL': 'beep.com',
+                                'friendlyUrl': 'beep.com',
                                 'classPK': 1})
 
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         offline_metal = Course({'name': 'metalli',
-                                'friendlyURL': 'beep.com',
+                                'friendlyUrl': 'beep.com',
                                 'classPK': 1})
 
         offline = Courses()
@@ -379,13 +379,13 @@ class TestCourses:
 
     def test_belonging(self):
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         metalinside = Course({'name': 'metalli',
-                              'friendlyURL': 'beep.com',
+                              'friendlyUrl': 'beep.com',
                               'classPK': 1})
         other = Course({'name': 'other',
-                        'friendlyURL': 'doesntmatter',
+                        'friendlyUrl': 'doesntmatter',
                         'classPK': 2})
 
         courses = Courses()
@@ -394,13 +394,13 @@ class TestCourses:
 
     def test_notbelonging(self):
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         courseinside = Course({'name': 'polimeri',
-                               'friendlyURL': 'beep.com',
+                               'friendlyUrl': 'beep.com',
                                'classPK': 1})
         other = Course({'name': 'other',
-                        'friendlyURL': 'doesntmatter',
+                        'friendlyUrl': 'doesntmatter',
                         'classPK': 2})
 
         courses = Courses()
@@ -410,7 +410,7 @@ class TestCourses:
     def test_return_hash(self):
         courses = Courses()
         courses.append(Course({'name': 'metalli',
-                               'friendlyURL': 'beep.com',
+                               'friendlyUrl': 'beep.com',
                                'classPK': 1}))
         assert hash(courses) is not None
 
@@ -418,10 +418,10 @@ class TestCourses:
         oneorder = Courses()
         otherorder = Courses()
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         polim = Course({'name': 'polimeri',
-                        'friendlyURL': 'beep.it',
+                        'friendlyUrl': 'beep.it',
                         'classPK': 2})
 
         oneorder.append(metal, polim)
@@ -430,10 +430,10 @@ class TestCourses:
 
     def test_append(self):
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         other = Course({'name': 'other',
-                        'friendlyURL': 'doesntmatter',
+                        'friendlyUrl': 'doesntmatter',
                         'classPK': 2})
 
         oneatatime = Courses()
@@ -449,10 +449,10 @@ class TestCourses:
         all = Courses()
         one = Courses()
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         other = Course({'name': 'other',
-                        'friendlyURL': 'doesntmatter',
+                        'friendlyUrl': 'doesntmatter',
                         'classPK': 2})
         all.append(metal, other)
         one.append(other)
@@ -462,10 +462,10 @@ class TestCourses:
     def test__len__(self):
         courses = Courses()
         courses.append(Course({'name': 'metalli',
-                               'friendlyURL': 'beep.com',
+                               'friendlyUrl': 'beep.com',
                                'classPK': 1}),
                        Course({'name': 'other',
-                               'friendlyURL': 'beep.com',
+                               'friendlyUrl': 'beep.com',
                                'classPK': 2}))
 
         assert len(courses) == 2
@@ -487,7 +487,7 @@ class TestCourseFile:
 
 class TestFolder:
     def test_repr(self):
-        a = Folder({'name': 'name', 'friendlyURL': 'fakeurl'})
+        a = Folder({'name': 'name', 'friendlyUrl': 'fakeurl'})
         assert repr(a) == "name folder"
 
 
@@ -495,10 +495,10 @@ class TestUser:
     def test_sync_courses_new_course(self):
         guy = User('fakeid', 'fakepwd')
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         other = Course({'name': 'other',
-                        'friendlyURL': 'doesntmatter',
+                        'friendlyUrl': 'doesntmatter',
                         'classPK': 2})
         online = Courses()
         online.append(metal, other)
@@ -509,10 +509,10 @@ class TestUser:
     def test_sync_courses_remove(self):
         guy = User('fakeid', 'fakepwd')
         metal = Course({'name': 'metalli',
-                        'friendlyURL': 'beep.com',
+                        'friendlyUrl': 'beep.com',
                         'classPK': 1})
         other = Course({'name': 'other',
-                        'friendlyURL': 'doesntmatter',
+                        'friendlyUrl': 'doesntmatter',
                         'classPK': 2})
 
         online = Courses()
