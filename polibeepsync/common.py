@@ -591,10 +591,10 @@ def need_syncing(folder, parent_folder):
         simplename = os.path.join(parent_folder, f.name)
         commonlogger.debug(f)
         if f.local_creation_time is None:
-            commonlogger.debug(f'Nessun tempo di creazione locale: {f}')
+            commonlogger.debug(f'No local creation time: {f}')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
-            commonlogger.info(f'File locale non aggiornato: {f} '
+            commonlogger.info(f'Outdated local file: {f} '
                               f'{f.local_creation_time} '
                               f'{f.last_online_edit_time}')
             syncthese.append((f, parent_folder))
@@ -1129,7 +1129,7 @@ class User():
                         # Don't remove the *1000, this necessary to keep the
                         # timestamp consistent with liferay precision (1/1000s)
                         'lastPostDate': date.timestamp()*1000,
-                        'name': title,
+                        'name': title.replace('UTF-8\'\'', ''),
                         'groupId': folder_dict['groupId'],
                     }
 
@@ -1236,11 +1236,7 @@ class User():
                       chunk_size):
         result = self.get_file(coursefile.url)
         commonlogger.debug(coursefile.url)
-        complete_basename = \
-            f'{coursefile.name}.{coursefile.extension}'.replace(
-                'UTF-8\'\'',
-                ''
-            )
+        complete_basename = f'{coursefile.name}.{coursefile.extension}'
         complete_name = os.path.join(path, unquote(complete_basename))
         os.makedirs(path, exist_ok=True)
         with open(complete_name, 'wb') as f:
