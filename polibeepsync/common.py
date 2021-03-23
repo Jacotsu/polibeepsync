@@ -30,7 +30,8 @@ import re
 from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
 from pyparsing import (Word, alphanums, alphas8bit, alphas, nums, Group,
-                       OneOrMore, ParseException, ZeroOrMore, Suppress)
+                       OneOrMore, ParseException, ZeroOrMore, Suppress,
+                       Optional)
 from signalslot import Signal as sSignal
 from polibeepsync.std_dicts import std_file_dict
 
@@ -361,9 +362,9 @@ class Course(GenericSet):
         # [2019/20] COURSE MEMEOLOGY - George Miller
         # Most of the courses like this
         # [2019/20] COURSE MEMEOLOGY [ George Miller ]
-        prof_name = Group(
+        prof_name = Group(Optional(
             Suppress('[') + personal_names + Suppress(']') ^
-            Suppress('-') + personal_names) \
+            Suppress('-') + personal_names)) \
             .setResultsName('prof_name')
 
         try:
@@ -383,7 +384,7 @@ class Course(GenericSet):
         except ParseException:
             commonlogger.error(f'Failed to simplify course name {name}',
                                exc_info=True)
-        return simple.title()
+        return simple.title().strip()
 
     def __hash__(self):
         return hash(f"{self._course_dict['classPK']}"
@@ -1149,7 +1150,6 @@ class User():
 
                     file_download_page = self.get_page(parsed_link.geturl())
                     download_page_tree = etree.HTML(file_download_page.text)
-
 
                     uuid = download_page_tree.xpath(url_xpath)[0]\
                         .split("/")[-1]

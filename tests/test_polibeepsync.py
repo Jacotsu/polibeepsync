@@ -107,6 +107,16 @@ class TestCourse:
         assert course.simplify_name(course.name) == "Dynamics Of Mechanical "\
             "Systems [Stefano Bruni]"
 
+    def test_simplify_name_with_trail_parenthesis(self):
+        course = Course({'name': '[2020-21] - METHODS AND TOOLS FOR SYSTEMATIC'
+                         ' INNOVATION (Integrated Course)',
+                         'friendlyUrl': 'beep.com',
+                         'classPK': 1})
+
+        assert course.simplify_name(course.name) == "Methods And Tools For "\
+            "Systematic Innovation"
+
+
     def test_size_calculation(self):
         afile = CourseFile({'title': 'a',
                             'groupId': 5,
