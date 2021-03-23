@@ -1236,7 +1236,11 @@ class User():
                       chunk_size):
         result = self.get_file(coursefile.url)
         commonlogger.debug(coursefile.url)
-        complete_basename = f'{coursefile.name}.{coursefile.extension}'
+        complete_basename = \
+            f'{coursefile.name}.{coursefile.extension}'.replace(
+                'UTF-8\'\'',
+                ''
+            )
         complete_name = os.path.join(path, unquote(complete_basename))
         os.makedirs(path, exist_ok=True)
         with open(complete_name, 'wb') as f:
