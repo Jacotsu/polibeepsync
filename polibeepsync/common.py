@@ -17,11 +17,10 @@ along with poliBeePsync. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from lxml import etree
-from urllib.parse import urlparse, parse_qs, quote_plus
+from urllib.parse import urlparse, parse_qs, quote_plus, unquote
 from datetime import datetime, timedelta, tzinfo
 from dateutil.parser import parse
 from functools import partial
-from urllib.parse import unquote, urlparse, parse_qs
 import requests
 from urllib.parse import urlsplit
 from polibeepsync.utils import raw_date_to_datetime, debug_dump
@@ -593,13 +592,8 @@ def need_syncing(folder, parent_folder):
         commonlogger.debug(f)
         if f.local_creation_time is None:
             commonlogger.debug(f'Nessun tempo di creazione locale: {f}')
-
-            print(f'nessun tempo di creazione locale {f}')
-            print('----------------------------------------------------')
             syncthese.append((f, parent_folder))
         elif f.local_creation_time < f.last_online_edit_time:
-            print(f'{f.local_creation_time} < {f.last_online_edit_time}')
-            print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
             commonlogger.info(f'File locale non aggiornato: {f} '
                               f'{f.local_creation_time} '
                               f'{f.last_online_edit_time}')
@@ -827,7 +821,7 @@ class User():
             else:
                 commonlogger.critical('No login form found')
 
-        # If password change prompt is show handle this special case
+        # If password change prompt is shown handle this special case
         if form.xpath('button[contains(@name, "evn_pwd_change")]'):
             commonlogger.warning('Your password is about to expire, '
                                  'change it ASAP')
@@ -846,7 +840,14 @@ class User():
                 debug_dump(first_response.text)
                 debug_dump(form.encode())
 
-        url = form.xpath('@action')[0]
+        action_url = form.xpath('@action')[0]
+        parsed_action_url = urlparse(action_url)._replace(
+            scheme='https',
+            netloc='aunicalogin.polimi.it'
+        )
+        url = parsed_action_url.geturl()
+
+
         commonlogger.debug(f'Login url {url}')
 
         payload = {}
@@ -1165,8 +1166,8 @@ class User():
                     file_info = ''
                     complete_filename = ''
                     size = 0
-                    last_online_edit_time = 0
-                    for _ in range(5):
+                    last_online_edit_time = datetime(1980, 1, 1)
+                    for _ in range(10):
                         file_info = self.get_headers(
                             'https://beep.metid.polimi.it/documents/'
                             f'{folder_dict["groupId"]}/{uuid}')
