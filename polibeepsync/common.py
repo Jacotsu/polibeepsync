@@ -354,10 +354,14 @@ class Course(GenericSet):
                                 "-" + Word(nums, exact=2) + "]"))
         dash_with_student_code = Group(ZeroOrMore("-" + Word(nums)))
         personal_names = OneOrMore(Word(alphas + ',.;:/'))
-        course_name = Group(OneOrMore(Word(alphanums + alphas8bit +
-            ',.;:/|\'"'))).setResultsName('course_name')
-        course_extra_specs = Group(ZeroOrMore('(' + ZeroOrMore(Word(alphanums +
-            ',.:;/\'')) + ')'))
+        course_name = Group(
+            OneOrMore(
+                Word(alphanums + alphas8bit + ',.;:/|\'"')
+            )
+        ).setResultsName('course_name')
+        course_extra_specs = Group(
+            ZeroOrMore('(' + ZeroOrMore(Word(alphanums + ',.:;/\'')) + ')')
+        )
         # Some courses specifies the professor name like this
         # [2019/20] COURSE MEMEOLOGY - George Miller
         # Most of the courses like this

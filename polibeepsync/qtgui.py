@@ -206,7 +206,6 @@ class MainWindow(QMainWindow, Ui_MainForm):
             logger.info('Sync interval overridden with '
                         f'{args.sync_interval} minutes')
             self.timer.start(1000 * 60 * args.sync_interval)
-        self.user.login()
 
     @Slot()
     def show_add_course_popup(self):
