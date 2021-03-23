@@ -48,10 +48,12 @@ setup(
         "appdirs>=1.4.0",
         "keyring>=18.0.0",
         "lxml",
+        "python-dateutil",
         "pyparsing>=2.0.3",
         "PySide2>=5.11.0",
         "requests>=2.3.0",
-        "signalslot"
+        "signalslot",
+        "packaging"
     ],
     python_requires='>=3.7',
     packages=['polibeepsync'],
