@@ -23,7 +23,8 @@ from dateutil.parser import parse
 from functools import partial
 import requests
 from urllib.parse import urlsplit
-from polibeepsync.utils import raw_date_to_datetime, debug_dump
+from polibeepsync.utils import raw_date_to_datetime, debug_dump,\
+    debug_dump_request_response
 import os
 import logging
 import re
@@ -765,6 +766,11 @@ class User():
                   '/controller/IdentificazioneUnica.do?&jaf_currentWFID=main',
                   data=payload, headers=login_headers,
                   timeout=self.default_timeout)
+        if re.search(
+            'Identificazione fallita|Identification error',
+            login_response.text
+        ):
+            raise InvalidLoginError
         return login_response
 
     def _do_shibboleth(self, first_response):
@@ -820,9 +826,9 @@ class User():
             form = response_tree.xpath('//form')[0]
         except:
             commonlogger.critical('Something went wront with the login method')
-            debug_dump(first_response.text)
+            debug_dump_request_response(first_response, commonlogger)
             if form:
-                debug_dump(form.encode())
+                debug_dump(form.encode(), commonlogger)
             else:
                 commonlogger.critical('No login form found')
 
@@ -842,8 +848,8 @@ class User():
             try:
                 form = response_tree.xpath('//form')[0]
             except:
-                debug_dump(first_response.text)
-                debug_dump(form.encode())
+                debug_dump_request_response(first_response, commonlogger)
+                debug_dump(form.encode(), commonlogger)
 
         action_url = form.xpath('@action')[0]
         parsed_action_url = urlparse(action_url)._replace(
@@ -851,7 +857,6 @@ class User():
             netloc='aunicalogin.polimi.it'
         )
         url = parsed_action_url.geturl()
-
 
         commonlogger.debug(f'Login url {url}')
 
@@ -871,9 +876,11 @@ class User():
 
         try:
             login_tree = etree.HTML(second_response.text)
+            debug_dump_request_response(second_response, commonlogger)
             parenttag = login_tree.xpath('table')[3]
-            if parenttag.xpath('td[contains(text(), '
-                                   '"Code: 14 - Identificazione fallita")]'):
+            if parenttag.xpath(
+                    'td[contains(text(), "Identificazione fallita") or '
+                    'contains(text(), "Identification error")]'):
                 self.logged = False
                 raise InvalidLoginError
         except IndexError:
@@ -1108,7 +1115,7 @@ class User():
                 return folder
 
             page_tree = etree.HTML(response.text)
-            debug_dump(response.text)
+            debug_dump_request_response(response, commonlogger)
 
             entry_xpath = '//div[contains(@id, "SearchContainer")]//'\
                 'tr[contains(@class, "document-display-style")]'

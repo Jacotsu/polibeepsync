@@ -35,18 +35,17 @@ def raw_date_to_datetime(rawdate, gmt):
     return complete_date
 
 
-def debug_dump(data, logger=logging.getLogger(), min_level=logging.DEBUG):
+def debug_dump(data, logger=logging.getLogger(), extension='',
+               min_level=logging.DEBUG):
     if logger.level <= min_level:
-        with open(f'Polybeepsync-dump-{time.time()}', 'wb') as dump:
+        extension = f'.{extension}' if extension else ''
+        with open(f'Polibeepsync-dump-{time.time()}{extension}', 'wb') as dump:
             dump.write(data)
 
 
-def debug_request_response(response, logger=logging.getLogger(),
-                           min_level=logging.DEBUG):
-    if logger.level <= min_level:
-
-        with open(f'Polybeepsync-dump-{time.time()}', 'wb') as dump:
-            dump.write(response.text)
+def debug_dump_request_response(response, logger=logging.getLogger(),
+                                min_level=logging.DEBUG):
+    debug_dump(response.text.encode(), logger, 'html', min_level)
 
 
 def init_checkbox(qt_checkbox, dictionary, key, state_slot=None):
