@@ -101,6 +101,7 @@ class DatabaseManager:
                 }
                 fil._file_dict = {**std_file_dict, **fil._file_dict}
                 fil._file_dict['extension'].replace('.', '')
+                fil._file_dict['name'].replace('UTF-8\'\'', '')
 
             def update_folders_dicts(
                 folder: 'Folder',
