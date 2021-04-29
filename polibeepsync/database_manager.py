@@ -28,9 +28,9 @@ class DatabaseManager:
                 self.__import_serialized_user(pickle.load(f, fix_imports=False))
                 database_logger.info("Old database has been imported "
                                      "successfully.")
-                os.rename(
-                    import_course_file_path, import_course_file_path + '.bak'
-                )
+            os.rename(
+                import_course_file_path, import_course_file_path + '.bak'
+            )
         except (EOFError, pickle.PickleError):
             database_logger.error('Can\' import old database, it\'s corrupted',
                                   exc_info=True)

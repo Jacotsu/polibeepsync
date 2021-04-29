@@ -56,7 +56,7 @@ setup(
         "packaging"
     ],
     python_requires='>=3.7',
-    packages=['polibeepsync'],
+    packages=['polibeepsync', 'polibeepsync.ui'],
     package_data={'': ['new_gui.ui', 'beep.pem']},
     include_package_data=True,
     description="Sync files from https://beep.metid.polimi.it "
