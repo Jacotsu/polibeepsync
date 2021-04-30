@@ -1115,9 +1115,10 @@ class User():
                     f"{folder_dict['groupId']}/documenti-e-media",
                     weird_parameters)
             except requests.exceptions.HTTPError:
-                commonlogger.warning(
-                    f'The course "{folder_dict["name"]}" doesn\'t have a'
-                    ' documents and media folder, so it won\'t be downloaded'
+                commonlogger.error(
+                    'Can\'t find the documents and media folde of '
+                    f'"{folder_dict["name"]}" , so it won\'t be downloaded',
+                    exc_info=True
                 )
                 return folder
 

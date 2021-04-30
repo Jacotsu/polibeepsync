@@ -116,6 +116,12 @@ class TestCourse:
         assert course.simplify_name(course.name) == "Methods And Tools For "\
             "Systematic Innovation"
 
+    def test_simplify_name_iol(self):
+        course = Course({'name': '[IOL] - I - ANALISI MATEMATICA 1',
+                         'friendlyUrl': 'beep.com',
+                         'classPK': 1})
+
+        assert course.simplify_name(course.name) == "Analisi Matematica 1"
 
     def test_size_calculation(self):
         afile = CourseFile({'title': 'a',
