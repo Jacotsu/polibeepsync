@@ -32,7 +32,7 @@ from PySide2.QtCore import QThread, QObject, Signal, QRunnable, QThreadPool,\
         Slot
 from pyparsing import (Word, alphanums, alphas8bit, alphas, nums, Group,
                        OneOrMore, ParseException, ZeroOrMore, Suppress,
-                       Optional)
+                       Optional, CaselessLiteral)
 from signalslot import Signal as sSignal
 from polibeepsync.std_dicts import std_file_dict
 
@@ -171,7 +171,8 @@ class DownloadThread(QThread):
             self.notify_finished()
         else:
             with QThreadPoolContexted(wait=False, parent=self) as TExec:
-                TExec.start(func_runnable(self, self._threaded_syncer))
+                TExec.start(func_runnable(self, self._threaded_syncer),
+                            QThread.LowPriority)
 
     def sync_course(self, course):
         try:
@@ -353,6 +354,8 @@ class Course(GenericSet):
         simple = name
         year = Group(ZeroOrMore("[" + Word(nums, exact=4) +
                                 "-" + Word(nums, exact=2) + "]"))
+        iol = Group(ZeroOrMore(CaselessLiteral("[IOL]")))
+        iol_literal = Group(ZeroOrMore("-" + Word(alphas) + "-"))
         dash_with_student_code = Group(ZeroOrMore("-" + Word(nums)))
         personal_names = OneOrMore(Word(alphas + ',.;:/'))
         course_name = Group(
@@ -373,7 +376,9 @@ class Course(GenericSet):
             .setResultsName('prof_name')
 
         try:
-            grammar = year.suppress() + dash_with_student_code.suppress() + \
+            grammar = iol.suppress() + year.suppress() + \
+                    iol_literal.suppress() + \
+                    dash_with_student_code.suppress() + \
                     Suppress(ZeroOrMore('-')) + course_name +\
                     course_extra_specs.suppress() + prof_name
             parsed_name_tokens = grammar.parseString(name)
@@ -971,14 +976,16 @@ class User():
 
         # online_courses = Courses()
         # we iterate over the tags
-        # we only need year to parse for real courses
-        year = Group("[" + OneOrMore(
-            Word(nums, exact=4) + "-" + Word(nums, exact=2)) + "]")
+        # we only need year or [IOL] to parse for real courses
+        year_or_iol = Group(
+            "[" + ZeroOrMore(Word(nums, exact=4) + "-" + Word(nums, exact=2)) +
+            ZeroOrMore(CaselessLiteral("IOL")) + "]"
+        )
 
         # bracketed = Group("[" + OneOrMore(Word(printables, " ")) + "]")
         # middle = ~bracketed + OneOrMore(Word(alphas))
         # grammar = year.suppress() + Literal("-").suppress() + middle
-        grammar = year
+        grammar = year_or_iol
 
         temporary_courses = []
         for course in scraped_courses_list:
@@ -1241,7 +1248,8 @@ class User():
             for coursefile, path in needsync:
                 TExec.start(func_runnable(self, self.download_file, course,
                                           path, coursefile, needsync,
-                                          downloadsignal, chunk_size))
+                                          downloadsignal, chunk_size),
+                            QThread.LowPriority)
 
     def download_file(self, course, path, coursefile, needsync, downloadsignal,
                       chunk_size):
