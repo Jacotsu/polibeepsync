@@ -123,7 +123,7 @@ class LoginThread(QThread):
                                exc_info=True)
             self.signal_error.sig.emit('Connection error')
         except requests.Timeout:
-            commonlogger.error(f'Connection timeout error.', exc_info=True)
+            commonlogger.error('Connection timeout error.', exc_info=True)
             self.signal_error.sig.emit('Connection timeout error')
 
 
@@ -1115,12 +1115,19 @@ class User():
                     f"{folder_dict['groupId']}/documenti-e-media",
                     weird_parameters)
             except requests.exceptions.HTTPError:
-                commonlogger.error(
-                    'Can\'t find the documents and media folde of '
-                    f'"{folder_dict["name"]}" , so it won\'t be downloaded',
-                    exc_info=True
-                )
-                return folder
+                try:
+                    response = self.get_page(
+                        "https://beep.metid.polimi.it/web/"
+                        f"{folder_dict['friendly_url']}/documenti-e-media",
+                        weird_parameters)
+                except requests.exceptions.HTTPError:
+                    commonlogger.error(
+                        'Can\'t find the documents and media folde of '
+                        f'"{folder_dict["name"]}" , so it won\'t be '
+                        'downloaded',
+                        exc_info=True
+                    )
+                    return folder
 
             page_tree = etree.HTML(response.text)
             debug_dump_request_response(response, commonlogger)
